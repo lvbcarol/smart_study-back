@@ -3,6 +3,7 @@ import Usuario from '../models/Usuario';
 
 const router = Router();
 
+// Cadastro
 router.post('/cadastro', async function(req: Request, res: Response) {
   const { nomeCompleto, email, senha, confirmarSenha } = req.body;
 
@@ -22,6 +23,27 @@ router.post('/cadastro', async function(req: Request, res: Response) {
     res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso!' });
   } catch (erro) {
     res.status(500).json({ erro: 'Erro ao cadastrar usuário.' });
+  }
+});
+
+// ✅ Login
+router.post('/login', async function(req: Request, res: Response) {
+  const { email, senha } = req.body;
+
+  try {
+    const usuario = await Usuario.findOne({ email });
+
+    if (!usuario) {
+      return res.status(404).json({ erro: 'Usuário não encontrado.' });
+    }
+
+    if (usuario.senha !== senha) {
+      return res.status(401).json({ erro: 'Senha incorreta.' });
+    }
+
+    res.status(200).json({ mensagem: 'Login bem-sucedido!', usuario });
+  } catch (erro) {
+    res.status(500).json({ erro: 'Erro ao realizar login.' });
   }
 });
 
