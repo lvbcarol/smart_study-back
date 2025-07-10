@@ -77,7 +77,7 @@ router.put('/:notebookId/aulas/:index', async (req: Request, res: Response) => {
 });
 
 // Deletar aula
-router.delete('/:notebookId/aulas/:index', async (req: Request, res: Response) => {
+router.delete('/:notebookId/aulas/:index', async function(req: Request, res: Response) {
   try {
     const notebook = await Notebook.findById(req.params.notebookId);
     if (!notebook) return res.status(404).json({ erro: 'Notebook não encontrado.' });
