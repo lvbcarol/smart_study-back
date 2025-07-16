@@ -8,7 +8,23 @@ import usuarioRoutes from './routes/usuario.routes';
 import notebookRoutes from './routes/notebook.routes';
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173", // Add alternative localhost address
+  ],
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Origin",
+    "X-Requested-With",
+    "Accept",
+  ],
+  credentials: true,
+  exposedHeaders: ["Authorization"], // Important for Clerk
+}));
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI!)
