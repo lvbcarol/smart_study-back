@@ -6,12 +6,16 @@ export interface IUsuario extends Document {
   name: string;
   email: string;
   password: string;
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
 }
 
 const UsuarioSchema: Schema = new Schema<IUsuario>({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true, select: false },
+  passwordResetToken: { type: String, select: false },
+  passwordResetExpires: { type: Date, select: false },
 }, {
   timestamps: true
 });
