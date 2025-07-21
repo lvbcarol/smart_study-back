@@ -6,11 +6,15 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import usuarioRoutes from './routes/usuario.routes';
-// import notebookRoutes from './routes/notebook.routes'; // Mantenha se já estiver usando
+import notebookRoutes from './routes/notebook.routes'; 
 
 const app = express();
 app.use(cors()); // A configuração simples é suficiente para desenvolvimento
 app.use(express.json());
+app.use((req, res, next) => {
+  console.log(`[${new Date().toLocaleTimeString()}] REQUISIÇÃO RECEBIDA: ${req.method} ${req.originalUrl}`);
+  next();
+});
 
 // Validação para garantir que a URI do Mongo existe
 if (!process.env.MONGO_URI) {
@@ -24,7 +28,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Usando /api como prefixo para todas as rotas de usuário
 app.use('/api/usuario', usuarioRoutes);
-// app.use('/api/notebooks', notebookRoutes);
+app.use('/api/notebooks', notebookRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));

@@ -1,16 +1,24 @@
 // src/models/Notebook.ts
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Model } from 'mongoose';
 
-interface INotebook extends Document {
-  titulo: string;
-  aulas: string[];
-  usuarioId: mongoose.Types.ObjectId;
+export interface INotebook extends Document {
+  title: string;
+  lessons: { title: string }[];
+  user: mongoose.Schema.Types.ObjectId;
 }
 
-const NotebookSchema = new Schema<INotebook>({
-  titulo: { type: String, required: true },
-  aulas: [{ type: String }],
-  usuarioId: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true }
+const NotebookSchema: Schema = new Schema<INotebook>({
+  title: { type: String, required: true },
+  lessons: [{
+    title: { type: String, required: true }
+  }],
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Usuario',
+    required: true,
+  },
 }, { timestamps: true });
 
-export default mongoose.model<INotebook>('Notebook', NotebookSchema);
+const Notebook: Model<INotebook> = mongoose.model<INotebook>('Notebook', NotebookSchema);
+
+export default Notebook;
