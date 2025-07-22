@@ -7,50 +7,59 @@ interface IChatMessage {
   text: string;
 }
 
-// Interface principal para o documento do Caderno, garantindo a tipagem com TypeScript
+// Interface principal para o documento do Caderno
 export interface INotebook extends Document {
   title: string;
   lessons: { 
     _id: mongoose.Types.ObjectId;
     title: string;
-    chatHistory?: IChatMessage[]; // O histórico do chat é opcional para cada aula
+    chatHistory?: IChatMessage[];
+    quizzAttempts?: { 
+      score: number; 
+      date: Date;
+      mistakes: {
+        question: string;
+        explanation: string;
+      }[];
+    }[];
+    quizzChatHistory?: { sender: 'user' | 'bot'; text: string; quizzOptions?: any }[];
   }[];
-  user: mongoose.Schema.Types.ObjectId; // Referência ao usuário dono do caderno
+  user: mongoose.Schema.Types.ObjectId;
 }
 
-// Schema do Mongoose que será usado pelo banco de dados
+// Schema do Mongoose
 const NotebookSchema: Schema = new Schema<INotebook>({
-  title: { 
-    type: String, 
-    required: true 
-  },
+  title: { type: String, required: true },
   lessons: [{
-    title: { 
-      type: String, 
-      required: true 
-    },
-    // Definindo a estrutura do histórico do chat dentro de cada aula
+    title: { type: String, required: true },
     chatHistory: [{
-      sender: { 
-        type: String, 
-        enum: ['user', 'bot'], // O remetente só pode ser 'user' ou 'bot'
-        required: true 
-      },
-      text: { 
-        type: String, 
-        required: true 
-      },
+      sender: { type: String, enum: ['user', 'bot'], required: true },
+      text: { type: String, required: true },
+    }],
+    quizzAttempts: [{
+      score: { type: Number, required: true },
+      date: { type: Date, default: Date.now },
+      mistakes: [{
+        question: { type: String },
+        explanation: { type: String },
+      }]
+    }],
+    quizzChatHistory: [{
+      sender: { type: String, enum: ['user', 'bot'], required: true },
+      text: { type: String, required: true },
+      quizzOptions: { type: Schema.Types.Mixed }
     }]
   }],
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Usuario', // Cria um vínculo com o modelo 'Usuario'
+    ref: 'Usuario',
     required: true,
   },
 }, { 
-  timestamps: true // Adiciona os campos 'createdAt' e 'updatedAt' automaticamente
+  timestamps: true
 });
 
+// Compila e exporta o modelo
 const Notebook: Model<INotebook> = mongoose.model<INotebook>('Notebook', NotebookSchema);
 
 export default Notebook;
