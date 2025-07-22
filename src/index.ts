@@ -7,6 +7,8 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import usuarioRoutes from './routes/usuario.routes';
 import notebookRoutes from './routes/notebook.routes'; 
+import lessonRoutes from './routes/lesson.routes';
+import aiRoutes from './routes/ai.routes';
 
 const app = express();
 app.use(cors()); // A configuração simples é suficiente para desenvolvimento
@@ -29,6 +31,8 @@ mongoose.connect(process.env.MONGO_URI)
 // Usando /api como prefixo para todas as rotas de usuário
 app.use('/api/usuario', usuarioRoutes);
 app.use('/api/notebooks', notebookRoutes);
+app.use('/api/lessons', lessonRoutes);
+app.use('/api/ai', aiRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
