@@ -1,81 +1,90 @@
 // src/routes/usuario.routes.ts
-import { Router, Request, Response } from 'express';
+import { Router, Request } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Usuario from '../models/Usuario';
+import { authMiddleware } from '../middleware/auth.middleware';
+
+interface AuthRequest extends Request {
+  userId?: string;
+}
 
 const router = Router();
 
-// Rota de Registro - (Agora funcionando, podemos remover os logs extras se quisermos)
-router.post('/register', async (req: Request, res: Response) => {
+// ROTA DE REGISTRO
+router.post('/register', async (req: Request, res) => {
   const { name, email, password } = req.body;
   try {
-    const usuarioExistente = await Usuario.findOne({ email });
-    if (usuarioExistente) {
+    if (await Usuario.findOne({ email })) {
       return res.status(400).json({ error: 'Email já cadastrado.' });
     }
     const usuario = await Usuario.create({ name, email, password });
     (usuario as any).password = undefined;
     res.status(201).json({ message: 'Usuário cadastrado com sucesso!', usuario });
   } catch (error) {
-    console.error('[REGISTER] ERRO NO BLOCO CATCH:', error);
     res.status(500).json({ error: 'Erro ao cadastrar usuário.' });
   }
 });
 
-
-// ROTA DE LOGIN - COM LOGS DE DEPURAÇÃO
-router.post('/login', async (req: Request, res: Response) => {
-  console.log('[LOGIN] Rota iniciada.');
+// ROTA DE LOGIN
+router.post('/login', async (req: Request, res) => {
   const { email, password } = req.body;
-  console.log(`[LOGIN] Tentativa de login para o e-mail: ${email}`);
-
   try {
-    console.log('[LOGIN] Passo 1: Buscando usuário no banco...');
-    // Pede para o banco incluir o campo 'password' que normalmente é oculto
     const usuario = await Usuario.findOne({ email }).select('+password');
-    console.log('[LOGIN] Passo 1.1: Busca no banco concluída.');
-
     if (!usuario) {
-      console.log('[LOGIN] Erro: Usuário não encontrado.');
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
+      return res.status(404).json({ error: 'User not found.' });
     }
-    
-    console.log('[LOGIN] Passo 2: Comparando senhas com bcrypt...');
-    const isMatch = await bcrypt.compare(password, usuario.password);
-    console.log('[LOGIN] Passo 2.1: Comparação de senhas concluída.');
-
-    if (!isMatch) {
-      console.log('[LOGIN] Erro: Senha incorreta.');
-      return res.status(401).json({ error: 'Senha incorreta.' });
+    if (!usuario.password || !(await bcrypt.compare(password, usuario.password))) {
+      return res.status(401).json({ error: 'Invalid password.' });
     }
-
-    console.log('[LOGIN] Passo 3: Gerando token JWT...');
-    const token = jwt.sign({ id: usuario.id }, process.env.JWT_SECRET as string, {
+    usuario.password = undefined;
+    const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET as string, {
       expiresIn: '1d',
     });
-    console.log('[LOGIN] Passo 3.1: Token gerado.');
-
-    (usuario as any).password = undefined;
-
-    console.log('[LOGIN] Passo 4: Enviando resposta de sucesso.');
-    res.status(200).json({ message: 'Login bem-sucedido!', usuario, token });
-    console.log('[LOGIN] Rota finalizada com sucesso.');
-
-  } catch (error) {
-    console.error('[LOGIN] ERRO NO BLOCO CATCH:', error);
-    res.status(500).json({ error: 'Erro ao realizar login.' });
+    res.send({ usuario, token });
+  } catch (err) {
+    res.status(400).send({ error: 'Login failed' });
   }
 });
 
-
-// Suas outras rotas
-router.post('/forgot-password', async (req: Request, res: Response) => {
-    // ... código de forgot-password existente ...
+// ROTAS DE RECUPERAÇÃO DE SENHA
+router.post('/forgot-password', async (req: Request, res) => {
+  // ... (código existente da recuperação de senha)
 });
-router.post('/reset-password', async (req: Request, res: Response) => {
-    // ... código de reset-password existente ...
+router.post('/reset-password', async (req: Request, res) => {
+  // ... (código existente da redefinição de senha)
 });
 
+
+// ROTA GET /me - Busca os dados do usuário logado
+router.get('/me', authMiddleware, async (req: AuthRequest, res) => {
+  try {
+    const user = await Usuario.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch user data.' });
+  }
+});
+
+// ROTA PUT /me - Atualiza as preferências do usuário logado
+router.put('/me', authMiddleware, async (req: AuthRequest, res) => {
+  try {
+    const { language, accessibility } = req.body;
+    const user = await Usuario.findByIdAndUpdate(
+      req.userId,
+      { language, accessibility },
+      { new: true }
+    );
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update preferences.' });
+  }
+});
 
 export default router;
