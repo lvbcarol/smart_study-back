@@ -71,6 +71,10 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res) => {
 
 // ROTA PUT /me - Atualiza as preferências do usuário logado
 router.put('/me', authMiddleware, async (req: AuthRequest, res) => {
+  // ✅ LOGS DE DEPURAÇÃO ADICIONADOS
+  console.log('--- BACKEND: Recebido pedido para atualizar preferências ---');
+  console.log('DADOS RECEBIDOS:', req.body);
+
   try {
     const { language, accessibility } = req.body;
     const user = await Usuario.findByIdAndUpdate(
@@ -81,8 +85,10 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
+    console.log('--- BACKEND: Preferências salvas com sucesso! ---');
     res.json(user);
   } catch (error) {
+    console.error('--- BACKEND: ERRO AO SALVAR PREFERÊNCIAS ---', error);
     res.status(500).json({ error: 'Failed to update preferences.' });
   }
 });
