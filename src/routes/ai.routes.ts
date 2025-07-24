@@ -10,7 +10,11 @@ interface AuthRequest extends Request {
 const router = Router();
 router.use(authMiddleware);
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
+// Verificação da chave de API na inicialização
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY not found in .env file');
+}
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Rota para gerar resumos
 router.post('/summarize', async (req: AuthRequest, res) => {
@@ -48,6 +52,8 @@ router.post('/generate-quizz', async (req: AuthRequest, res) => {
   const { topic, context } = req.body;
   if (!topic) return res.status(400).json({ error: 'Topic is required.' });
 
+  let textFromAI = '';
+
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = `
@@ -62,68 +68,28 @@ router.post('/generate-quizz', async (req: AuthRequest, res) => {
       Topic: "${topic}"
       Course Context: "${context || 'General'}"
     `;
-    const result = await model.generateContent(prompt);
-    let text = result.response.text();
     
-    try {
-      const firstBrace = text.indexOf('{');
-      const lastBrace = text.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace !== -1) {
-        const jsonString = text.substring(firstBrace, lastBrace + 1);
-        const quizzData = JSON.parse(jsonString);
-        return res.json(quizzData);
-      }
-    } catch (e) {
-        console.error('Falha ao parsear JSON da IA, mesmo após limpeza:', e);
-        throw new Error('Invalid JSON response from AI');
+    const result = await model.generateContent(prompt);
+    textFromAI = result.response.text();
+
+    const firstBrace = textFromAI.indexOf('{');
+    const lastBrace = textFromAI.lastIndexOf('}');
+
+    if (firstBrace === -1 || lastBrace === -1) {
+      throw new Error('Valid JSON not found in AI response');
     }
-    throw new Error('Could not find valid JSON in AI response');
-  } catch (error) {
-    console.error('AI Quizz Generation Error:', error);
+    
+    const jsonString = textFromAI.substring(firstBrace, lastBrace + 1);
+    const quizzData = JSON.parse(jsonString);
+    return res.json(quizzData);
+
+  } catch (error: any) {
+    console.error('--- AI QUIZZ GENERATION FAILED ---');
+    console.error('Error Object:', error);
+    console.error('--- RAW RESPONSE FROM AI ---');
+    console.error(textFromAI);
+    console.error('-----------------------------');
     res.status(500).json({ error: 'Failed to generate quizz.' });
-  }
-});
-
-// Rota para analisar o resultado do Quizz
-router.post('/analyze-quizz', async (req: AuthRequest, res) => {
-  const { quizzData, userAnswers } = req.body;
-  if (!quizzData || !userAnswers) {
-    return res.status(400).json({ error: 'Quizz data and user answers are required.' });
-  }
-
-  try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-    const mistakes = quizzData.filter((q: any, index: number) => userAnswers[index] !== q.correctAnswerIndex);
-    
-    if (mistakes.length === 0) {
-      return res.json({ feedback: "Excellent work! You got a perfect score. You have a solid understanding of this topic. Keep up the great work!" });
-    }
-
-    const prompt = `
-      You are "StudyBot", an encouraging AI tutor for university students.
-      A student just finished a quiz and made these mistakes: ${JSON.stringify(mistakes, null, 2)}
-
-      Please provide personalized feedback based on these mistakes. Your response MUST follow this structure exactly:
-      
-      1.  **Start with a positive and encouraging sentence**, like "Great effort on the quiz! Let's review some key concepts to solidify your knowledge."
-      2.  **Mistake Analysis:** For each question they got wrong, briefly and didactically explain the core concept they may have misunderstood. Frame it constructively.
-      3.  **Topics to Review:** Create a bulleted list under the heading "**Key Topics to Review**".
-      4.  **Recommendations for Further Study:** Create another bulleted list under the heading "**Recommended Resources**". Suggest 2-3 specific, real, high-quality resources like textbooks (with author), educational websites (like Khan Academy, Coursera, MIT OpenCourseWare), or YouTube channels that can help with the topics they need to review.
-      
-      Format your entire response using Markdown for readability (headings with ##, bold text with **, and bullet points with *).
-    `;
-
-    console.log('[AI ANALYSIS] Sending final prompt to Google Gemini...');
-    const result = await model.generateContent(prompt);
-    console.log('[AI ANALYSIS] Feedback received from Google Gemini.');
-    
-    const feedback = result.response.text();
-    res.json({ feedback });
-
-  } catch (error) {
-    console.error('AI Quizz Analysis Error:', error);
-    res.status(500).json({ error: 'Failed to generate quizz feedback.' });
   }
 });
 
