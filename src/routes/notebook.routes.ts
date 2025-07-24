@@ -107,4 +107,25 @@ router.put('/:notebookId/lessons/:lessonId', async (req: AuthRequest, res) => {
   }
 });
 
+// ✅ NOVA ROTA: DELETE - Deletar uma aula específica
+router.delete('/:notebookId/lessons/:lessonId', async (req: AuthRequest, res) => {
+  try {
+    const notebook = await Notebook.findOne({ _id: req.params.notebookId, user: req.userId });
+    if (!notebook) {
+      return res.status(404).json({ error: 'Notebook not found.' });
+    }
+
+    // Puxa a aula para fora do array de aulas
+    notebook.lessons.pull({ _id: req.params.lessonId });
+    
+    // Salva o caderno modificado
+    await notebook.save();
+    
+    // Retorna o caderno atualizado para o frontend
+    res.json(notebook);
+  } catch (error) {
+    res.status(400).json({ error: 'Error deleting lesson.' });
+  }
+});
+
 export default router;
