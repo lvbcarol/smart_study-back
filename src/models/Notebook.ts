@@ -7,7 +7,7 @@ interface IChatMessage {
   text: string;
 }
 
-// Interface principal para o documento do Caderno, garantindo a tipagem com TypeScript
+// Interface principal para o documento do Caderno
 export interface INotebook extends Document {
   title: string;
   lessons: { 
@@ -18,13 +18,15 @@ export interface INotebook extends Document {
       attemptNumber: number;
       score: number; 
       date: Date;
+      quizData: any; // Armazena as perguntas originais do quizz
+      userAnswers: (number | null)[]; // Armazena as respostas do usuário
       chatHistory: { 
         sender: 'user' | 'bot'; 
         text: string; 
         quizzOptions?: any 
+        questionIndex?: number;
       }[];
     }[];
-    quizzChatHistory?: { sender: 'user' | 'bot'; text: string; quizzOptions?: any }[];
   }[];
   user: mongoose.Schema.Types.ObjectId; // Referência ao usuário dono do caderno
 }
@@ -55,16 +57,14 @@ const NotebookSchema: Schema = new Schema<INotebook>({
       attemptNumber: { type: Number, required: true },
       score: { type: Number, required: true },
       date: { type: Date, default: Date.now },
+      quizData: { type: Schema.Types.Mixed, required: true },
+      userAnswers: { type: [Schema.Types.Mixed], required: true },
       chatHistory: [{
         sender: { type: String, enum: ['user', 'bot'], required: true },
         text: { type: String, required: true },
-        quizzOptions: { type: Schema.Types.Mixed }
+        quizzOptions: { type: Schema.Types.Mixed },
+        questionIndex: { type: Number }
       }]
-    }],
-    quizzChatHistory: [{
-      sender: { type: String, enum: ['user', 'bot'], required: true },
-      text: { type: String, required: true },
-      quizzOptions: { type: Schema.Types.Mixed }
     }]
   }],
   user: {
