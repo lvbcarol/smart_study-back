@@ -18,13 +18,18 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Rota para gerar resumos
 router.post('/summarize', async (req: AuthRequest, res) => {
-  const { topic, context } = req.body;
+  const { topic, context, language } = req.body;
   if (!topic) return res.status(400).json({ error: 'Topic is required.' });
 
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const langInstruction = language === 'pt' 
+      ? 'Your entire response MUST be in Brazilian Portuguese.'
+      : 'Your entire response MUST be in English.';
+      
     const prompt = `
       You are "StudyBot", a friendly and didactic AI tutor for university students.
+      ${langInstruction}
       Your personality is encouraging and supportive.
       A student has asked for a summary of the following topic. Please provide a response that follows all these rules:
       1.  **Tone**: Be friendly and didactic. Your goal is to make complex topics easy to understand.
@@ -49,15 +54,21 @@ router.post('/summarize', async (req: AuthRequest, res) => {
 
 // Rota para gerar o Quizz
 router.post('/generate-quizz', async (req: AuthRequest, res) => {
-  const { topic, context } = req.body;
+  const { topic, context, language } = req.body;
   if (!topic) return res.status(400).json({ error: 'Topic is required.' });
 
   let textFromAI = '';
 
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const langInstruction = language === 'pt'
+      ? 'All text content in your JSON response (questions, options, explanations) MUST be in Brazilian Portuguese.'
+      : 'All text content in your JSON response (questions, options, explanations) MUST be in English.';
+
     const prompt = `
-      You are an expert academic tutor. Based on the following topic, generate a challenging 8-question multiple-choice quiz for a university student.
+      You are an expert academic tutor.
+      ${langInstruction}
+      Based on the following topic, generate a challenging 8-question multiple-choice quiz for a university student.
       Your response MUST be a valid JSON object only, without any surrounding text or markdown markers.
       The JSON object must have a single key "quizz" which is an array of 8 question objects.
       Each question object must have these exact keys:
@@ -69,12 +80,9 @@ router.post('/generate-quizz', async (req: AuthRequest, res) => {
       Course Context: "${context || 'General'}"
     `;
     
-    console.log(`[AI QUIZZ] Sending prompt to Google Gemini about the topic: ${topic}`);
     const result = await model.generateContent(prompt);
-    console.log('[AI QUIZZ] Received response from Google Gemini.');
     textFromAI = result.response.text();
 
-    // Tenta extrair e converter o JSON da resposta da IA
     const firstBrace = textFromAI.indexOf('{');
     const lastBrace = textFromAI.lastIndexOf('}');
 
@@ -98,7 +106,7 @@ router.post('/generate-quizz', async (req: AuthRequest, res) => {
 
 // Rota para analisar o resultado do Quizz
 router.post('/analyze-quizz', async (req: AuthRequest, res) => {
-  const { quizzData, userAnswers } = req.body;
+  const { quizzData, userAnswers, language } = req.body;
   if (!quizzData || !userAnswers) {
     return res.status(400).json({ error: 'Quizz data and user answers are required.' });
   }
@@ -108,11 +116,19 @@ router.post('/analyze-quizz', async (req: AuthRequest, res) => {
     const mistakes = quizzData.filter((q: any, index: number) => userAnswers[index] !== q.correctAnswerIndex);
     
     if (mistakes.length === 0) {
-      return res.json({ feedback: "Excellent work! You got a perfect score. You have a solid understanding of this topic. Keep up the great work!" });
+      const successMessage = language === 'pt'
+        ? "Excelente trabalho! Você acertou tudo. Você tem um ótimo entendimento deste tópico. Continue assim!"
+        : "Excellent work! You got a perfect score. You have a solid understanding of this topic. Keep up the great work!";
+      return res.json({ feedback: successMessage });
     }
+
+    const langInstruction = language === 'pt'
+      ? 'Your entire response MUST be in Brazilian Portuguese.'
+      : 'Your entire response MUST be in English.';
 
     const prompt = `
       You are "StudyBot", an encouraging AI tutor for university students.
+      ${langInstruction}
       A student just finished a quiz and made these mistakes: ${JSON.stringify(mistakes, null, 2)}
 
       Please provide personalized feedback based on these mistakes. Your response MUST follow this structure exactly:
@@ -125,10 +141,7 @@ router.post('/analyze-quizz', async (req: AuthRequest, res) => {
       Format your entire response using Markdown for readability (headings with ##, bold text with **, and bullet points with *).
     `;
 
-    console.log('[AI ANALYSIS] Sending final prompt to Google Gemini...');
     const result = await model.generateContent(prompt);
-    console.log('[AI ANALYSIS] Feedback received from Google Gemini.');
-    
     const feedback = result.response.text();
     res.json({ feedback });
 
