@@ -1,4 +1,3 @@
-// src/routes/lesson.routes.ts
 import { Router, Request } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
 import Notebook from '../models/Notebook';
@@ -14,16 +13,19 @@ router.use(authMiddleware);
 router.get('/:lessonId', async (req: AuthRequest, res) => {
   try {
     const notebook = await Notebook.findOne({ 'lessons._id': req.params.lessonId, user: req.userId })
-                                     .select('title lessons._id lessons.title lessons.quizzAttempts lessons.chatHistory');
+                                      .select('title lessons._id lessons.title lessons.quizzAttempts lessons.chatHistory');
 
     if (!notebook) return res.status(404).json({ error: 'Lesson not found.' });
-    const lesson = notebook.lessons.id(req.params.lessonId);
     
+    const lesson = notebook.lessons.find(l => l._id.toString() === req.params.lessonId);
+    
+    if (!lesson) return res.status(404).json({ error: 'Lesson not found within the notebook.' });
+
     res.json({
       notebookTitle: notebook.title,
-      lessonTitle: lesson?.title,
-      quizzAttempts: lesson?.quizzAttempts || [],
-      chatHistory: lesson?.chatHistory || []
+      lessonTitle: lesson.title,
+      quizzAttempts: lesson.quizzAttempts || [],
+      chatHistory: lesson.chatHistory || []
     });
   } catch (error) {
     res.status(500).json({ error: 'Error fetching lesson details.' });
@@ -37,13 +39,22 @@ router.post('/:lessonId/quizz-attempts', async (req: AuthRequest, res) => {
     const notebook = await Notebook.findOne({ 'lessons._id': req.params.lessonId, user: req.userId });
     if (!notebook) return res.status(404).json({ error: 'Lesson not found.' });
 
-    const lesson = notebook.lessons.id(req.params.lessonId);
+    const lesson = notebook.lessons.find(l => l._id.toString() === req.params.lessonId);
     if (!lesson) return res.status(404).json({ error: 'Lesson not found.' });
 
     lesson.quizzAttempts = lesson.quizzAttempts || [];
     const attemptNumber = lesson.quizzAttempts.length + 1;
 
-    lesson.quizzAttempts.push({ score, chatHistory, quizData, userAnswers, attemptNumber });
+    // ✅ CORREÇÃO AQUI: Adiciona a propriedade 'date' para satisfazer a tipagem do TypeScript.
+    lesson.quizzAttempts.push({ 
+        score, 
+        chatHistory, 
+        quizData, 
+        userAnswers, 
+        attemptNumber, 
+        date: new Date() 
+    });
+    
     await notebook.save();
     
     res.status(201).json({ message: 'Quizz attempt saved successfully.' });
@@ -59,8 +70,10 @@ router.put('/:lessonId/chat', async (req: AuthRequest, res) => {
   try {
     const notebook = await Notebook.findOne({ 'lessons._id': req.params.lessonId, user: req.userId });
     if (!notebook) return res.status(404).json({ error: 'Lesson not found.' });
-    const lesson = notebook.lessons.id(req.params.lessonId);
+
+    const lesson = notebook.lessons.find(l => l._id.toString() === req.params.lessonId);
     if (!lesson) return res.status(404).json({ error: 'Lesson not found.' });
+    
     lesson.chatHistory = messages;
     await notebook.save();
     res.status(200).json({ message: 'Conversation saved successfully.' });
