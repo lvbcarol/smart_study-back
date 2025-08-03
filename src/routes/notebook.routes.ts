@@ -1,4 +1,3 @@
-// src/routes/notebook.routes.ts
 import { Router, Request } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
 import Notebook from '../models/Notebook';
@@ -74,14 +73,15 @@ router.post('/:notebookId/lessons', async (req: AuthRequest, res) => {
         const { title } = req.body;
         const notebook = await Notebook.findOne({ _id: req.params.notebookId, user: req.userId });
         if (!notebook) return res.status(404).json({ error: 'Notebook not found.' });
+        
+        // O Mongoose adicionará o _id automaticamente, então não precisamos criá-lo aqui.
         const newLesson = { 
-            _id: new mongoose.Types.ObjectId(), 
             title, 
             chatHistory: [], 
-            quizzChatHistory: [], 
             quizzAttempts: [] 
         };
-        notebook.lessons.push(newLesson as any);
+        
+        notebook.lessons.push(newLesson as any); // Usamos 'as any' para contornar a tipagem estrita aqui, pois o Mongoose lidará com a estrutura.
         await notebook.save();
         res.json(notebook);
     } catch (error) {
@@ -96,7 +96,8 @@ router.put('/:notebookId/lessons/:lessonId', async (req: AuthRequest, res) => {
     const notebook = await Notebook.findOne({ _id: req.params.notebookId, user: req.userId });
     if (!notebook) return res.status(404).json({ error: 'Notebook not found.' });
 
-    const lesson = notebook.lessons.id(req.params.lessonId);
+    // ✅ CORREÇÃO: Substitui o .id() do Mongoose pelo .find() do JavaScript.
+    const lesson = notebook.lessons.find(l => l._id.toString() === req.params.lessonId);
     if (!lesson) return res.status(404).json({ error: 'Lesson not found.' });
 
     lesson.title = title;
@@ -107,7 +108,7 @@ router.put('/:notebookId/lessons/:lessonId', async (req: AuthRequest, res) => {
   }
 });
 
-// ✅ NOVA ROTA: DELETE - Deletar uma aula específica
+// DELETE: Deletar uma aula específica
 router.delete('/:notebookId/lessons/:lessonId', async (req: AuthRequest, res) => {
   try {
     const notebook = await Notebook.findOne({ _id: req.params.notebookId, user: req.userId });
@@ -115,8 +116,11 @@ router.delete('/:notebookId/lessons/:lessonId', async (req: AuthRequest, res) =>
       return res.status(404).json({ error: 'Notebook not found.' });
     }
 
-    // Puxa a aula para fora do array de aulas
-    notebook.lessons.pull({ _id: req.params.lessonId });
+    // ✅ CORREÇÃO: Substitui o .pull() do Mongoose pelo .filter() do JavaScript.
+    // Isso cria um novo array contendo todas as aulas, exceto a que deve ser deletada.
+    notebook.lessons = notebook.lessons.filter(
+      lesson => lesson._id.toString() !== req.params.lessonId
+    );
     
     // Salva o caderno modificado
     await notebook.save();

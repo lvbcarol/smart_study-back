@@ -1,4 +1,3 @@
-// src/routes/usuario.routes.ts
 import { Router, Request } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -19,8 +18,12 @@ router.post('/register', async (req: Request, res) => {
       return res.status(400).json({ error: 'Email já cadastrado.' });
     }
     const usuario = await Usuario.create({ name, email, password });
-    (usuario as any).password = undefined;
-    res.status(201).json({ message: 'Usuário cadastrado com sucesso!', usuario });
+
+    // ✅ CORREÇÃO: Usa desestruturação para criar um novo objeto sem a senha.
+    // Pega a propriedade 'password' e coloca o resto (rest) em 'usuarioSemSenha'.
+    const { password: _, ...usuarioSemSenha } = usuario.toObject();
+
+    res.status(201).json({ message: 'Usuário cadastrado com sucesso!', usuario: usuarioSemSenha });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao cadastrar usuário.' });
   }
@@ -37,11 +40,15 @@ router.post('/login', async (req: Request, res) => {
     if (!usuario.password || !(await bcrypt.compare(password, usuario.password))) {
       return res.status(401).json({ error: 'Invalid password.' });
     }
-    usuario.password = undefined;
+    
+    // ✅ CORREÇÃO: Usa a mesma técnica de desestruturação aqui.
+    const { password: _, ...usuarioSemSenha } = usuario.toObject();
+
     const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET as string, {
       expiresIn: '1d',
     });
-    res.send({ usuario, token });
+    
+    res.send({ usuario: usuarioSemSenha, token });
   } catch (err) {
     res.status(400).send({ error: 'Login failed' });
   }
@@ -71,7 +78,6 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res) => {
 
 // ROTA PUT /me - Atualiza as preferências do usuário logado
 router.put('/me', authMiddleware, async (req: AuthRequest, res) => {
-  // ✅ LOGS DE DEPURAÇÃO ADICIONADOS
   console.log('--- BACKEND: Recebido pedido para atualizar preferências ---');
   console.log('DADOS RECEBIDOS:', req.body);
 
