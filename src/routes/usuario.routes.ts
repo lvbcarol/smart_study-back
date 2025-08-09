@@ -82,7 +82,7 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res) => {
   console.log('DADOS RECEBIDOS:', req.body);
 
   try {
-    const { language, accessibility } = req.body;
+    const { language, accessibility} = req.body;
     const user = await Usuario.findByIdAndUpdate(
       req.userId,
       { language, accessibility },
