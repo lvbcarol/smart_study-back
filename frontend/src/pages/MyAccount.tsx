@@ -1,159 +1,222 @@
-// src/pages/MyAccount.tsx
-import React, { useEffect, useState } from 'react';
+// src/pages/MyAccount.tsx — Perfil: conta, aparência (tema/paleta/texto), idioma, acessibilidade, senha
+import React, { useEffect, useRef, useState } from 'react';
+import { Check, Monitor, Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useAccessibility } from '../context/AccessibilityContext';
-import api from '../services/api';
-import Navbar from '../components/Navbar';
-import ToggleSwitch from '../components/ui/ToggleSwitch';
-import Button from '../components/ui/Button';
 import toast from 'react-hot-toast';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { PALETTES } from '../theme/palettes';
+import type { ThemeMode } from '../types';
+import { Button } from '../components/ds/Button';
+import { Field } from '../components/ds/Field';
+import { Badge, Switch } from '../components/ds/Misc';
+import { PageHeader } from '../components/ds/PageParts';
+import { cn } from '@/lib/utils';
 
+const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
+  <section className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+    <h2 className="text-xl font-bold">{title}</h2>
+    {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+    <div className="mt-5 space-y-5">{children}</div>
+  </section>
+);
 
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  language: 'en-US' | 'pt-BR';
-  accessibility: {
-    audioDescription: boolean;
-    signLanguage: boolean;
-  };
-}
+const Choice: React.FC<{ checked: boolean; onSelect: () => void; label: string; children?: React.ReactNode; className?: string }> = ({
+  checked, onSelect, label, children, className,
+}) => (
+  <button
+    type="button" role="radio" aria-checked={checked} aria-label={label} onClick={onSelect}
+    className={cn(
+      'relative rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+      checked ? 'border-primary bg-accent text-accent-foreground' : 'border-border bg-card hover:bg-secondary',
+      className
+    )}
+  >
+    {children}
+    {checked && <Check className="absolute right-2.5 top-2.5 h-4 w-4 text-primary" aria-hidden="true" />}
+  </button>
+);
 
 const MyAccount: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const { setSignLanguageEnabled, setAudioEnabled } = useAccessibility(); 
-  const [user, setUser] = useState<User | null>(null);
-  const [initialSettings, setInitialSettings] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  
+  const { user, savePreferences } = useAuth();
+  const { mode, palette, fontScale, resolvedMode, setMode, setPalette, setFontScale } = useTheme();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await api.get('/usuario/me');
-        setUser(response.data);
-        setInitialSettings(JSON.stringify(response.data)); 
-        i18n.changeLanguage(response.data.language.split('-')[0]);
-        setSignLanguageEnabled(response.data.accessibility.signLanguage);
-        setAudioEnabled(response.data.accessibility.audioDescription);
-      } catch (error) {
-        toast.error("Failed to load user data.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUserData();
-  }, [i18n, setSignLanguageEnabled, setAudioEnabled]);
+  const [name, setName] = useState(user?.name ?? '');
+  const [language, setLanguage] = useState(user?.language ?? 'pt-BR');
+  const [audio, setAudio] = useState(user?.accessibility.audioDescription ?? false);
+  const [sign, setSign] = useState(user?.accessibility.signLanguage ?? false);
+  const [saving, setSaving] = useState(false);
 
-  const handleAccessibilityChange = (field: keyof User['accessibility'], value: boolean) => {
-    
-    if (!user) return;
-    setUser(prevUser => ({
-        ...prevUser!,
-        accessibility: { ...prevUser!.accessibility, [field]: value },
-    }));
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+
+  const dirty = !!user && (
+    name.trim() !== user.name || language !== user.language ||
+    audio !== user.accessibility.audioDescription || sign !== user.accessibility.signLanguage ||
+    mode !== user.theme || palette !== user.palette || fontScale !== user.fontScale
+  );
+
+  // Se sair da página sem salvar, a pré-visualização volta para o que está salvo
+  const latest = useRef({ user, dirty });
+  latest.current = { user, dirty };
+  useEffect(() => () => {
+    const { user: u, dirty: d } = latest.current;
+    if (u && d) {
+      setMode(u.theme);
+      setPalette(u.palette as typeof palette);
+      setFontScale(u.fontScale);
+      i18n.changeLanguage(u.language.split('-')[0]);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!user) return null;
+
+  const discard = () => {
+    setName(user.name);
+    setLanguage(user.language);
+    setAudio(user.accessibility.audioDescription);
+    setSign(user.accessibility.signLanguage);
+    setMode(user.theme);
+    setPalette(user.palette as typeof palette);
+    setFontScale(user.fontScale);
+    i18n.changeLanguage(user.language.split('-')[0]);
   };
-  
-  const handleLanguageChange = (lang: 'en-US' | 'pt-BR') => {
-    
-    if (!user) return;
-    setUser({ ...user, language: lang });
-    i18n.changeLanguage(lang.split('-')[0]);
-  };
 
-  const handleSaveChanges = async () => {
-    if (!user) return;
-    const loadingToast = toast.loading('Saving...');
+  const save = async () => {
+    setSaving(true);
     try {
-      const settingsToSave = {
-        language: user.language,
-        accessibility: user.accessibility,
-      };
-      await api.put('/usuario/me', settingsToSave);
-      
-      setSignLanguageEnabled(user.accessibility.signLanguage);
-      setAudioEnabled(user.accessibility.audioDescription);
-      
-      setInitialSettings(JSON.stringify(user));
-      toast.dismiss(loadingToast);
-      toast.success(t('myAccount.preferencesSaved'));
-    } catch (error) {
-      toast.dismiss(loadingToast);
-      toast.error('Failed to save preferences.');
+      await savePreferences({
+        name: name.trim(), language, theme: mode, palette, fontScale,
+        accessibility: { audioDescription: audio, signLanguage: sign },
+      });
+      toast.success(t('profile.saved'));
+    } catch {
+      toast.error(t('profile.saveError'));
+    } finally {
+      setSaving(false);
     }
   };
 
-  const hasChanges = user ? JSON.stringify(user) !== initialSettings : false;
-  const backgroundStyle = { background: 'linear-gradient(135deg, #1e0a3c 0%, #2A0E46 100%)' };
+  const changePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwSaving(true);
+    try {
+      await api.put('/usuario/me/password', { currentPassword, newPassword });
+      toast.success(t('profile.passwordUpdated'));
+      setCurrentPassword('');
+      setNewPassword('');
+    } catch {
+      toast.error(t('profile.passwordError'));
+    } finally {
+      setPwSaving(false);
+    }
+  };
 
-  if (isLoading) {
-    return (
-        <div style={backgroundStyle} className="min-h-screen">
-            <Navbar />
-            <div className="text-white text-center p-8">Loading Account...</div>
-        </div>
-    );
-  }
+  const modes: { id: ThemeMode; label: string; icon: React.ReactNode }[] = [
+    { id: 'light', label: t('profile.modeLight'), icon: <Sun className="h-5 w-5" aria-hidden="true" /> },
+    { id: 'dark', label: t('profile.modeDark'), icon: <Moon className="h-5 w-5" aria-hidden="true" /> },
+    { id: 'system', label: t('profile.modeSystem'), icon: <Monitor className="h-5 w-5" aria-hidden="true" /> },
+  ];
 
   return (
-    <div style={backgroundStyle} className="min-h-screen">
-      <Navbar />
-      <main className="container mx-auto p-4 md:p-8">
-        <div className="max-w-2xl mx-auto space-y-8">
-          <h1 className="text-4xl font-bold text-white text-center">
-            {t('myAccount.welcome', { name: user?.name.split(' ')[0] })}
-          </h1>
+    <div className="mx-auto max-w-3xl space-y-6 pb-24">
+      <PageHeader title={t('profile.title')} subtitle={t('profile.subtitle')} />
 
-          <div className="bg-white text-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold border-b pb-2 mb-4">{t('myAccount.accountInfo')}</h2>
-            <div className="space-y-2">
-              <p><strong>{t('myAccount.fullName')}:</strong> {user?.name}</p>
-              <p><strong>{t('myAccount.email')}:</strong> {user?.email}</p>
-            </div>
-          </div>
-
-          <div className="bg-white text-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold border-b pb-2 mb-4">{t('myAccount.languageSettings')}</h2>
-            <div className="flex gap-4">
-              {/* ✅ 3. Adiciona os eventos de som aos botões de idioma */}
-              <button 
-                
-                onClick={() => handleLanguageChange('en-US')} 
-                className={`p-4 rounded-lg flex-1 text-center font-bold transition ${user?.language === 'en-US' ? 'bg-purple-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-              >
-                ENG-USA
-              </button>
-              <button 
-                
-                onClick={() => handleLanguageChange('pt-BR')} 
-                className={`p-4 rounded-lg flex-1 text-center font-bold transition ${user?.language === 'pt-BR' ? 'bg-purple-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-              >
-                PT-BR
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white text-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold border-b pb-2 mb-4">{t('myAccount.accessibility')}</h2>
-            <div className="space-y-4">
-              {/* Os toggles já tocam som de clique através da função 'handleAccessibilityChange' */}
-              <ToggleSwitch label={t('myAccount.audioDescription')} enabled={user?.accessibility.audioDescription || false} onChange={(val) => handleAccessibilityChange('audioDescription', val)} />
-              <ToggleSwitch label={t('myAccount.signLanguage')} enabled={user?.accessibility.signLanguage || false} onChange={(val) => handleAccessibilityChange('signLanguage', val)} />
-            </div>
-            <p className="text-xs text-gray-500 mt-4 pt-4 border-t">
-              {t('myAccount.accessibilityHelpText')}
-            </p>
-          </div>
-          
-          <div className="flex justify-end">
-            {/* O componente Button já tem som, não precisa mexer */}
-            <Button onClick={handleSaveChanges} disabled={!hasChanges}>
-              {t('myAccount.saveChanges')}
-            </Button>
+      <Section title={t('profile.account')}>
+        <div className="flex items-center gap-4">
+          <span aria-hidden="true" className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">
+            {user.name.charAt(0).toUpperCase()}
+          </span>
+          <div>
+            <p className="font-semibold">{user.email}</p>
+            <Badge variant="primary">{user.role === 'teacher' ? t('profile.roleTeacher') : t('profile.roleStudent')}</Badge>
           </div>
         </div>
-      </main>
+        <Field label={t('profile.name')} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+      </Section>
+
+      <Section title={t('profile.appearance')} description={t('profile.appearanceDesc')}>
+        <div role="radiogroup" aria-label={t('profile.mode')} className="grid grid-cols-3 gap-3">
+          {modes.map((m) => (
+            <Choice key={m.id} checked={mode === m.id} onSelect={() => setMode(m.id)} label={m.label}>
+              <span className="flex flex-col items-center gap-1.5 py-1 text-sm font-semibold">{m.icon}{m.label}</span>
+            </Choice>
+          ))}
+        </div>
+
+        <div>
+          <p className="mb-2 text-sm font-medium">{t('profile.palette')}</p>
+          <div role="radiogroup" aria-label={t('profile.palette')} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {PALETTES.map((p) => (
+              <Choice key={p.id} checked={palette === p.id} onSelect={() => setPalette(p.id)} label={t('profile.paletteOption', { name: p.name })}>
+                <span className="flex items-center gap-1.5" aria-hidden="true">
+                  {[p[resolvedMode].primary, p[resolvedMode].accent, p[resolvedMode].charts[1], p[resolvedMode].charts[2]].map((c, i) => (
+                    <span key={i} className="h-5 w-5 rounded-full border border-border" style={{ backgroundColor: c }} />
+                  ))}
+                </span>
+                <span className="mt-2 block font-semibold">{p.name}</span>
+                <span className={cn('block text-xs', palette === p.id ? '' : 'text-muted-foreground')}>{p.description}</span>
+              </Choice>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="font-scale" className="mb-2 block text-sm font-medium">{t('profile.textSize')}</label>
+          <div className="flex items-center gap-3">
+            <span aria-hidden="true" className="text-sm">A</span>
+            <input
+              id="font-scale" type="range" min={0.85} max={1.4} step={0.05} value={fontScale}
+              onChange={(e) => setFontScale(Number(e.target.value))}
+              aria-valuetext={`${Math.round(fontScale * 100)}%`}
+              className="w-full accent-[hsl(var(--primary))]"
+            />
+            <span aria-hidden="true" className="text-2xl">A</span>
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">{t('profile.textSizeSample')}</p>
+        </div>
+      </Section>
+
+      <Section title={t('profile.language')}>
+        <div role="radiogroup" aria-label={t('profile.language')} className="grid grid-cols-2 gap-3">
+          {([['pt-BR', 'Português (BR)'], ['en-US', 'English (US)']] as const).map(([id, label]) => (
+            <Choice
+              key={id} checked={language === id} label={label}
+              onSelect={() => { setLanguage(id); i18n.changeLanguage(id.split('-')[0]); }}
+            >
+              <span className="font-semibold">{label}</span>
+            </Choice>
+          ))}
+        </div>
+      </Section>
+
+      <Section title={t('profile.accessibility')} description={t('myAccount.accessibilityHelpText')}>
+        <Switch label={t('myAccount.audioDescription')} checked={audio} onCheckedChange={setAudio} />
+        <Switch label={t('myAccount.signLanguage')} checked={sign} onCheckedChange={setSign} />
+      </Section>
+
+      <Section title={t('profile.changePassword')}>
+        <form onSubmit={changePassword} className="space-y-4">
+          <Field label={t('profile.currentPassword')} type="password" autoComplete="current-password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+          <Field label={t('profile.newPassword')} type="password" autoComplete="new-password" hint={t('auth.passwordHint')} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
+          <Button type="submit" variant="outline" loading={pwSaving}>{t('profile.updatePassword')}</Button>
+        </form>
+      </Section>
+
+      {dirty && (
+        <div role="region" aria-label={t('profile.unsaved')} className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur">
+          <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-medium">{t('profile.unsaved')}</p>
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={discard} disabled={saving}>{t('profile.discard')}</Button>
+              <Button onClick={save} loading={saving}>{t('profile.save')}</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

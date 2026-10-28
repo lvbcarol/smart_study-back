@@ -1,22 +1,16 @@
 // src/pages/TermsOfUse.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar'; // Importando a Navbar para consistência
-import { FaArrowLeft } from 'react-icons/fa';
+import { ArrowLeft } from 'lucide-react';
 
 const TermsOfUse: React.FC = () => {
-  const backgroundStyle = { background: 'linear-gradient(135deg, #1e0a3c 0%, #2A0E46 100%)' };
-
   return (
-    <div style={backgroundStyle} className="min-h-screen text-white">
-      <Navbar />
-      <main className="container mx-auto p-4 md:p-8">
-        <div className="bg-white text-gray-800 p-8 md:p-12 rounded-lg shadow-2xl max-w-4xl mx-auto">
-          
-          <h1 className="text-4xl font-bold mb-2">Terms of Use</h1>
-          <p className="text-gray-500 mb-8">Last Updated: 2025-07-07</p>
+    <div className="mx-auto max-w-3xl">
+      <article className="rounded-2xl border border-border bg-card p-6 shadow-soft md:p-10">
+        <h1 className="mb-2 text-4xl font-extrabold tracking-tight">Terms of Use</h1>
+        <p className="mb-8 text-muted-foreground">Last Updated: 2025-07-07</p>
 
-          <div className="space-y-6 prose max-w-none">
+          <div className="prose prose-themed max-w-none space-y-6">
             <p>Welcome to Smart Study! These Terms of Use ("Terms") govern your access to and use of our website, services, and applications (collectively, the "Service"). Please read these Terms carefully before using our Service.</p>
             <p>By accessing or using the Service, you agree to be bound by these Terms.</p>
 
@@ -63,17 +57,15 @@ const TermsOfUse: React.FC = () => {
             <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. We will provide at least 30 days' notice prior to any new terms taking effect. By continuing to access or use our Service after those revisions become effective, you agree to be bound by the revised terms.</p>
 
             <h2 className="text-2xl font-bold pt-4 border-t mt-8">11. Contact Us</h2>
-            <p>If you have any questions about these Terms, please contact us at: <a href="mailto:smartstudywebsite@gmail.com" className="text-purple-600 hover:underline">smartstudywebsite@gmail.com</a>.</p>
+            <p>If you have any questions about these Terms, please contact us at: <a href="mailto:smartstudywebsite@gmail.com" className="text-primary hover:underline">smartstudywebsite@gmail.com</a>.</p>
           </div>
 
           <div className="mt-12 text-center">
-            <Link to="/register" className="text-purple-600 hover:underline inline-flex items-center gap-2">
-              <FaArrowLeft /> Back to Register
+            <Link to="/register" className="inline-flex items-center gap-2 font-medium text-primary hover:underline">
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to Register
             </Link>
           </div>
-
-        </div>
-      </main>
+      </article>
     </div>
   );
 };

@@ -1,47 +1,46 @@
 // src/pages/ForgotPassword.tsx
 import React, { useState } from 'react';
-import axios from 'axios';
-import { API_URL } from '../services/api';
-import toast from 'react-hot-toast';
-import Input from '../components/ui/Input';
-import Button from '../components/ui/Button';
 import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
+import api from '../services/api';
+import { Button } from '../components/ds/Button';
+import { Field } from '../components/ds/Field';
 
-const ForgotPassword = () => {
-    const [email, setEmail] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+const ForgotPassword: React.FC = () => {
+  const { t } = useTranslation();
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        try {
-            await axios.post(`${API_URL}/usuario/forgot-password`, { email });
-            toast.success('Se o e-mail existir em nossa base, um link de recuperação será enviado!');
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.error || 'Ocorreu um erro.';
-            toast.error(errorMessage);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await api.post('/usuario/forgot-password', { email });
+      toast.success(t('auth.forgotSent'));
+    } catch (error: any) {
+      toast.error(error.response?.status === 501 ? t('auth.forgotUnavailable') : error.response?.data?.error || t('auth.genericError'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return (
-        <div className="min-h-screen bg-brand-purple flex items-center justify-center p-4">
-            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
-                <h2 className="text-2xl font-bold text-center mb-6">Recuperar Senha</h2>
-                <p className="text-center text-gray-600 mb-6">Digite seu e-mail e enviaremos um link para você redefinir sua senha.</p>
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <Input id="email" label="email" type="email" placeholder="Digite seu e-mail" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                    <Button type="submit" variant="primary" disabled={isLoading}>
-                        {isLoading ? 'Enviando...' : 'Enviar Link de Recuperação'}
-                    </Button>
-                </form>
-                <div className="text-center mt-6">
-                    <Link to="/login" className="text-sm text-gray-600 hover:text-brand-primary hover:underline">&larr; Voltar para o Login</Link>
-                </div>
-            </div>
-        </div>
-    );
+  return (
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-extrabold tracking-tight">{t('auth.forgotTitle')}</h1>
+        <p className="text-muted-foreground">{t('auth.forgotDesc')}</p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <Field label={t('auth.email')} type="email" autoComplete="email" placeholder={t('auth.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
+        <Button type="submit" size="lg" fullWidth loading={isLoading}>{isLoading ? t('auth.sending') : t('auth.sendLink')}</Button>
+      </form>
+      <Link to="/login" className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t('auth.backToLogin')}
+      </Link>
+    </div>
+  );
 };
 
 export default ForgotPassword;

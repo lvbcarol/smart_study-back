@@ -9,8 +9,6 @@ export default {
   theme: {
   	extend: {
   		colors: {
-  			'brand-purple': '#2A0E46',
-  			'brand-primary': '#5B21B6',
   			background: 'hsl(var(--background) / <alpha-value>)',
   			foreground: 'hsl(var(--foreground) / <alpha-value>)',
   			card: {
@@ -53,6 +51,9 @@ export default {
   				'4': 'hsl(var(--chart-4) / <alpha-value>)',
   				'5': 'hsl(var(--chart-5) / <alpha-value>)'
   			}
+  		},
+  		letterSpacing: {
+  			tight: '-0.015em'
   		},
   		fontFamily: {
   			sans: ['"Inter Variable"', 'ui-sans-serif', 'system-ui', 'sans-serif'],

@@ -1,99 +1,56 @@
 // src/pages/SubjectPage.tsx
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { BookOpen, ListChecks } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
-import Navbar from '../components/Navbar';
-import FeatureCard from '../components/FeatureCard';
-import { FaArrowLeft } from 'react-icons/fa';
-
+import { Badge, Skeleton } from '../components/ds/Misc';
+import { BackLink, FeatureTile } from '../components/ds/PageParts';
 
 interface SubjectDetails {
   notebookTitle: string;
   lessonTitle: string;
+  readOnly?: boolean;
 }
 
 const SubjectPage: React.FC = () => {
   const { t } = useTranslation();
   const { lessonId } = useParams<{ lessonId: string }>();
-  const navigate = useNavigate();
-  
   const [details, setDetails] = useState<SubjectDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!lessonId) return;
-    
-    const fetchDetails = async () => {
-      try {
-        const response = await api.get(`/lessons/${lessonId}`);
-        setDetails(response.data);
-      } catch (error) {
-        console.error("Error fetching lesson details:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchDetails();
+    api.get(`/lessons/${lessonId}`)
+      .then((response) => setDetails(response.data))
+      .catch((error) => console.error('Error fetching lesson details:', error))
+      .finally(() => setIsLoading(false));
   }, [lessonId]);
-  
-  const features = [
-    { tag: '#one', title: t('subject.summaryTitle'), description: t('subject.summaryDesc'), to: `/summary/${lessonId}` },
-    { tag: '#two', title: t('subject.quizzTitle'), description: t('subject.quizzDesc'), to: `/quizz/${lessonId}` },
-  ];
-
-  const backgroundStyle = { background: 'linear-gradient(135deg, #1e0a3c 0%, #2A0E46 100%)' };
 
   return (
-    <div style={backgroundStyle} className="min-h-screen text-white">
-      <Navbar />
-      <main className="container mx-auto p-4 md:p-8">
-        {isLoading ? (
-          <div className="text-center text-xl mt-16">Loading subject details...</div>
-        ) : (
-          <>
-            <div className="flex justify-end mb-12">
-              <div className="bg-white text-gray-800 font-semibold py-2 px-5 rounded-full">
-                {details ? `${details.notebookTitle} - ${details.lessonTitle}` : 'Lesson'}
-              </div>
-            </div>
+    <div className="mx-auto max-w-3xl space-y-8">
+      <BackLink to="/my-notebooks">{t('subject.goBack')}</BackLink>
 
-            <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold">{t('subject.title')}</h1>
-            </div>
+      {isLoading ? (
+        <div className="space-y-3" role="status" aria-label={t('common.loading')}>
+          <Skeleton className="h-5 w-48" /><Skeleton className="h-10 w-3/4" />
+        </div>
+      ) : (
+        <header className="space-y-2">
+          {details && (
+            <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-muted-foreground">
+              {details.notebookTitle} <span aria-hidden="true">/</span> {details.lessonTitle}
+              {details.readOnly && <Badge variant="primary">{t('myNotebooks.fromTeacher')}</Badge>}
+            </p>
+          )}
+          <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">{t('subject.title')}</h1>
+        </header>
+      )}
 
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {features.map((feature, index) => (
-                // O FeatureCard é um Link, então adicionamos os eventos manualmente
-                <div 
-                  key={feature.tag}
-                  
-                >
-                  <FeatureCard 
-                    index={index}
-                    {...feature}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-16">
-              {/* ✅ 3. Adiciona os eventos de som ao botão "go back" */}
-              <button 
-                
-                onClick={() => {
-                 
-                  navigate('/my-notebooks');
-                }}
-                className="bg-white bg-opacity-20 text-white font-semibold py-3 px-6 rounded-full flex items-center gap-3 hover:bg-opacity-30 transition"
-              >
-                <FaArrowLeft />
-                <span>{t('subject.goBack')}</span>
-              </button>
-            </div>
-          </>
-        )}
-      </main>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FeatureTile to={`/summary/${lessonId}`} icon={<BookOpen className="h-5 w-5" />} title={t('subject.summaryTitle')} description={t('subject.summaryDesc')} />
+        <FeatureTile to={`/quizz/${lessonId}`} icon={<ListChecks className="h-5 w-5" />} title={t('subject.quizzTitle')} description={t('subject.quizzDesc')} />
+      </div>
     </div>
   );
 };

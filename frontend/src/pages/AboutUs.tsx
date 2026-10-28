@@ -1,130 +1,45 @@
 // src/pages/AboutUs.tsx
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
+import { BarChart3, BookOpen, ListChecks } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import useEmblaCarousel from 'embla-carousel-react';
-import Navbar from '../components/Navbar';
-import aboutUsImage from '../assets/aboutus.png';
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { BrandMark } from '../components/ds/BrandMark';
 
 const AboutUs: React.FC = () => {
   const { t } = useTranslation();
 
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
-  
-  const scrollTo = useCallback((index: number) => {
-    if (emblaApi) emblaApi.scrollTo(index);
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap());
-    emblaApi.on('select', onSelect);
-    return () => { emblaApi.off('select', onSelect) };
-  }, [emblaApi]);
-
-  const backgroundStyle = { background: 'linear-gradient(135deg, #1e0a3c 0%, #2A0E46 100%)' };
+  const pillars = [
+    { key: 'summary', icon: <BookOpen className="h-6 w-6" aria-hidden="true" /> },
+    { key: 'quizz', icon: <ListChecks className="h-6 w-6" aria-hidden="true" /> },
+    { key: 'progress', icon: <BarChart3 className="h-6 w-6" aria-hidden="true" /> },
+  ];
 
   return (
-    <div style={backgroundStyle} className="min-h-screen text-white overflow-hidden flex flex-col">
-      <Navbar />
-      <main className="container mx-auto px-6 py-12 flex-grow flex flex-col justify-center">
-        <div className="w-full max-w-5xl mx-auto">
-          {/* Carrossel Principal */}
-          <div className="embla">
-            <div className="embla__viewport" ref={emblaRef}>
-              <div className="embla__container">
-
-                {/* --- Slide 1: A Filosofia --- */}
-                <div className="embla__slide flex flex-col items-center text-center p-4">
-                  <h1 className="text-5xl md:text-6xl font-bold">{t('aboutUs.title')}</h1>
-                  <p className="mt-4 text-lg text-gray-300 leading-relaxed max-w-3xl"
-                     dangerouslySetInnerHTML={{ __html: t('aboutUs.philosophy.text') }} />
-                  <div className="mt-8 w-full grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-purple-500 bg-opacity-20 p-6 rounded-lg animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-                      <h3 className="text-2xl font-bold">{t('aboutUs.pillars.summary.title')}</h3>
-                      <p className="mt-2 text-gray-400">{t('aboutUs.pillars.summary.desc')}</p>
-                    </div>
-                    <div className="bg-purple-500 bg-opacity-20 p-6 rounded-lg animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-                      <h3 className="text-2xl font-bold">{t('aboutUs.pillars.quizz.title')}</h3>
-                      <p className="mt-2 text-gray-400">{t('aboutUs.pillars.quizz.desc')}</p>
-                    </div>
-                    <div className="bg-purple-500 bg-opacity-20 p-6 rounded-lg animate-fade-in-up" style={{ animationDelay: '600ms' }}>
-                      <h3 className="text-2xl font-bold">{t('aboutUs.pillars.progress.title')}</h3>
-                      <p className="mt-2 text-gray-400">{t('aboutUs.pillars.progress.desc')}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* --- Slide 2: A História --- */}
-                <div className="embla__slide flex flex-col lg:flex-row items-center gap-8 p-4">
-                  <div className="lg:w-1/2 flex justify-center">
-                    <img src={aboutUsImage} alt="About Smart Study" className="w-full max-w-sm mx-auto rounded-lg shadow-2xl" />
-                  </div>
-                  <div className="lg:w-1/2 text-center lg:text-left">
-                    <h2 className="text-4xl font-bold">{t('aboutUs.story.title')}</h2>
-                    <p className="mt-4 text-lg text-gray-300 leading-relaxed" 
-                       dangerouslySetInnerHTML={{ __html: t('aboutUs.story.text') }} />
-                    <p className="mt-6 text-2xl font-bold text-purple-300 italic">
-                      {t('aboutUs.story.motto')}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* --- Slide 3: Ficha Técnica (REMOVIDO) --- */}
-
-              </div>
+    <div className="mx-auto max-w-4xl space-y-14">
+      <section className="space-y-5 text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">{t('aboutUs.title')}</h1>
+        <p
+          className="mx-auto max-w-3xl text-lg leading-relaxed text-muted-foreground [&_strong]:text-foreground"
+          dangerouslySetInnerHTML={{ __html: t('aboutUs.philosophy.text') }}
+        />
+        <div className="grid gap-4 pt-4 md:grid-cols-3">
+          {pillars.map((p, i) => (
+            <div key={p.key} className="rounded-2xl border border-border bg-card p-6 text-left shadow-soft animate-fade-in-up" style={{ animationDelay: `${i * 120}ms` }}>
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-accent-foreground">{p.icon}</span>
+              <h2 className="mt-4 text-xl font-bold">{t(`aboutUs.pillars.${p.key}.title`)}</h2>
+              <p className="mt-1 text-muted-foreground">{t(`aboutUs.pillars.${p.key}.desc`)}</p>
             </div>
-          </div>
-
-          {/* Controles do Carrossel */}
-          <div className="flex items-center justify-center mt-8 gap-8">
-            <button 
-             
-              onClick={() => {
-                
-                scrollPrev();
-              }}
-              className="bg-white bg-opacity-20 p-3 rounded-full hover:bg-opacity-30 transition"
-            >
-              <FaArrowLeft />
-            </button>
-            <div className="flex gap-3">
-              {/* ✅ CORREÇÃO AQUI: Mudado de 3 para 2, pois agora só temos 2 slides */}
-              {[...Array(2).keys()].map(index => (
-                <button 
-                  key={index} 
-                  
-                  onClick={() => {
-                    
-                    scrollTo(index);
-                  }}
-                  className={`w-3 h-3 rounded-full transition ${selectedIndex === index ? 'bg-white' : 'bg-gray-600'}`}
-                />
-              ))}
-            </div>
-            <button 
-             
-              onClick={() => {
-                
-                scrollNext();
-              }}
-              className="bg-white bg-opacity-20 p-3 rounded-full hover:bg-opacity-30 transition"
-            >
-              <FaArrowRight />
-            </button>
-          </div>
-
+          ))}
         </div>
-      </main>
+      </section>
+
+      <section className="grid items-center gap-8 rounded-3xl bg-accent p-8 text-accent-foreground md:grid-cols-[auto_1fr] md:p-12">
+        <BrandMark className="mx-auto h-28 w-28 md:h-36 md:w-36" />
+        <div className="space-y-4">
+          <h2 className="text-3xl font-extrabold tracking-tight">{t('aboutUs.story.title')}</h2>
+          <p className="leading-relaxed [&_strong]:font-bold" dangerouslySetInnerHTML={{ __html: t('aboutUs.story.text') }} />
+          <p className="font-display text-xl font-bold italic">{t('aboutUs.story.motto')}</p>
+        </div>
+      </section>
     </div>
   );
 };

@@ -1,20 +1,18 @@
 // src/components/ASLHelperButton.tsx
 import React from 'react';
-import { FaHandsHelping } from 'react-icons/fa'; // Um ícone representativo
+import { Hand } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const ASLHelperButton: React.FC = () => {
-  const openASLDictionary = () => {
-    // Abre o dicionário de ASL em uma nova aba
-    window.open('https://www.handspeak.com/', '_blank');
-  };
-
+  const { t } = useTranslation();
   return (
     <button
-      onClick={openASLDictionary}
-      title="Open ASL Dictionary"
-      className="fixed bottom-4 right-4 z-50 bg-purple-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform animate-fade-in-up"
+      onClick={() => window.open('https://www.handspeak.com/', '_blank', 'noopener')}
+      title={t('widgets.aslTitle')}
+      aria-label={t('widgets.aslTitle')}
+      className="fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lifted transition-transform hover:scale-105"
     >
-      <FaHandsHelping size={28} />
+      <Hand className="h-6 w-6" aria-hidden="true" />
     </button>
   );
 };

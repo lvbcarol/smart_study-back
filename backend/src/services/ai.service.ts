@@ -49,8 +49,8 @@ const mockService: AIService = {
         options,
         correctAnswerIndex,
         explanation: pt
-          ? `Explicação de demonstração: a alternativa ${correctAnswerIndex + 1} é a correta.`
-          : `Demo explanation: option ${correctAnswerIndex + 1} is the correct one.`,
+          ? `Resposta de demonstração: a alternativa ${correctAnswerIndex + 1} é a correta.`
+          : `Demo answer: option ${correctAnswerIndex + 1} is the correct one.`,
       };
     });
     return { quizz };

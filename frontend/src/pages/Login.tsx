@@ -1,13 +1,14 @@
 // src/pages/Login.tsx
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import Input from '../components/ui/Input';
-import Button from '../components/ui/Button';
-import Logo from '../components/Logo';
+import { useAuth } from '../context/AuthContext';
+import { Button } from '../components/ds/Button';
+import { Field } from '../components/ds/Field';
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,50 +19,45 @@ const Login: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    const loadingToast = toast.loading('Signing in...');
     try {
       await login(email, password);
-
-      toast.dismiss(loadingToast);
-      toast.success('Login successful!');
-
-      navigate(location.state?.from || '/home', { replace: true });
-      
+      toast.success(t('auth.loginSuccess'));
+      navigate((location.state as { from?: string } | null)?.from || '/home', { replace: true });
     } catch (err: any) {
-      toast.dismiss(loadingToast);
-      const errorMessage = err.response?.data?.error || "Invalid email or password.";
-      toast.error(errorMessage);
+      toast.error(err.response?.status === 401 ? t('auth.loginError') : t('auth.genericError'));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-brand-purple flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-5xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div className="hidden md:flex justify-center"><Logo /></div>
-          <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md mx-auto">
-            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8 uppercase">WELCOME!</h2>
-            <form onSubmit={handleLogin} className="space-y-5">
-              <Input id="email" label="e-mail address" type="email" placeholder="e-mail address" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading}/>
-              <Input id="password" label="password" type="password" placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading}/>
-              <Button type="submit" variant="primary" disabled={isLoading}>{isLoading ? 'SIGNING IN...' : 'CONFIRM'}</Button>
-            </form>
-            <div className="text-right mt-3">
-                <Link to="/forgot-password" className="text-sm text-gray-600 hover:text-brand-primary hover:underline">
-                    Forgot password?
-                </Link>
-            </div>
-            <p className="text-sm text-center text-gray-500 mt-6">
-              Don't have an account?{' '}
-              <Link to="/register" className="font-semibold text-brand-primary hover:underline">
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </div>
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-extrabold tracking-tight">{t('auth.loginTitle')}</h1>
+        <p className="text-muted-foreground">{t('auth.loginSubtitle')}</p>
       </div>
+
+      <form onSubmit={handleLogin} className="space-y-5">
+        <Field
+          label={t('auth.email')} type="email" autoComplete="email" placeholder={t('auth.emailPlaceholder')}
+          value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading}
+        />
+        <Field
+          label={t('auth.password')} type="password" autoComplete="current-password" placeholder={t('auth.passwordPlaceholder')}
+          value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading}
+        />
+        <div className="text-right">
+          <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">{t('auth.forgot')}</Link>
+        </div>
+        <Button type="submit" size="lg" fullWidth loading={isLoading}>
+          {isLoading ? t('auth.signingIn') : t('auth.signIn')}
+        </Button>
+      </form>
+
+      <p className="text-center text-sm text-muted-foreground">
+        {t('auth.noAccount')}{' '}
+        <Link to="/register" className="font-semibold text-primary hover:underline">{t('auth.signUp')}</Link>
+      </p>
     </div>
   );
 };

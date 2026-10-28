@@ -21,7 +21,7 @@ export async function seedDemo(): Promise<void> {
   if (await Usuario.exists({ email: 'professor@demo.com' })) return;
 
   const teacher = await Usuario.create({
-    name: 'Profa. Helena', email: 'professor@demo.com', password: DEMO_PASSWORD, role: 'teacher', language: 'pt-BR',
+    name: 'Helena Souza', email: 'professor@demo.com', password: DEMO_PASSWORD, role: 'teacher', language: 'pt-BR',
   });
   const [ana, bruno, carla] = await Promise.all(
     [['Ana', 'aluno1@demo.com'], ['Bruno', 'aluno2@demo.com'], ['Carla', 'aluno3@demo.com']].map(([name, email]) =>

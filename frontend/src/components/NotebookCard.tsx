@@ -1,24 +1,14 @@
 // src/components/NotebookCard.tsx
 import React, { useState } from 'react';
-import { FaPlus, FaTrash, FaPencilAlt } from 'react-icons/fa';
+import { Check, ChevronRight, GraduationCap, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
-import Modal from './ui/Modal';
-import Button from './ui/Button';
-
-// --- Interfaces ---
-interface Lesson {
-  _id: string;
-  title: string;
-}
-
-interface Notebook {
-  _id: string;
-  title: string;
-  lessons: Lesson[];
-}
+import { Lesson, Notebook } from '../types';
+import { Button } from './ds/Button';
+import { Modal } from './ds/Modal';
+import { Badge } from './ds/Misc';
 
 interface NotebookCardProps {
   notebook: Notebook;
@@ -27,78 +17,68 @@ interface NotebookCardProps {
   index: number;
 }
 
-// Interface para o estado do modal (Boa Prática)
-interface ConfirmModalState {
-  isOpen: boolean;
-  type: 'notebook' | 'lesson' | ''; // Tipo corrigido para aceitar string vazia
+interface ConfirmState {
+  open: boolean;
+  type: 'notebook' | 'lesson';
   id: string;
-  title: string;
 }
 
-// --- Componente ---
+const iconBtn =
+  'inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+
+const inlineInput =
+  'min-h-10 w-full rounded-lg border border-input bg-card px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+
+// O backend devolve só { _id, title, lessons } ao editar: preserva os campos extras (readOnly, tentativas)
+const mergeNotebook = (prev: Notebook, next: Notebook): Notebook => ({
+  ...prev,
+  ...next,
+  lessons: next.lessons.map((l) => ({ ...l, quizzAttempts: prev.lessons.find((p) => p._id === l._id)?.quizzAttempts ?? [] })),
+});
+
 const NotebookCard: React.FC<NotebookCardProps> = ({ notebook, onDelete, onUpdate, index }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const readOnly = !!notebook.readOnly;
 
-  // --- Estados ---
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [currentTitle, setCurrentTitle] = useState(notebook.title);
   const [isAddingLesson, setIsAddingLesson] = useState(false);
   const [newLessonTitle, setNewLessonTitle] = useState('');
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [editingLessonTitle, setEditingLessonTitle] = useState('');
+  const [confirm, setConfirm] = useState<ConfirmState>({ open: false, type: 'notebook', id: '' });
 
-  // Estado do modal de confirmação com a tipagem correta
-  const [confirmModal, setConfirmModal] = useState<ConfirmModalState>({
-    isOpen: false,
-    type: '',
-    id: '',
-    title: ''
-  });
-
-  // --- Funções ---
   const handleTitleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (currentTitle.trim() === '' || currentTitle === notebook.title) {
-        setIsEditingTitle(false);
-        setCurrentTitle(notebook.title);
-        return;
+      setIsEditingTitle(false);
+      setCurrentTitle(notebook.title);
+      return;
     }
     try {
       const response = await api.put(`/notebooks/${notebook._id}`, { title: currentTitle });
-      onUpdate(response.data);
+      onUpdate(mergeNotebook(notebook, response.data));
       setIsEditingTitle(false);
       toast.success(t('myNotebooks.titleUpdatedSuccess'));
-    } catch (error) {
+    } catch {
       toast.error(t('myNotebooks.titleUpdatedError'));
     }
   };
-  
+
   const handleAddLesson = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLessonTitle.trim()) return;
     try {
       const response = await api.post(`/notebooks/${notebook._id}/lessons`, { title: newLessonTitle });
-      onUpdate(response.data);
+      onUpdate(mergeNotebook(notebook, response.data));
       setNewLessonTitle('');
       setIsAddingLesson(false);
       toast.success(t('myNotebooks.lessonAddedSuccess'));
-    } catch (error) {
+    } catch {
       toast.error(t('myNotebooks.lessonAddedError'));
     }
-  };
-
-  const handleDeleteNotebookRequest = () => {
-    setConfirmModal({ isOpen: true, type: 'notebook', id: notebook._id, title: notebook.title });
-  };
-
-  const handleDeleteLessonRequest = (lesson: Lesson) => {
-    setConfirmModal({ isOpen: true, type: 'lesson', id: lesson._id, title: lesson.title });
-  };
-
-  const handleStartEditLesson = (lesson: Lesson) => {
-    setEditingLessonId(lesson._id);
-    setEditingLessonTitle(lesson.title);
   };
 
   const handleUpdateLesson = async (e: React.FormEvent) => {
@@ -106,130 +86,143 @@ const NotebookCard: React.FC<NotebookCardProps> = ({ notebook, onDelete, onUpdat
     if (!editingLessonId || editingLessonTitle.trim() === '') return;
     try {
       const response = await api.put(`/notebooks/${notebook._id}/lessons/${editingLessonId}`, { title: editingLessonTitle });
-      onUpdate(response.data);
+      onUpdate(mergeNotebook(notebook, response.data));
       setEditingLessonId(null);
       toast.success(t('myNotebooks.lessonUpdatedSuccess'));
-    } catch (error) {
+    } catch {
       toast.error(t('myNotebooks.lessonUpdatedError'));
     }
   };
 
   const handleConfirmDelete = async () => {
-    if (confirmModal.type === 'notebook') {
+    if (confirm.type === 'notebook') {
       try {
-        await api.delete(`/notebooks/${confirmModal.id}`);
+        await api.delete(`/notebooks/${confirm.id}`);
         toast.success(t('myNotebooks.deleteSuccess'));
-        onDelete(confirmModal.id);
-      } catch (error) {
+        onDelete(confirm.id);
+      } catch {
         toast.error(t('myNotebooks.deleteError'));
       }
-    } else if (confirmModal.type === 'lesson') {
+    } else {
       try {
-        const response = await api.delete(`/notebooks/${notebook._id}/lessons/${confirmModal.id}`);
-        onUpdate(response.data);
+        const response = await api.delete(`/notebooks/${notebook._id}/lessons/${confirm.id}`);
+        onUpdate(mergeNotebook(notebook, response.data));
         toast.success(t('myNotebooks.lessonDeletedSuccess'));
-      } catch (error) {
+      } catch {
         toast.error(t('myNotebooks.lessonDeletedError'));
       }
     }
-    setConfirmModal({ isOpen: false, type: '', id: '', title: '' }); // Agora isso é válido
+    setConfirm((c) => ({ ...c, open: false }));
   };
 
-  // --- Renderização ---
+  const cancelOnEscape = (fn: () => void) => (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') fn();
+  };
+
   return (
     <>
-      <div 
-        className="flex bg-violet-500 bg-opacity-30 backdrop-blur-sm rounded-2xl shadow-lg border border-violet-700 overflow-hidden transition-all duration-300 transform hover:scale-105 animate-fade-in-up"
-        style={{ animationDelay: `${index * 100}ms` }}
+      <article
+        className="flex flex-col rounded-2xl border border-border bg-card p-5 shadow-soft animate-fade-in-up"
+        style={{ animationDelay: `${index * 80}ms` }}
+        aria-labelledby={`nb-${notebook._id}`}
       >
-        <div className="bg-white bg-opacity-10 p-2 flex flex-col items-center gap-2">
-          {Array.from({ length: 12 }).map((_, i) => <div key={i} className="w-4 h-4 bg-gray-400 bg-opacity-50 rounded-full"></div>)}
-        </div>
-
-        <div className="p-6 flex flex-col justify-between w-full text-white">
-          <div>
-            <div className="flex justify-between items-start mb-4">
-              {isEditingTitle ? (
-                <form onSubmit={handleTitleUpdate} className="flex-grow">
-                  <input type="text" value={currentTitle} onChange={(e) => setCurrentTitle(e.target.value)} className="w-full bg-violet-900 text-2xl font-bold rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-white" autoFocus onBlur={handleTitleUpdate} />
-                </form>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <h3 className="text-2xl font-bold">{notebook.title}</h3>
-                  <button onClick={() => setIsEditingTitle(true)} className="text-gray-300 hover:text-white"><FaPencilAlt size={14} /></button>
+        <header className="flex items-start justify-between gap-2">
+          {isEditingTitle ? (
+            <form onSubmit={handleTitleUpdate} className="flex flex-1 items-center gap-1">
+              <input
+                className={inlineInput} value={currentTitle} onChange={(e) => setCurrentTitle(e.target.value)}
+                aria-label={t('myNotebooks.notebookTitleLabel')} autoFocus
+                onKeyDown={cancelOnEscape(() => { setIsEditingTitle(false); setCurrentTitle(notebook.title); })}
+              />
+              <button type="submit" className={iconBtn} aria-label={t('myNotebooks.save')}><Check className="h-4 w-4" aria-hidden="true" /></button>
+              <button type="button" className={iconBtn} aria-label={t('myNotebooks.cancel')} onClick={() => { setIsEditingTitle(false); setCurrentTitle(notebook.title); }}><X className="h-4 w-4" aria-hidden="true" /></button>
+            </form>
+          ) : (
+            <>
+              <div className="min-w-0 space-y-1.5">
+                <h3 id={`nb-${notebook._id}`} className="break-words font-display text-xl font-bold leading-tight">{notebook.title}</h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge>{t('myNotebooks.lessons', { count: notebook.lessons.length })}</Badge>
+                  {readOnly && <Badge variant="primary"><GraduationCap className="h-3 w-3" aria-hidden="true" />{t('myNotebooks.fromTeacher')}</Badge>}
+                </div>
+              </div>
+              {!readOnly && (
+                <div className="flex shrink-0">
+                  <button className={iconBtn} aria-label={t('myNotebooks.editNotebook')} title={t('myNotebooks.editNotebook')} onClick={() => setIsEditingTitle(true)}><Pencil className="h-4 w-4" aria-hidden="true" /></button>
+                  <button className={`${iconBtn} hover:text-destructive`} aria-label={t('myNotebooks.deleteNotebook')} title={t('myNotebooks.deleteNotebook')} onClick={() => setConfirm({ open: true, type: 'notebook', id: notebook._id })}><Trash2 className="h-4 w-4" aria-hidden="true" /></button>
                 </div>
               )}
-              <button onClick={handleDeleteNotebookRequest} className="text-gray-300 hover:text-red-500"><FaTrash /></button>
-            </div>
-            
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-              {notebook.lessons && notebook.lessons.map(lesson => (
-                <div key={lesson._id} className="flex items-center gap-2 group">
-                  {editingLessonId === lesson._id ? (
-                    <form onSubmit={handleUpdateLesson} className="flex-grow">
-                      <input type="text" value={editingLessonTitle} onChange={(e) => setEditingLessonTitle(e.target.value)} className="w-full bg-violet-900 rounded px-2 py-1 focus:outline-none" autoFocus onBlur={handleUpdateLesson} />
-                    </form>
-                  ) : (
-                    <>
-                      <button onClick={() => navigate(`/subjects/${lesson._id}`)} className="flex-grow text-left p-2 rounded bg-violet-400 bg-opacity-50 border border-transparent hover:bg-violet-800 hover:border-violet-900 transition">
-                        {lesson.title}
-                      </button>
-                      <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleStartEditLesson(lesson)} className="p-1 text-gray-300 hover:text-white"><FaPencilAlt size={12} /></button>
-                        <button onClick={() => handleDeleteLessonRequest(lesson)} className="p-1 text-gray-300 hover:text-red-500"><FaTrash size={12} /></button>
-                      </div>
-                    </>
+            </>
+          )}
+        </header>
+
+        <ul className="mt-4 max-h-64 flex-1 space-y-1.5 overflow-y-auto">
+          {notebook.lessons.length === 0 && <li className="py-2 text-sm text-muted-foreground">{t('myNotebooks.noLessons')}</li>}
+          {notebook.lessons.map((lesson: Lesson) => (
+            <li key={lesson._id} className="group flex items-center gap-1">
+              {editingLessonId === lesson._id ? (
+                <form onSubmit={handleUpdateLesson} className="flex flex-1 items-center gap-1">
+                  <input
+                    className={inlineInput} value={editingLessonTitle} onChange={(e) => setEditingLessonTitle(e.target.value)}
+                    aria-label={t('myNotebooks.lessonTitleLabel')} autoFocus onKeyDown={cancelOnEscape(() => setEditingLessonId(null))}
+                  />
+                  <button type="submit" className={iconBtn} aria-label={t('myNotebooks.save')}><Check className="h-4 w-4" aria-hidden="true" /></button>
+                  <button type="button" className={iconBtn} aria-label={t('myNotebooks.cancel')} onClick={() => setEditingLessonId(null)}><X className="h-4 w-4" aria-hidden="true" /></button>
+                </form>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate(`/subjects/${lesson._id}`)}
+                    aria-label={t('myNotebooks.openLesson', { title: lesson.title })}
+                    className="flex min-h-10 flex-1 items-center justify-between gap-2 rounded-xl bg-secondary px-3 text-left font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="break-words">{lesson.title}</span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  </button>
+                  {!readOnly && (
+                    <div className="flex opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                      <button className={iconBtn} aria-label={t('myNotebooks.editLesson')} title={t('myNotebooks.editLesson')} onClick={() => { setEditingLessonId(lesson._id); setEditingLessonTitle(lesson.title); }}><Pencil className="h-4 w-4" aria-hidden="true" /></button>
+                      <button className={`${iconBtn} hover:text-destructive`} aria-label={t('myNotebooks.deleteLesson')} title={t('myNotebooks.deleteLesson')} onClick={() => setConfirm({ open: true, type: 'lesson', id: lesson._id })}><Trash2 className="h-4 w-4" aria-hidden="true" /></button>
+                    </div>
                   )}
-                </div>
-              ))}
-            </div>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
 
-            {isAddingLesson ? (
-              <form onSubmit={handleAddLesson} className="mt-4 flex gap-2">
-                <input type="text" value={newLessonTitle} onChange={(e) => setNewLessonTitle(e.target.value)} placeholder={t('myNotebooks.newLessonPlaceholder')} className="flex-grow bg-violet-900 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-white" autoFocus />
-                <Button type="submit">{t('myNotebooks.save')}</Button>
-                <Button type="button" variant="secondary" onClick={() => setIsAddingLesson(false)}>X</Button>
-              </form>
-            ) : (
-              <button 
-                data-tooltip-id="notebooks-tooltip"
-                data-tooltip-content={t('myNotebooks.tooltipNewLesson')}
-                onClick={() => setIsAddingLesson(true)} 
-                className="mt-4 text-gray-300 hover:text-white flex items-center gap-2"
-              >
-                <FaPlus size={12} /> {t('myNotebooks.newLesson')}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <Modal 
-        isOpen={confirmModal.isOpen} 
-        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
-        title={confirmModal.type === 'notebook' ? t('myNotebooks.deleteModal.titleNotebook') : t('myNotebooks.deleteModal.titleLesson')}
-      >
-        <p className="text-gray-600">
-            {confirmModal.type === 'notebook' 
-                ? t('myNotebooks.deleteModal.bodyNotebook') 
-                : t('myNotebooks.deleteModal.bodyLesson')
-            }
-        </p>
-        <div className="flex justify-end gap-4 mt-6">
-            <Button 
-                variant="secondary" 
-                onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })}
-            >
-                {t('myNotebooks.deleteModal.cancel')}
+        {!readOnly && (
+          isAddingLesson ? (
+            <form onSubmit={handleAddLesson} className="mt-4 flex gap-2">
+              <input
+                className={inlineInput} value={newLessonTitle} onChange={(e) => setNewLessonTitle(e.target.value)}
+                placeholder={t('myNotebooks.newLessonPlaceholder')} aria-label={t('myNotebooks.lessonTitleLabel')} autoFocus
+                onKeyDown={cancelOnEscape(() => setIsAddingLesson(false))}
+              />
+              <Button type="submit" size="sm">{t('myNotebooks.save')}</Button>
+              <Button type="button" size="sm" variant="ghost" aria-label={t('myNotebooks.cancel')} onClick={() => setIsAddingLesson(false)}><X className="h-4 w-4" aria-hidden="true" /></Button>
+            </form>
+          ) : (
+            <Button variant="ghost" size="sm" className="mt-4 self-start text-primary" onClick={() => setIsAddingLesson(true)} title={t('myNotebooks.tooltipNewLesson')}>
+              <Plus className="h-4 w-4" aria-hidden="true" /> {t('myNotebooks.newLesson')}
             </Button>
-            <button 
-                onClick={handleConfirmDelete} 
-                className="bg-red-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-700 transition"
-            >
-                {t('myNotebooks.deleteModal.confirm')}
-            </button>
-        </div>
-      </Modal>
+          )
+        )}
+      </article>
+
+      <Modal
+        open={confirm.open}
+        onOpenChange={(open) => setConfirm((c) => ({ ...c, open }))}
+        title={confirm.type === 'notebook' ? t('myNotebooks.deleteModal.titleNotebook') : t('myNotebooks.deleteModal.titleLesson')}
+        description={confirm.type === 'notebook' ? t('myNotebooks.deleteModal.bodyNotebook') : t('myNotebooks.deleteModal.bodyLesson')}
+        closeLabel={t('common.close')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirm((c) => ({ ...c, open: false }))}>{t('myNotebooks.deleteModal.cancel')}</Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>{t('myNotebooks.deleteModal.confirm')}</Button>
+          </>
+        }
+      />
     </>
   );
 };

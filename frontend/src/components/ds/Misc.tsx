@@ -49,7 +49,7 @@ export const Switch: React.FC<SwitchProps> = ({ checked, onCheckedChange, label,
 };
 
 /* ---------- Badge ---------- */
-const badgeVariants = cva('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold', {
+const badgeVariants = cva('inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold', {
   variants: {
     variant: {
       neutral: 'bg-secondary text-secondary-foreground',

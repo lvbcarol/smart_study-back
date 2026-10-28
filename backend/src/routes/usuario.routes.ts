@@ -37,6 +37,11 @@ const updateMeSchema = z.object({
   avatarColor: z.string().max(30).optional(),
 });
 
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6, 'A senha deve ter ao menos 6 caracteres.').max(128),
+});
+
 function validInviteCode(provided?: string): boolean {
   const expected = process.env.TEACHER_INVITE_CODE;
   if (!expected || !provided) return false; // sem código configurado, cadastro de professor fica desativado
@@ -146,6 +151,25 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Erro ao salvar preferências:', error);
     res.status(500).json({ error: 'Failed to update preferences.' });
+  }
+});
+
+// ROTA PUT /me/password - Troca a senha (exige a senha atual)
+router.put('/me/password', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const data = parseBody(changePasswordSchema, req.body, res);
+  if (!data) return;
+
+  try {
+    const user = await Usuario.findById(req.userId).select('+password');
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    if (!(await bcrypt.compare(data.currentPassword, user.password))) {
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+    }
+    user.password = data.newPassword; // o hook pre-save faz o hash
+    await user.save();
+    res.json({ message: 'Password updated.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update password.' });
   }
 });
 

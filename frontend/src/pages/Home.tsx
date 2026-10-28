@@ -1,89 +1,86 @@
-// src/pages/Home.tsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// src/pages/Home.tsx — início diferente para aluno e professor
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { BookOpen, BarChart3, Layers, ListChecks, Users, FileText, ClipboardCheck, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
-import Navbar from '../components/Navbar';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import booksIllustration from '../assets/books-illustration.png';
-import laptopUserImage from '../assets/laptop-user-image.png';
-import { FaBook } from 'react-icons/fa';
+import { Notebook } from '../types';
+import { buttonVariants } from '../components/ds/Button';
+import { Skeleton } from '../components/ds/Misc';
+import { FeatureTile, StatCard } from '../components/ds/PageParts';
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const navigate = useNavigate();
-  
-  const userName = user?.name.split(' ')[0] || 'Student';
-  const [animationKey, setAnimationKey] = useState(0);
+  const isTeacher = user?.role === 'teacher';
+  const [notebooks, setNotebooks] = useState<Notebook[] | null>(null);
 
-  const backgroundStyle = {
-    background: 'linear-gradient(135deg, #1e0a3c 0%, #2A0E46 100%)',
-  };
+  useEffect(() => {
+    api.get<Notebook[]>('/notebooks').then((r) => setNotebooks(r.data)).catch(() => setNotebooks([]));
+  }, []);
 
-  const handleReplayAnimation = () => {
-    setAnimationKey(prevKey => prevKey + 1);
-  };
+  const lessons = notebooks?.reduce((sum, n) => sum + n.lessons.length, 0) ?? 0;
+  const scores = notebooks?.flatMap((n) => n.lessons.flatMap((l) => (l.quizzAttempts ?? []).map((a) => a.score))) ?? [];
+  const average = scores.length ? `${Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)}%` : '–';
+
+  const stats = isTeacher
+    ? [
+        { label: t('home.statTeacherNotebooks'), value: notebooks?.length ?? 0 },
+        { label: t('home.statLessons'), value: lessons },
+      ]
+    : [
+        { label: t('home.statNotebooks'), value: notebooks?.length ?? 0 },
+        { label: t('home.statLessons'), value: lessons },
+        { label: t('home.statAverage'), value: average },
+      ];
+
+  const soon = t('home.soon');
+  const icon = 'h-5 w-5';
 
   return (
-    <div style={backgroundStyle} className="min-h-screen text-white overflow-x-hidden">
-      <Navbar />
-      <main 
-        className="container mx-auto px-12 lg:px-24 py-24 cursor-pointer"
-        onClick={handleReplayAnimation}
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div 
-            key={`left-col-${animationKey}`}
-            className="flex flex-col gap-6 text-left animate-fade-in-up"
-          >
-            <span className="bg-gray-700 bg-opacity-50 text-white text-sm font-semibold px-4 py-1 rounded-full self-start">
-              #studysmart
-            </span>
-            <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-              {t('home.title')}
-            </h1>
-            <p className="text-lg text-gray-300 max-w-xl">
-              {t('home.subtitle')}
-            </p>
-            <img 
-              src={booksIllustration} 
-              alt="Illustration of a stack of three colorful books" 
-              className="w-48 h-auto mt-4 animate-float"
-            />
-            {/* ✅ 3. APLIQUE OS EFEITOS DE SOM AO BOTÃO */}
-            <button 
-              
-              onClick={(e) => {
-                e.stopPropagation(); // Impede que o clique reinicie a animação da página
-                
-                navigate('/my-notebooks'); // Executa a navegação
-              }}
-              className="bg-white text-gray-900 font-bold py-3 px-8 rounded-full flex items-center gap-3 self-start mt-4 hover:bg-gray-200 transition-transform transform hover:scale-105"
-            >
-              <FaBook />
-              <span>{t('home.cta')}</span>
-            </button>
-          </div>
-
-          <div 
-            key={`right-col-${animationKey}`}
-            className="relative hidden lg:flex justify-center items-center animate-fade-in-right"
-          >
-            <div 
-              className="w-[500px] h-[500px] bg-cover bg-center animate-float"
-              role="img"
-              aria-label="Stylized image of a person's hands typing on a laptop in a dark room"
-              style={{ 
-                backgroundImage: `url(${laptopUserImage})`,
-                clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' 
-              }}
-            >
-            </div>
-          </div>
-          
+    <div className="space-y-10">
+      <section className="relative overflow-hidden rounded-3xl bg-accent p-8 text-accent-foreground md:p-12">
+        <div className="relative z-10 max-w-2xl space-y-4">
+          <p className="font-semibold opacity-90">{t('home.greeting', { name: user?.name.split(' ')[0] })}</p>
+          <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
+            {isTeacher ? t('home.teacherTitle') : t('home.studentTitle')}
+          </h1>
+          <p className="text-lg opacity-90">{isTeacher ? t('home.teacherSubtitle') : t('home.studentSubtitle')}</p>
+          <Link to="/my-notebooks" className={buttonVariants({ size: 'lg' })}>
+            {isTeacher ? t('home.teacherCta') : t('home.studentCta')} <ArrowRight className="h-5 w-5" aria-hidden="true" />
+          </Link>
         </div>
-      </main>
+        <div aria-hidden="true" className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-primary/10" />
+        <div aria-hidden="true" className="absolute -bottom-24 right-24 h-64 w-64 rounded-full bg-primary/10" />
+      </section>
+
+      <section aria-label="Stats" className={isTeacher ? 'grid gap-4 sm:grid-cols-2' : 'grid gap-4 sm:grid-cols-3'}>
+        {stats.map((s) =>
+          notebooks === null ? <Skeleton key={s.label} className="h-24" /> : <StatCard key={s.label} label={s.label} value={s.value} />
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-extrabold tracking-tight">{t('home.featuresTitle')}</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {isTeacher ? (
+            <>
+              <FeatureTile to="/my-notebooks" icon={<BookOpen className={icon} />} title={t('navbar.teacherNotebooks')} description={t('myNotebooks.subtitleShort')} />
+              <FeatureTile icon={<Users className={icon} />} title={t('home.fClasses')} description={t('home.fClassesDesc')} soonLabel={soon} />
+              <FeatureTile icon={<FileText className={icon} />} title={t('home.fMaterials')} description={t('home.fMaterialsDesc')} soonLabel={soon} />
+              <FeatureTile icon={<ClipboardCheck className={icon} />} title={t('home.fTasks')} description={t('home.fTasksDesc')} soonLabel={soon} />
+            </>
+          ) : (
+            <>
+              <FeatureTile to="/my-notebooks" icon={<BookOpen className={icon} />} title={t('home.fSummary')} description={t('home.fSummaryDesc')} />
+              <FeatureTile to="/my-notebooks" icon={<ListChecks className={icon} />} title={t('home.fQuiz')} description={t('home.fQuizDesc')} />
+              <FeatureTile to="/progress" icon={<BarChart3 className={icon} />} title={t('home.fProgress')} description={t('home.fProgressDesc')} />
+              <FeatureTile icon={<Layers className={icon} />} title={t('home.fFlashcards')} description={t('home.fFlashcardsDesc')} soonLabel={soon} />
+            </>
+          )}
+        </div>
+      </section>
     </div>
   );
 };

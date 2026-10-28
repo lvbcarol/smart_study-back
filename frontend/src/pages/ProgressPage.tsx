@@ -1,204 +1,154 @@
 // src/pages/ProgressPage.tsx
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BarChart3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import api from '../services/api';
-import Navbar from '../components/Navbar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Notebook } from '../types';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import useEmblaCarousel from 'embla-carousel-react';
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { EmptyState, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ds/Misc';
+import { PageHeader } from '../components/ds/PageParts';
 
-// --- Interfaces ---
-interface Attempt { score: number; date: string; attemptNumber: number; }
-interface Lesson { _id: string; title: string; quizzAttempts?: Attempt[]; }
-interface Notebook { _id: string; title: string; lessons: Lesson[]; }
-interface AttemptChartData { name: string; score: number; }
-interface LessonAverageChartData { name: string; averageScore: number; }
-interface NotebookAverageChartData { name: string; averageScore: number; }
+interface BarDatum { name: string; value: number }
+
+const axisTick = { fill: 'hsl(var(--muted-foreground))', fontSize: 12 };
+const tooltipStyle = {
+  backgroundColor: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: 12,
+  color: 'hsl(var(--foreground))',
+};
+
+const ScoreChart: React.FC<{ data: BarDatum[]; label: string; summary: string; color: string }> = ({ data, label, summary, color }) => (
+  <div className="h-72" role="img" aria-label={`${summary}: ${data.map((d) => `${d.name} ${d.value}`).join(', ')}`}>
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} margin={{ left: -16, right: 8, top: 8 }}>
+        <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+        <XAxis dataKey="name" tickLine={false} axisLine={false} tick={axisTick} />
+        <YAxis domain={[0, 100]} tickLine={false} axisLine={false} tick={axisTick} />
+        <Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} contentStyle={tooltipStyle} />
+        <Bar dataKey="value" name={label} fill={color} radius={[8, 8, 0, 0]} isAnimationActive={!window.matchMedia('(prefers-reduced-motion: reduce)').matches} />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+);
+
+const mean = (scores: number[]) => (scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0);
 
 const ProgressPage: React.FC = () => {
   const { t } = useTranslation();
-  const [allNotebooks, setAllNotebooks] = useState<Notebook[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [notebookForAttempts, setNotebookForAttempts] = useState<string>('');
-  const [lessonForAttempts, setLessonForAttempts] = useState<string>('');
-  const [attemptChartData, setAttemptChartData] = useState<AttemptChartData[]>([]);
-  const [notebookForLessonAverage, setNotebookForLessonAverage] = useState<string>('');
-  const [lessonAverageChartData, setLessonAverageChartData] = useState<LessonAverageChartData[]>([]);
-  
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
-  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
-  const scrollTo = useCallback((index: number) => emblaApi && emblaApi.scrollTo(index), [emblaApi]);
+  const [notebooks, setNotebooks] = useState<Notebook[] | null>(null);
+  const [notebookForLessons, setNotebookForLessons] = useState('');
+  const [notebookForAttempts, setNotebookForAttempts] = useState('');
+  const [lessonForAttempts, setLessonForAttempts] = useState('');
 
   useEffect(() => {
-    if (!emblaApi) return;
-    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap());
-    emblaApi.on('select', onSelect);
-    return () => { emblaApi.off('select', onSelect); };
-  }, [emblaApi]);
-
-  useEffect(() => {
-    const fetchNotebooks = async () => {
-      try {
-        const response = await api.get('/notebooks');
-        setAllNotebooks(response.data);
-      } catch (error) { console.error("Error fetching notebooks for progress page:", error); } 
-      finally { setIsLoading(false); }
-    };
-    fetchNotebooks();
+    api.get<Notebook[]>('/notebooks').then((r) => setNotebooks(r.data)).catch(() => setNotebooks([]));
   }, []);
 
-  useEffect(() => {
-    if (notebookForAttempts && lessonForAttempts) {
-      const notebook = allNotebooks.find(nb => nb._id === notebookForAttempts);
-      const lesson = notebook?.lessons.find(l => l._id === lessonForAttempts);
-      if (lesson?.quizzAttempts && lesson.quizzAttempts.length > 0) {
-        const dataForChart = lesson.quizzAttempts.map((attempt, index) => ({ name: `Attempt ${index + 1}`, score: attempt.score }));
-        setAttemptChartData(dataForChart);
-      } else { setAttemptChartData([]); }
-    }
-  }, [lessonForAttempts, notebookForAttempts, allNotebooks]);
+  const overview = useMemo<BarDatum[]>(
+    () =>
+      (notebooks ?? []).map((nb) => ({
+        name: nb.title,
+        value: mean(nb.lessons.flatMap((l) => (l.quizzAttempts ?? []).map((a) => a.score))),
+      })),
+    [notebooks]
+  );
 
-  useEffect(() => {
-    if (notebookForLessonAverage) {
-      const notebook = allNotebooks.find(nb => nb._id === notebookForLessonAverage);
-      if (notebook?.lessons && notebook.lessons.length > 0) {
-        const dataForChart = notebook.lessons.map(lesson => {
-          let average = 0;
-          if (lesson.quizzAttempts && lesson.quizzAttempts.length > 0) {
-            const totalScore = lesson.quizzAttempts.reduce((sum, attempt) => sum + attempt.score, 0);
-            average = Math.round(totalScore / lesson.quizzAttempts.length);
-          }
-          return { name: lesson.title, averageScore: average };
-        });
-        setLessonAverageChartData(dataForChart);
-      } else { setLessonAverageChartData([]); }
-    }
-  }, [notebookForLessonAverage, allNotebooks]);
+  const lessonsData = useMemo<BarDatum[]>(() => {
+    const nb = notebooks?.find((n) => n._id === notebookForLessons);
+    return (nb?.lessons ?? []).map((l) => ({ name: l.title, value: mean((l.quizzAttempts ?? []).map((a) => a.score)) }));
+  }, [notebooks, notebookForLessons]);
 
-  const averageByNotebookData = useMemo<NotebookAverageChartData[]>(() => {
-    return allNotebooks.map(notebook => {
-      let totalScore = 0;
-      let attemptCount = 0;
-      notebook.lessons.forEach(lesson => {
-        if (lesson.quizzAttempts && lesson.quizzAttempts.length > 0) {
-          attemptCount += lesson.quizzAttempts.length;
-          totalScore += lesson.quizzAttempts.reduce((sum, attempt) => sum + attempt.score, 0);
-        }
-      });
-      return { name: notebook.title, averageScore: attemptCount > 0 ? Math.round(totalScore / attemptCount) : 0, };
-    });
-  }, [allNotebooks]);
+  const attemptsData = useMemo<BarDatum[]>(() => {
+    const lesson = notebooks?.find((n) => n._id === notebookForAttempts)?.lessons.find((l) => l._id === lessonForAttempts);
+    return (lesson?.quizzAttempts ?? []).map((a, i) => ({ name: t('progress.attemptN', { n: i + 1 }), value: a.score }));
+  }, [notebooks, notebookForAttempts, lessonForAttempts, t]);
 
-  const selectedNotebookForAttempts = allNotebooks.find(nb => nb._id === notebookForAttempts);
-  const backgroundStyle = { background: 'linear-gradient(135deg, #1e0a3c 0%, #2A0E46 100%)' };
+  const hasAnyAttempt = (notebooks ?? []).some((n) => n.lessons.some((l) => (l.quizzAttempts ?? []).length > 0));
 
-  if (isLoading) {
+  if (notebooks === null) {
     return (
-      <div style={backgroundStyle} className="min-h-screen text-white flex items-center justify-center">
-        <p className="text-xl animate-pulse">{t('progress.loading')}</p>
+      <div role="status" aria-label={t('progress.loading')} className="space-y-4">
+        <Skeleton className="h-10 w-64" /><Skeleton className="h-80" />
       </div>
     );
   }
 
+  if (!hasAnyAttempt) {
+    return (
+      <>
+        <PageHeader title={t('progress.title')} subtitle={t('progress.subtitle')} />
+        <EmptyState icon={<BarChart3 className="h-6 w-6" />} title={t('progress.noDataTitle')} description={t('progress.noDataSubtitle')} />
+      </>
+    );
+  }
+
+  const notebookSelect = (value: string, onChange: (v: string) => void, placeholder: string) => (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger aria-label={placeholder}><SelectValue placeholder={placeholder} /></SelectTrigger>
+      <SelectContent>{notebooks.map((nb) => <SelectItem key={nb._id} value={nb._id}>{nb.title}</SelectItem>)}</SelectContent>
+    </Select>
+  );
+
   return (
-    <div style={backgroundStyle} className="min-h-screen text-white">
-      <Navbar />
-      <main className="container mx-auto p-4 md:p-8 flex flex-col items-center">
-        <div className="animate-fade-in-up text-center">
-          <h1 className="text-4xl font-bold text-white">{t('progress.title')}</h1>
-          <p className="text-gray-300 mt-2">{t('progress.subtitle')}</p>
-        </div>
+    <>
+      <PageHeader title={t('progress.title')} subtitle={t('progress.subtitle')} />
 
-        <div className="embla w-full max-w-6xl mt-8">
-          <div className="embla__viewport" ref={emblaRef}>
-            <div className="embla__container">
+      <Tabs defaultValue="overview">
+        <TabsList aria-label={t('progress.tabsLabel')}>
+          <TabsTrigger value="overview">{t('progress.tabOverview')}</TabsTrigger>
+          <TabsTrigger value="lessons">{t('progress.tabLessons')}</TabsTrigger>
+          <TabsTrigger value="attempts">{t('progress.tabAttempts')}</TabsTrigger>
+        </TabsList>
 
-              {/* Slide 1: Média Geral por Caderno */}
-              <div className="embla__slide p-4 flex flex-col lg:flex-row items-center gap-8">
-                <div className="lg:w-2/3 w-full h-[28rem]">
-                  <Card className="w-full h-full bg-white text-black">
-                    <CardHeader><CardTitle>{t('progress.card1.title')}</CardTitle><CardDescription>{t('progress.card1.desc')}</CardDescription></CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={300}><BarChart data={averageByNotebookData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" tick={{ fontSize: 12 }} /><YAxis domain={[0, 100]} /><Tooltip cursor={{ fill: '#f3f4f6' }} /><Bar dataKey="averageScore" name={t('progress.card1.barName')} fill="#a78bfa" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="lg:w-1/3 w-full text-center lg:text-left">
-                  <h3 className="text-2xl font-bold">{t('progress.card1.legendTitle')}</h3>
-                  <p className="mt-2 text-gray-300">{t('progress.card1.legendText')}</p>
-                </div>
+        <TabsContent value="overview">
+          <Card className="shadow-soft">
+            <CardHeader><CardTitle>{t('progress.card1.title')}</CardTitle><CardDescription>{t('progress.card1.legendText')}</CardDescription></CardHeader>
+            <CardContent><ScoreChart data={overview} label={t('progress.average')} summary={t('progress.chartSummary')} color="hsl(var(--chart-1))" /></CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="lessons">
+          <Card className="shadow-soft">
+            <CardHeader>
+              <CardTitle>{t('progress.card2.title')}</CardTitle>
+              <CardDescription>{t('progress.card2.legendText')}</CardDescription>
+              <div className="pt-3 sm:max-w-xs">{notebookSelect(notebookForLessons, setNotebookForLessons, t('progress.card2.selectPlaceholder'))}</div>
+            </CardHeader>
+            <CardContent>
+              {lessonsData.length > 0
+                ? <ScoreChart data={lessonsData} label={t('progress.average')} summary={t('progress.chartSummary')} color="hsl(var(--chart-2))" />
+                : <EmptyState title={t('progress.card2.noData')} />}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="attempts">
+          <Card className="shadow-soft">
+            <CardHeader>
+              <CardTitle>{t('progress.card3.title')}</CardTitle>
+              <CardDescription>{t('progress.card3.legendText')}</CardDescription>
+              <div className="grid gap-3 pt-3 sm:max-w-xl sm:grid-cols-2">
+                {notebookSelect(notebookForAttempts, (v) => { setNotebookForAttempts(v); setLessonForAttempts(''); }, t('progress.card3.selectNotebookPlaceholder'))}
+                <Select value={lessonForAttempts} onValueChange={setLessonForAttempts} disabled={!notebookForAttempts}>
+                  <SelectTrigger aria-label={t('progress.card3.selectLessonPlaceholder')}><SelectValue placeholder={t('progress.card3.selectLessonPlaceholder')} /></SelectTrigger>
+                  <SelectContent>
+                    {notebooks.find((n) => n._id === notebookForAttempts)?.lessons.map((l) => <SelectItem key={l._id} value={l._id}>{l.title}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
-
-              {/* Slide 2: Média por Aula */}
-              <div className="embla__slide p-4 flex flex-col lg:flex-row items-center gap-8">
-                <div className="lg:w-2/3 w-full h-[28rem]">
-                  <Card className="w-full h-full bg-white text-black">
-                    <CardHeader>
-                      <CardTitle>{t('progress.card2.title')}</CardTitle>
-                      <CardDescription>{t('progress.card2.desc')}</CardDescription>
-                      <div className="mt-4"><Select onValueChange={setNotebookForLessonAverage}><SelectTrigger><SelectValue placeholder={t('progress.card2.selectPlaceholder')} /></SelectTrigger><SelectContent>{allNotebooks.map(notebook => <SelectItem key={notebook._id} value={notebook._id}>{notebook.title}</SelectItem>)}</SelectContent></Select></div>
-                    </CardHeader>
-                    <CardContent>
-                      {lessonAverageChartData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={220}><BarChart data={lessonAverageChartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" tick={{ fontSize: 12 }} /><YAxis domain={[0, 100]} /><Tooltip cursor={{ fill: '#f3f4f6' }} /><Bar dataKey="averageScore" name={t('progress.card1.barName')} fill="#8b5cf6" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer>
-                      ) : ( <div className="h-full flex items-center justify-center text-gray-500"><p>{t('progress.card2.noData')}</p></div> )}
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="lg:w-1/3 w-full text-center lg:text-left">
-                  <h3 className="text-2xl font-bold">{t('progress.card2.legendTitle')}</h3>
-                  <p className="mt-2 text-gray-300">{t('progress.card2.legendText')}</p>
-                </div>
-              </div>
-
-              {/* Slide 3: Progresso por Tentativa */}
-              <div className="embla__slide p-4 flex flex-col lg:flex-row items-center gap-8">
-                <div className="lg:w-2/3 w-full h-[28rem]">
-                  <Card className="w-full h-full bg-white text-black">
-                    <CardHeader>
-                      <CardTitle>{t('progress.card3.title')}</CardTitle>
-                      <CardDescription>{t('progress.card3.desc')}</CardDescription>
-                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Select onValueChange={(value) => { setNotebookForAttempts(value); setLessonForAttempts(''); }}><SelectTrigger><SelectValue placeholder={t('progress.card3.selectNotebookPlaceholder')} /></SelectTrigger><SelectContent>{allNotebooks.map(notebook => <SelectItem key={notebook._id} value={notebook._id}>{notebook.title}</SelectItem>)}</SelectContent></Select>
-                        <Select onValueChange={setLessonForAttempts} disabled={!notebookForAttempts} value={lessonForAttempts}><SelectTrigger><SelectValue placeholder={t('progress.card3.selectLessonPlaceholder')} /></SelectTrigger><SelectContent>{selectedNotebookForAttempts?.lessons.map(lesson => <SelectItem key={lesson._id} value={lesson._id}>{lesson.title}</SelectItem>)}</SelectContent></Select>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                        {attemptChartData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height={220}><BarChart data={attemptChartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" /><YAxis domain={[0, 100]} /><Tooltip cursor={{ fill: '#f3f4f6' }} /><Bar dataKey="score" fill="#a78bfa" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer>
-                        ) : ( <div className="h-full flex items-center justify-center text-gray-500"><p>{t(notebookForAttempts ? 'progress.card3.noAttempts' : 'progress.card3.pleaseSelect')}</p></div> )}
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="md:w-1/3 w-full text-center md:text-left">
-                  <h3 className="text-2xl font-bold">{t('progress.card3.legendTitle')}</h3>
-                  <p className="mt-2 text-gray-300">{t('progress.card3.legendText')}</p>
-                </div>
-              </div>
-
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-center mt-8 gap-8">
-            <button onClick={scrollPrev} className="bg-white bg-opacity-20 p-3 rounded-full hover:bg-opacity-30 transition"><FaArrowLeft /></button>
-            <div className="flex gap-3">
-              {[...Array(3).keys()].map(index => (
-                <button 
-                  key={index} 
-                  onClick={() => scrollTo(index)}
-                  className={`w-3 h-3 rounded-full transition ${selectedIndex === index ? 'bg-white' : 'bg-gray-600'}`}
-                />
-              ))}
-            </div>
-            <button onClick={scrollNext} className="bg-white bg-opacity-20 p-3 rounded-full hover:bg-opacity-30 transition"><FaArrowRight /></button>
-          </div>
-        </div>
-      </main>
-    </div>
+            </CardHeader>
+            <CardContent>
+              {attemptsData.length > 0
+                ? <ScoreChart data={attemptsData} label={t('progress.score')} summary={t('progress.chartSummary')} color="hsl(var(--chart-3))" />
+                : <EmptyState title={t(notebookForAttempts && lessonForAttempts ? 'progress.card3.noAttempts' : 'progress.card3.pleaseSelect')} />}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </>
   );
 };
 

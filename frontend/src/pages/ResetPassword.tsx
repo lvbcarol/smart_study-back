@@ -1,54 +1,46 @@
 // src/pages/ResetPassword.tsx
 import React, { useState } from 'react';
-import axios from 'axios';
-import { API_URL } from '../services/api';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { useParams, useNavigate } from 'react-router-dom';
-import Input from '../components/ui/Input';
-import Button from '../components/ui/Button';
+import api from '../services/api';
+import { Button } from '../components/ds/Button';
+import { Field } from '../components/ds/Field';
 
-const ResetPassword = () => {
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const { token } = useParams(); // Pega o token da URL
-    const navigate = useNavigate();
+const ResetPassword: React.FC = () => {
+  const { t } = useTranslation();
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { token } = useParams();
+  const navigate = useNavigate();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (password !== confirmPassword) {
-            return toast.error('As senhas não coincidem.');
-        }
-        if (!token) {
-            return toast.error('Token de redefinição não encontrado.');
-        }
-        setIsLoading(true);
-        try {
-            await axios.post(`${API_URL}/usuario/reset-password`, { token, password });
-            toast.success('Senha redefinida com sucesso!');
-            navigate('/login');
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.error || 'Ocorreu um erro.';
-            toast.error(errorMessage);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== confirmPassword) return toast.error(t('auth.mismatch'));
+    if (!token) return toast.error(t('auth.tokenMissing'));
+    setIsLoading(true);
+    try {
+      await api.post('/usuario/reset-password', { token, password });
+      toast.success(t('auth.resetSuccess'));
+      navigate('/login');
+    } catch (error: any) {
+      toast.error(error.response?.status === 501 ? t('auth.forgotUnavailable') : error.response?.data?.error || t('auth.genericError'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return (
-        <div className="min-h-screen bg-brand-purple flex items-center justify-center p-4">
-            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
-                <h2 className="text-2xl font-bold text-center mb-6">Redefinir Senha</h2>
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <Input id="password" label="Nova Senha" type="password" placeholder="Digite a nova senha" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                    <Input id="confirmPassword" label="Confirmar Nova Senha" type="password" placeholder="Confirme a nova senha" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-                    <Button type="submit" variant="primary" disabled={isLoading}>
-                        {isLoading ? 'Salvando...' : 'Redefinir Senha'}
-                    </Button>
-                </form>
-            </div>
-        </div>
-    );
+  return (
+    <div className="space-y-8">
+      <h1 className="text-3xl font-extrabold tracking-tight">{t('auth.resetTitle')}</h1>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <Field label={t('auth.newPassword')} type="password" autoComplete="new-password" hint={t('auth.passwordHint')} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+        <Field label={t('auth.confirmPassword')} type="password" autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+        <Button type="submit" size="lg" fullWidth loading={isLoading}>{isLoading ? t('auth.saving') : t('auth.resetDo')}</Button>
+      </form>
+    </div>
+  );
 };
 
 export default ResetPassword;

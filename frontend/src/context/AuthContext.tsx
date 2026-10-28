@@ -13,7 +13,13 @@ interface AuthContextType {
   logout: () => void;
   /** Aplica no estado um usuário atualizado (ex.: depois de salvar o perfil) */
   setUser: (user: User) => void;
+  /** Salva preferências/perfil no servidor e atualiza o usuário no estado */
+  savePreferences: (changes: PreferenceChanges) => Promise<User>;
 }
+
+export type PreferenceChanges = Partial<Pick<User, 'name' | 'language' | 'theme' | 'palette' | 'fontScale' | 'avatarColor'>> & {
+  accessibility?: Partial<User['accessibility']>;
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -63,8 +69,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return res.data.usuario;
   };
 
+  const savePreferences = async (changes: PreferenceChanges): Promise<User> => {
+    const res = await api.put<User>('/usuario/me', changes);
+    setUser(res.data);
+    return res.data;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, setUser, savePreferences }}>
       {children}
     </AuthContext.Provider>
   );

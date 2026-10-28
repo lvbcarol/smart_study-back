@@ -91,6 +91,21 @@ describe('auth', () => {
   });
 });
 
+describe('troca de senha', () => {
+  it('exige a senha atual e passa a valer a nova', async () => {
+    await register('Troca', 'troca@test.com');
+    const auth = await tokenFor('troca@test.com');
+    const wrong = await request(app).put('/api/usuario/me/password').set('Authorization', auth).send({ currentPassword: 'errada', newPassword: 'novasenha1' });
+    expect(wrong.status).toBe(401);
+    const short = await request(app).put('/api/usuario/me/password').set('Authorization', auth).send({ currentPassword: 'secret123', newPassword: '123' });
+    expect(short.status).toBe(400);
+    const ok = await request(app).put('/api/usuario/me/password').set('Authorization', auth).send({ currentPassword: 'secret123', newPassword: 'novasenha1' });
+    expect(ok.status).toBe(200);
+    expect((await login('troca@test.com', 'secret123')).status).toBe(401);
+    expect((await login('troca@test.com', 'novasenha1')).status).toBe(200);
+  });
+});
+
 describe('papéis', () => {
   it('requireRole bloqueia aluno e libera professor', async () => {
     const student = await request(app).get('/api/probe/teacher-only').set('Authorization', await tokenFor('ana@test.com'));
