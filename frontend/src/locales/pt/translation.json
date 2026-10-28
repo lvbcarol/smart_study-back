@@ -1,0 +1,156 @@
+{
+  "navbar": {
+    "home": "Início",
+    "myNotebooks": "Meus cadernos",
+    "progress": "Meu Progresso",
+    "aboutUs": "Sobre nós",
+    "myAccount": "Minha conta"
+  },
+  "home": {
+    "welcome": "Bem-vindo(a) de volta, {{name}}.",
+    "title": "Seu assistente de estudos pessoal com IA",
+    "subtitle": "Esta é sua área de estudo personalizada. Obtenha resumos precisos, dicas de materiais de estudos, gere quizzes práticos sobre qualquer tópico e acompanhe seu progresso para gabaritar suas provas com confiança.",
+    "cta": "Ir para Meus Cadernos"
+  },
+  "myNotebooks": {
+    "title": "Meus cadernos",
+    "newNotebook": "Novo caderno",
+    "loading": "Carregando...",
+    "modalTitle": "Criar Novo Caderno",
+    "modalPlaceholder": "Ex: Programação Orientada a Objetos",
+    "cancel": "Cancelar",
+    "create": "Criar",
+    "createSuccess": "Caderno criado!",
+    "createError": "Erro ao criar caderno.",
+    "confirmDelete": "Tem certeza que deseja deletar o caderno \"{{title}}\"?",
+    "newLesson": "Nova aula",
+    "save": "Salvar",
+    "newLessonPlaceholder": "Nome da nova aula",
+    "subtitle": "Esta é sua área de estudo. Você pode criar, editar e deletar seus cadernos. Dentro de cada caderno, você pode criar, editar e deletar aulas. Ao clicar em uma aula já criada, você será redirecionado para a área de estudo.",
+    "tooltipNewNotebook": "Crie um novo caderno. Você pode usar os cadernos para separar seu estudo por matérias.",
+    "tooltipNewLesson": "Crie uma nova aula. Você pode usar as aulas para separar os tópicos de cada matéria.",
+    "deleteModal": {
+      "titleNotebook": "Excluir Caderno",
+      "titleLesson": "Excluir Aula",
+      "bodyNotebook": "Você tem certeza de que quer excluir este caderno? Todas as aulas e conteúdos dele serão excluidos permanentemente e não poderão ser recuperados.",
+      "bodyLesson": "Você tem certeza que deseja excluir esta aula?",
+      "confirm": "Excluir",
+      "cancel": "Cancelar"
+    },
+    "deleteSuccess": "Caderno deletado!",
+    "deleteError": "Erro ao deletar caderno.",
+    "lessonAddedSuccess": "Aula adicionada!",
+    "lessonAddedError": "Erro ao adicionar aula.",
+    "titleUpdatedSuccess": "Título do caderno atualizado!",
+    "titleUpdatedError": "Erro ao atualizar título.",
+    "lessonUpdatedSuccess": "Aula atualizada!",
+    "lessonUpdatedError": "Erro ao atualizar aula.",
+    "lessonDeletedSuccess": "Aula deletada!",
+    "lessonDeletedError": "Erro ao deletar aula.",
+    "goBackToHome": "voltar para o Início"
+  },
+  "subject": {
+    "title": "Como vamos estudar hoje?",
+    "summaryTitle": "Resumo",
+    "summaryDesc": "Tenha em mente os tópicos principais de cada aula!",
+    "quizzTitle": "Quizz",
+    "quizzDesc": "Teste seus conhecimentos!",
+    "goBack": "voltar para Cadernos"
+  },
+  "chat": {
+    "thinking": "Pensando...",
+    "summaryInitial": "Olá, eu sou o Bob, o assistente de estudos do Smart Study. Estou aqui para te ajudar! O que você gostaria que eu resumisse hoje? Me envie o tópico para o resumo",
+    "quizzInitial": "Olá, eu sou o Bob, o assistente de estudos do Smart Study. Estou aqui para te ajudar! Este quizz tem 8 perguntas, seu progresso só será salvo se você responder todas elas. Você também pode revisar suas respostas ao clicar em uma tentativa concluida. Vamos começar! Qual tópico você gostaria de testar? Me envie o assunto para o quizz.",
+    "typeSubject": "Digite o assunto aqui...",
+    "quizzFinished": "Quizz finalizado! 🏆\n\nVocê acertou {{correct}} de {{total}} questões ({{score}}%). Continue se dedicando nos estudos e verá sua evolução! Precisa treinar mais? Inicie uma nova tentativa na página de tentativas.",
+    "feedbackError": "Sua pontuação foi salva. Ótimo trabalho no quizz!",
+    "saveConversation": "Salvar Conversa",
+    "saveQuizz": "Salvar Quizz",
+    "backToSubject": "Voltar para a Matéria",
+    "questionLabel": "Pergunta {{number}}",
+    "explanationLabel": "Explicação",
+    "aiError": "O serviço de IA está ocupado no momento. Por favor, aguarde um instante e tente enviar seu tópico novamente."
+  },
+  "quizzPage": {
+    "loading": "Carregando Dados do Quizz...",
+    "reviewingAttempt": "Revisando Tentativa nº {{number}} ({{score}}%)",
+    "backToAttempts": "Voltar para Tentativas",
+    "title": "{{lessonTitle}} - Quizzes",
+    "startNew": "Iniciar Novo Quizz",
+    "attempt": "Tentativa nº {{number}}",
+    "noAttempts": "Nenhuma tentativa de quizz ainda. Comece uma nova!",
+    "saveSuccess": "Sua nova tentativa foi salva com sucesso!"
+  },
+  "progress": {
+    "title": "Meu Progresso",
+    "subtitle": "Aqui está uma visão geral da sua performance nos estudos.",
+    "loading": "Carregando seus dados de progresso...",
+    "noDataTitle": "Ainda Não Há Dados de Progresso",
+    "noDataSubtitle": "Parece que você ainda não completou nenhum quizz. Complete um quizz em um dos seus cadernos, e seu progresso aparecerá aqui!",
+    "card1": {
+      "title": "Média Geral por Caderno",
+      "desc": "Uma comparação geral do seu desempenho.",
+      "legendTitle": "Visão Geral das Matérias",
+      "legendText": "Este gráfico mostra sua pontuação média geral para cada caderno. Use-o para identificar rapidamente em quais matérias você precisa de mais atenção.",
+      "barName": "Média"
+    },
+    "card2": {
+      "title": "Pontuação Média por Aula",
+      "desc": "Selecione um caderno para ver a média de cada aula.",
+      "selectPlaceholder": "Selecione um Caderno",
+      "noData": "Selecione um caderno para ver o gráfico.",
+      "legendTitle": "Análise por Aula",
+      "legendText": "Filtre por caderno para comparar seu desempenho médio em cada aula, ajudando a identificar tópicos específicos para revisão."
+    },
+    "card3": {
+      "title": "Progresso por Tentativa",
+      "desc": "Selecione um caderno e uma aula para acompanhar suas notas.",
+      "selectNotebookPlaceholder": "Selecione um Caderno",
+      "selectLessonPlaceholder": "Selecione uma Aula",
+      "noAttempts": "Esta aula ainda não tem tentativas de quizz.",
+      "pleaseSelect": "Por favor, selecione um caderno e uma aula.",
+      "legendTitle": "Análise Detalhada",
+      "legendText": "Filtre por caderno e aula para ver a progressão da sua pontuação em cada tentativa. Perfeito para acompanhar a melhora em um tópico específico."
+    }
+  },
+  "myAccount": {
+    "welcome": "Bem-vindo(a), {{name}}",
+    "accountInfo": "Informações da Conta",
+    "fullName": "Nome Completo",
+    "email": "E-mail Cadastrado",
+    "languageSettings": "Configurações de Idioma",
+    "accessibility": "Acessibilidade",
+    "audioDescription": "Recursos de Áudio (para deficientes visuais)",
+    "signLanguage": "Recursos de Linguagem de Sinais (para usuários surdos)",
+    "saveChanges": "Salvar Alterações",
+    "preferencesSaved": "Preferências salvas com sucesso!",
+    "accessibilityHelpText": "Quando acionados, aparecerá um widget que redirecionará o usuário para um site de seu respectivo país, com a ferramenta necessária para a melhor experiência de usuário."
+  },
+  "aboutUs": {
+    "title": "Sobre Nós",
+    "philosophy": {
+      "text": "O projeto Smart Study foi pensado para ser um poderoso aliado para uma <strong>experiência de aprendizado profunda, individual e duradoura.</strong> Nós desenvolvemos um método onde cada usuário pode criar seu próprio ambiente de estudo, baseado em três pilares:"
+    },
+    "pillars": {
+      "summary": { "title": "Resumo", "desc": "Absorção de Conteúdo" },
+      "quizz": { "title": "Quizz", "desc": "Aprendizado Aplicado" },
+      "progress": { "title": "Progresso", "desc": "Feedback Instantâneo e Motivador" }
+    },
+    "story": {
+      "title": "Nossa História",
+      "text": "Este projeto foi idealizado e desenvolvido pela estudante de Sistemas de Informação <strong>Carolina Lansoni Vilas Boas</strong>, mentorada pelo professor <strong>Rafael Hauckewitz Todaro</strong>, em parceria com o <strong>Instituto Mauá de Tecnologia</strong> e o programa global <strong>Grand Challenges Scholarship Program</strong>. Estamos comprometidos com a inclusão, acessibilidade, aprendizado personalizado e desenvolvimento contínuo.",
+      "motto": "Estude sempre, estude inteligente!"
+    }
+  },
+  "widgets": {
+    "aslTitle": "Abrir Dicionário de ASL",
+    "vlibrasTitle": "Abrir site do VLibras",
+    "screenReaderTitle": "Saiba mais sobre o NVDA, um leitor de tela gratuito",
+    "musicPlayerTooltip": "Clique para ligar/desligar a música. <br /> Segure e arraste para mover o botão na tela."
+  },
+  "footer": {
+    "description": "A IA pode cometer erros, conferir as respostas é recomendado.",
+    "developedBy": "Desenvolvido por Carolina Lansoni Vilas Boas",
+    "rights": "Todos os direitos reservados."
+  }
+}

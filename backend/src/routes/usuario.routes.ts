@@ -56,10 +56,12 @@ router.post('/login', async (req: Request, res) => {
 
 // ROTAS DE RECUPERAÇÃO DE SENHA
 router.post('/forgot-password', async (req: Request, res) => {
-  // ... (código existente da recuperação de senha)
+  // TODO: envio de e-mail (nodemailer) ainda não implementado
+  res.status(501).json({ message: 'Recuperação de senha ainda não implementada.' });
 });
 router.post('/reset-password', async (req: Request, res) => {
-  // ... (código existente da redefinição de senha)
+  // TODO: depende do fluxo de forgot-password
+  res.status(501).json({ message: 'Redefinição de senha ainda não implementada.' });
 });
 
 

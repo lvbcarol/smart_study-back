@@ -3,38 +3,45 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
+import { connectDB, disconnectDB } from './config/db';
 import usuarioRoutes from './routes/usuario.routes';
-import notebookRoutes from './routes/notebook.routes'; 
+import notebookRoutes from './routes/notebook.routes';
 import lessonRoutes from './routes/lesson.routes';
 import aiRoutes from './routes/ai.routes';
-import progressRoutes from './routes/progress.routes'; // ✅ 1. IMPORTE A ROTA QUE FALTAVA
+import progressRoutes from './routes/progress.routes';
 
 const app = express();
-app.use(cors());
+app.use(cors(process.env.CORS_ORIGIN ? { origin: process.env.CORS_ORIGIN.split(',') } : undefined));
 app.use(express.json());
 app.use((req, res, next) => {
   console.log(`[${new Date().toLocaleTimeString()}] REQUISIÇÃO RECEBIDA: ${req.method} ${req.originalUrl}`);
   next();
 });
 
-// Validação para garantir que a URI do Mongo existe
-if (!process.env.MONGO_URI) {
-  console.error('🔴 Erro: MONGO_URI não definida no arquivo .env');
-  process.exit(1);
-}
-
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('🟢 MongoDB conectado'))
-  .catch((err) => console.error('🔴 Erro MongoDB:', err));
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', aiMode: process.env.AI_MODE || 'mock' });
+});
 
 // Rotas da API
 app.use('/api/usuario', usuarioRoutes);
 app.use('/api/notebooks', notebookRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/progress', progressRoutes); // ✅ 2. ADICIONE O USO DA ROTA AQUI
+app.use('/api/progress', progressRoutes);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
+
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT} (IA: ${process.env.AI_MODE || 'mock'})`));
+  })
+  .catch((err) => {
+    console.error('🔴 Erro MongoDB:', err);
+    process.exit(1);
+  });
+
+process.on('SIGINT', async () => {
+  await disconnectDB();
+  process.exit(0);
+});

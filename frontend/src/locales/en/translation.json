@@ -1,0 +1,157 @@
+{
+  "navbar": {
+    "home": "Home",
+    "myNotebooks": "My notebooks",
+    "progress": "My Progress",
+    "aboutUs": "About us",
+    "myAccount": "My account"
+  },
+  "home": {
+    "welcome": "Welcome back, {{name}}.",
+    "title": "Your personal AI study assistant",
+    "subtitle": "This is your personalized study area. Get precise summaries, tips for study materials, generate practice quizzes on any topic, and track your learning progress to ace your exams with confidence.",
+    "cta": "Go to My Notebooks"
+  },
+  "myNotebooks": {
+    "title": "My notebooks",
+    "newNotebook": "New notebook",
+    "loading": "Loading...",
+    "modalTitle": "Create New Notebook",
+    "modalPlaceholder": "E.g., Object-Oriented Programming",
+    "cancel": "Cancel",
+    "create": "Create",
+    "createSuccess": "Notebook created!",
+    "createError": "Error creating notebook.",
+    "confirmDelete": "Are you sure you want to delete the notebook \"{{title}}\"?",
+    "newLesson": "New lesson",
+    "save": "Save",
+    "newLessonPlaceholder": "New lesson name",
+    "subtitle": "This is your study area. You can create, edit, and delete your notebooks. Inside each notebook, you can create, edit, and delete lessons. Clicking on an existing lesson will redirect you to the study area.",
+    "tooltipNewNotebook": "Create a new notebook. You can use notebooks to separate your studies by subject.",
+    "tooltipNewLesson": "Create a new lesson. You can use lessons to separate the topics of each subject.",
+    "deleteModal": {
+      "titleNotebook": "Delete Notebook",
+      "titleLesson": "Delete Lesson",
+      "bodyNotebook": "Are you sure you want to delete this notebook? All its lessons and content will be permanently deleted and cannot be recovered.",
+      "bodyLesson": "Are you sure you want to delete this lesson?",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "deleteSuccess": "Notebook deleted!",
+    "deleteError": "Error deleting notebook.",
+    "lessonAddedSuccess": "Lesson added!",
+    "lessonAddedError": "Error adding lesson.",
+    "titleUpdatedSuccess": "Notebook title updated!",
+    "titleUpdatedError": "Error updating title.",
+    "lessonUpdatedSuccess": "Lesson updated!",
+    "lessonUpdatedError": "Error updating lesson.",
+    "lessonDeletedSuccess": "Lesson deleted!",
+    "lessonDeletedError": "Error deleting lesson.",
+    "goBackToHome": "go back to Home"
+  },
+  "subject": {
+    "title": "How would you like to study today?",
+    "summaryTitle": "Summary",
+    "summaryDesc": "Keep in mind the main topics of each class!",
+    "quizzTitle": "Quizz",
+    "quizzDesc": "Test your knowledge!",
+    "goBack": "go back to Notebooks"
+  },
+  "chat": {
+    "thinking": "Thinking...",
+    "summaryInitial": "Hello! I'm Bob, the study assistant of Smart Study. I'm here to help! What topic would you like me to summarize today? Send me the subject for the summary.",
+    "quizzInitial": "Hello I'm Bob, the study assistant of Smart Study. This quiz has 8 questions, your progress will only be saved if you answer all of them. You can also review your answers by clicking on an completed attempt. Let's get started! What topic would you like to quiz yourself on? Send me the subject for the quiz.",
+    "typeSubject": "Type your subject here...",
+    "quizzFinished": "Quizz finished! 🏆\n\nYou got {{correct}} out of {{total}} correct ({{score}}%). Keep up the great work! Do you need more practice? Start a new attempt in the attempts page.",
+    "feedbackError": "Your score was saved. Great job on the quiz!",
+    "saveConversation": "Save Conversation",
+    "saveQuizz": "Save Quizz",
+    "backToSubject": "Back to Subject",
+    "questionLabel": "Question {{number}}",
+    "explanationLabel": "Explanation",
+    "aiError": "The AI service is currently busy. Please wait a moment and try submitting your topic again."
+  },
+  "quizzPage": {
+    "loading": "Loading Quiz Data...",
+    "reviewingAttempt": "Reviewing Attempt #{{number}} ({{score}}%)",
+    "backToAttempts": "Back to Attempts",
+    "title": "{{lessonTitle}} - Quizzes",
+    "startNew": "Start New Quiz",
+    "attempt": "Attempt #{{number}}",
+    "noAttempts": "No quiz attempts yet. Start a new one!",
+    "saveSuccess": "Your new attempt has been saved!"
+  },
+  "progress": {
+    "title": "My Progress",
+    "subtitle": "Here's a visual overview of your study performance.",
+    "loading": "Loading Data...",
+    "noData": "No quiz data available yet.",
+    "noDataTitle": "No Progress Data Yet",
+    "noDataSubtitle": "It looks like you haven't completed any quizzes yet. Complete a quiz in one of your notebooks, and your progress will show up here!",
+    "card1": {
+      "title": "Overall Average by Notebook",
+      "desc": "A general comparison of your performance.",
+      "legendTitle": "Subject Overview",
+      "legendText": "This chart shows your overall average score for each notebook. Use it to quickly identify which subjects need more attention.",
+      "barName": "Average"
+    },
+    "card2": {
+      "title": "Average Score by Lesson",
+      "desc": "Select a notebook to see the average for each lesson.",
+      "selectPlaceholder": "Select a Notebook",
+      "noData": "Select a notebook to see the chart.",
+      "legendTitle": "Lesson Analysis",
+      "legendText": "Filter by notebook to compare your average performance in each lesson, helping you pinpoint specific topics for review."
+    },
+    "card3": {
+      "title": "Progress by Attempt",
+      "desc": "Select a notebook and a lesson to track your scores.",
+      "selectNotebookPlaceholder": "Select a Notebook",
+      "selectLessonPlaceholder": "Select a Lesson",
+      "noAttempts": "This lesson has no quiz attempts yet.",
+      "pleaseSelect": "Please select a notebook and lesson.",
+      "legendTitle": "Deep Dive Analysis",
+      "legendText": "Filter by notebook and lesson to see the score progression for every single attempt. Perfect for tracking improvement on a specific topic."
+    }
+  },
+  "myAccount": {
+    "welcome": "Welcome, {{name}}",
+    "accountInfo": "Account Information",
+    "fullName": "Full Name",
+    "email": "Registered E-mail",
+    "languageSettings": "Language Settings",
+    "accessibility": "Accessibility",
+    "audioDescription": "Audio Features (for visually impaired)",
+    "signLanguage": "Sign Language Features (for deaf users)",
+    "saveChanges": "Save Changes",
+    "preferencesSaved": "Preferences saved successfully!",
+    "accessibilityHelpText": "When activated, a helper widget will appear that will redirect the user to a site from their respective country, with the necessary tool for the best user experience."
+  },
+  "aboutUs": {
+    "title": "About Us",
+    "philosophy": {
+      "text": "Smart Study was designed to be a powerful ally for a <strong>deep, individual, and lasting learning experience.</strong> We developed a method where every user can create their own study environment, based on three pillars:"
+    },
+    "pillars": {
+      "summary": { "title": "Summary", "desc": "Content Absorption" },
+      "quizz": { "title": "Quizz", "desc": "Applied Learning" },
+      "progress": { "title": "Progress", "desc": "Instant & Motivating Feedback" }
+    },
+    "story": {
+      "title": "Our Story",
+      "text": "This project was conceived and developed by Information Systems student <strong>Carolina Lansoni Vilas Boas</strong>, who was mentored by the professor <strong>Rafael Hauckewitz Todaro</strong>, in partnership with the <strong>Instituto Mauá de Tecnologia</strong> and the global <strong>Grand Challenges Scholarship Program</strong>. We are committed to inclusivity, accessibility, personalized learning, and continuous development.",
+      "motto": "Study smart, always!"
+    }
+  },
+  "widgets": {
+    "aslTitle": "Open ASL Dictionary",
+    "vlibrasTitle": "Open VLibras Website",
+    "screenReaderTitle": "Learn about NVDA, a free screen reader",
+    "musicPlayerTooltip": "Click to play/pause music. <br /> Hold and drag to move the button."
+  },
+  "footer": {
+    "description": "AI can make mistakes, double-checking the information provided is recommended.",
+    "developedBy": "Developed by Carolina Lansoni Vilas Boas",
+    "rights": "All rights reserved."
+  }
+}

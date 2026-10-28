@@ -1,4 +1,4 @@
-# 🧠 Smart Study - Backend
+# 🧠 Smart Study
 
 ## 🚀 About the Project
 
@@ -44,31 +44,24 @@ The backend is built with a focus on performance, security, and scalability:
 
 ## ⚙️ Running Locally
 
-To run this server on your local machine, follow these steps:
+Monorepo: `backend/` (Express + MongoDB) and `frontend/` (Vite + React).
 
-1.  **Clone the repository:**
+1.  **Install everything:**
     ```bash
-    git clone [https://github.com/seu-usuario/smart_study-back.git](https://github.com/seu-usuario/smart_study-back.git)
-    cd smart_study-back
+    npm run install:all
     ```
-2.  **Install dependencies:**
+2.  **Environment variables:** copy the examples and edit as needed.
     ```bash
-    npm install
+    cp backend/.env.example backend/.env
+    cp frontend/.env.example frontend/.env
     ```
-3.  **Set up the Environment Variables:**
-    * Create a `.env` file in the root of the project.
-    * Add the following variables with your own secret keys:
-        ```env
-        MONGODB_URI=your_mongodb_atlas_connection_string
-        JWT_SECRET=your_super_secret_jwt_key
-        GEMINI_API_KEY=your_google_gemini_api_key
-        PORT=3000
-        ```
-4.  **Start the development server:**
+    * `MONGO_URI=memory` starts an in-memory MongoDB (data is lost on restart). For persistence, use a MongoDB Atlas connection string.
+    * `AI_MODE=mock` returns fake summaries/quizzes (no key needed). Use `AI_MODE=gemini` with `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`) for the real AI.
+3.  **Start both apps:**
     ```bash
     npm run dev
     ```
-    The API will be running at `http://localhost:3000`.
+    API: `http://localhost:3000/api` (health check: `/api/health`) · Frontend: `http://localhost:5173`.
 
 ---
 

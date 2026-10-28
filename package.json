@@ -1,0 +1,16 @@
+{
+  "name": "smart-study",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Smart Study - monorepo com backend (Express/MongoDB) e frontend (Vite/React)",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "dev": "concurrently -n back,front -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:back": "npm run dev --prefix backend",
+    "dev:front": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
