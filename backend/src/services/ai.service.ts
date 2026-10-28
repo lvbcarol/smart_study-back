@@ -20,7 +20,7 @@ export interface AIService {
   analyzeQuizz(input: { quizzData: QuizzQuestion[]; userAnswers: number[]; language?: string }): Promise<string>;
 }
 
-const isPt = (language?: string) => language === 'pt';
+const isPt = (language?: string) => !!language && language.toLowerCase().startsWith('pt');
 
 // ---------------------------------------------------------------------------
 // MOCK: respostas ficticias, sem chave e sem rede

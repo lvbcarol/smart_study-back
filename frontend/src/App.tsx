@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 
 // Provedores de Contexto
 import { AccessibilityProvider, useAccessibility } from './context/AccessibilityContext';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Componentes Globais e Widgets
 import VLibrasWidget from './components/VLibrasWidget';
@@ -28,6 +30,7 @@ import TermsOfUse from './pages/TermsOfUse';
 import LessonPage from './pages/LessonPage';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import NotFound from './pages/NotFound';
 
 const AppContent: React.FC = () => {
   const { isSignLanguageEnabled, isAudioEnabled } = useAccessibility();
@@ -51,21 +54,28 @@ const AppContent: React.FC = () => {
 
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<Navigate to="/register" />} />
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            {/* Rotas públicas */}
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/my-notebooks" element={<MyNotebooks />} />
-            <Route path="/progress" element={<ProgressPage />} />
             <Route path="/about-us" element={<AboutUs />} />
-            <Route path="/my-account" element={<MyAccount />} />
-            <Route path="/subjects/:lessonId" element={<SubjectPage />} />
-            <Route path="/summary/:lessonId" element={<SummaryPage />} />
-            <Route path="/quizz/:lessonId" element={<QuizzPage />} />
             <Route path="/terms-of-use" element={<TermsOfUse />} />
-            <Route path="/notebook/:notebookId/lesson/:lessonId" element={<LessonPage />} />
+
+            {/* Rotas que exigem login */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/home" element={<Home />} />
+              <Route path="/my-notebooks" element={<MyNotebooks />} />
+              <Route path="/progress" element={<ProgressPage />} />
+              <Route path="/my-account" element={<MyAccount />} />
+              <Route path="/subjects/:lessonId" element={<SubjectPage />} />
+              <Route path="/summary/:lessonId" element={<SummaryPage />} />
+              <Route path="/quizz/:lessonId" element={<QuizzPage />} />
+              <Route path="/notebook/:notebookId/lesson/:lessonId" element={<LessonPage />} />
+            </Route>
+
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
         
@@ -77,9 +87,11 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-        <AccessibilityProvider>
-          <AppContent />
-        </AccessibilityProvider>
+    <AccessibilityProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </AccessibilityProvider>
   );
 }
 

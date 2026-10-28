@@ -1,82 +1,30 @@
 // src/models/Notebook.ts
-import mongoose, { Document, Schema, Model } from 'mongoose';
+import mongoose, { Document, Schema, Model, Types } from 'mongoose';
 
-// Interface para definir a estrutura de uma única mensagem no histórico do chat
-interface IChatMessage {
-  sender: 'user' | 'bot';
-  text: string;
-}
-
-// Interface principal para o documento do Caderno
+// Caderno = uma matéria. Se `turma` estiver definida, é um caderno do professor
+// e os alunos matriculados na turma o leem (somente leitura).
+// Chat e tentativas de quiz ficam em ChatSession e QuizAttempt.
 export interface INotebook extends Document {
   title: string;
-  lessons: { 
-    _id: mongoose.Types.ObjectId;
+  owner: Types.ObjectId;
+  turma?: Types.ObjectId;
+  lessons: {
+    _id: Types.ObjectId;
     title: string;
-    chatHistory?: IChatMessage[];
-    quizzAttempts?: { 
-      attemptNumber: number;
-      score: number; 
-      date: Date;
-      quizData: any; // Armazena as perguntas originais do quizz
-      userAnswers: (number | null)[]; // Armazena as respostas do usuário
-      chatHistory: { 
-        sender: 'user' | 'bot'; 
-        text: string; 
-        quizzOptions?: any 
-        questionIndex?: number;
-      }[];
-    }[];
   }[];
-  user: mongoose.Schema.Types.ObjectId; // Referência ao usuário dono do caderno
 }
 
-// Schema do Mongoose que será usado pelo banco de dados
 const NotebookSchema: Schema = new Schema<INotebook>({
-  title: { 
-    type: String, 
-    required: true 
-  },
+  title: { type: String, required: true },
+  owner: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true, index: true },
+  turma: { type: Schema.Types.ObjectId, ref: 'Turma', index: true },
   lessons: [{
-    title: { 
-      type: String, 
-      required: true 
-    },
-    chatHistory: [{
-      sender: { 
-        type: String, 
-        enum: ['user', 'bot'], 
-        required: true 
-      },
-      text: { 
-        type: String, 
-        required: true 
-      },
-    }],
-    quizzAttempts: [{
-      attemptNumber: { type: Number, required: true },
-      score: { type: Number, required: true },
-      date: { type: Date, default: Date.now },
-      quizData: { type: Schema.Types.Mixed, required: true },
-      userAnswers: { type: [Schema.Types.Mixed], required: true },
-      chatHistory: [{
-        sender: { type: String, enum: ['user', 'bot'], required: true },
-        text: { type: String, required: true },
-        quizzOptions: { type: Schema.Types.Mixed },
-        questionIndex: { type: Number }
-      }]
-    }]
+    title: { type: String, required: true },
   }],
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Usuario', // Cria um vínculo com o modelo 'Usuario'
-    required: true,
-  },
-}, { 
-  timestamps: true // Adiciona os campos 'createdAt' e 'updatedAt' automaticamente
+}, {
+  timestamps: true
 });
 
-// Verifica se o modelo "Notebook" já existe antes de compilá-lo para evitar erros
 const Notebook: Model<INotebook> = mongoose.models.Notebook || mongoose.model<INotebook>('Notebook', NotebookSchema);
 
 export default Notebook;

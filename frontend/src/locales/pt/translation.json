@@ -4,7 +4,8 @@
     "myNotebooks": "Meus cadernos",
     "progress": "Meu Progresso",
     "aboutUs": "Sobre nós",
-    "myAccount": "Minha conta"
+    "myAccount": "Minha conta",
+    "logout": "Sair"
   },
   "home": {
     "welcome": "Bem-vindo(a) de volta, {{name}}.",

@@ -1,8 +1,7 @@
 // src/pages/Login.tsx
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_URL } from '../services/api';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -13,24 +12,20 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     const loadingToast = toast.loading('Signing in...');
     try {
-      const response = await axios.post(`${API_URL}/usuario/login`, { email, password });
-      if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
-        localStorage.setItem('userName', response.data.usuario.name);
-      }
+      await login(email, password);
 
       toast.dismiss(loadingToast);
       toast.success('Login successful!');
 
-      setTimeout(() => {
-        navigate('/home', { state: { userName: response.data.usuario.name } });
-      }, 1000);
+      navigate(location.state?.from || '/home', { replace: true });
       
     } catch (err: any) {
       toast.dismiss(loadingToast);

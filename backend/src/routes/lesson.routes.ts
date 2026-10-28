@@ -1,81 +1,99 @@
-import { Router, Request } from 'express';
+import { Router, Response } from 'express';
+import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth.middleware';
-import Notebook from '../models/Notebook';
-
-interface AuthRequest extends Request {
-  userId?: string;
-}
+import QuizAttempt from '../models/QuizAttempt';
+import ChatSession from '../models/ChatSession';
+import { AuthRequest } from '../types';
+import { findLessonAccess } from '../services/access';
+import { parseBody } from '../utils/validate';
 
 const router = Router();
 router.use(authMiddleware);
 
-// GET: Busca detalhes da aula, incluindo todas as tentativas de quizz
-router.get('/:lessonId', async (req: AuthRequest, res) => {
-  try {
-    const notebook = await Notebook.findOne({ 'lessons._id': req.params.lessonId, user: req.userId })
-                                      .select('title lessons._id lessons.title lessons.quizzAttempts lessons.chatHistory');
+const attemptSchema = z.object({
+  score: z.number().min(0).max(100),
+  chatHistory: z.array(z.any()).default([]),
+  quizData: z.array(z.any()),
+  userAnswers: z.array(z.any()),
+});
 
-    if (!notebook) return res.status(404).json({ error: 'Lesson not found.' });
-    
-    const lesson = notebook.lessons.find(l => l._id.toString() === req.params.lessonId);
-    
-    if (!lesson) return res.status(404).json({ error: 'Lesson not found within the notebook.' });
+const chatSchema = z.object({
+  messages: z.array(z.object({ sender: z.enum(['user', 'bot']), text: z.string() })).max(500),
+});
+
+// GET: Busca detalhes da aula, incluindo as tentativas de quizz e o chat do próprio usuário
+router.get('/:lessonId', async (req: AuthRequest, res: Response) => {
+  try {
+    const access = await findLessonAccess(req.params.lessonId, req.userId as string);
+    if (!access) return res.status(404).json({ error: 'Lesson not found.' });
+
+    const [attempts, chat] = await Promise.all([
+      QuizAttempt.find({ user: req.userId, lesson: access.lesson._id }).sort({ createdAt: 1 }).lean(),
+      ChatSession.findOne({ user: req.userId, lesson: access.lesson._id }).lean(),
+    ]);
 
     res.json({
-      notebookTitle: notebook.title,
-      lessonTitle: lesson.title,
-      quizzAttempts: lesson.quizzAttempts || [],
-      chatHistory: lesson.chatHistory || []
+      notebookTitle: access.notebook.title,
+      lessonTitle: access.lesson.title,
+      readOnly: !access.canWrite,
+      quizzAttempts: attempts.map((a) => ({
+        _id: a._id,
+        attemptNumber: a.attemptNumber,
+        score: a.score,
+        date: a.createdAt,
+        quizData: a.questions,
+        userAnswers: a.answers,
+        chatHistory: a.transcript,
+      })),
+      chatHistory: chat?.messages ?? [],
     });
   } catch (error) {
     res.status(500).json({ error: 'Error fetching lesson details.' });
   }
 });
 
-// POST: Salva uma nova tentativa de quizz (pontuação, histórico, perguntas e respostas)
-router.post('/:lessonId/quizz-attempts', async (req: AuthRequest, res) => {
-  const { score, chatHistory, quizData, userAnswers } = req.body;
+// POST: Salva uma nova tentativa de quizz
+// (a correção no servidor entra junto com os novos tipos de pergunta)
+router.post('/:lessonId/quizz-attempts', async (req: AuthRequest, res: Response) => {
+  const data = parseBody(attemptSchema, req.body, res);
+  if (!data) return;
   try {
-    const notebook = await Notebook.findOne({ 'lessons._id': req.params.lessonId, user: req.userId });
-    if (!notebook) return res.status(404).json({ error: 'Lesson not found.' });
+    const access = await findLessonAccess(req.params.lessonId, req.userId as string);
+    if (!access) return res.status(404).json({ error: 'Lesson not found.' });
 
-    const lesson = notebook.lessons.find(l => l._id.toString() === req.params.lessonId);
-    if (!lesson) return res.status(404).json({ error: 'Lesson not found.' });
-
-    lesson.quizzAttempts = lesson.quizzAttempts || [];
-    const attemptNumber = lesson.quizzAttempts.length + 1;
-
-    // ✅ CORREÇÃO AQUI: Adiciona a propriedade 'date' para satisfazer a tipagem do TypeScript.
-    lesson.quizzAttempts.push({ 
-        score, 
-        chatHistory, 
-        quizData, 
-        userAnswers, 
-        attemptNumber, 
-        date: new Date() 
+    const attemptNumber = (await QuizAttempt.countDocuments({ user: req.userId, lesson: access.lesson._id })) + 1;
+    await QuizAttempt.create({
+      user: req.userId,
+      notebook: access.notebook._id,
+      lesson: access.lesson._id,
+      source: 'practice',
+      attemptNumber,
+      score: data.score,
+      questions: data.quizData,
+      answers: data.userAnswers,
+      transcript: data.chatHistory,
     });
-    
-    await notebook.save();
-    
+
     res.status(201).json({ message: 'Quizz attempt saved successfully.' });
   } catch (error) {
-    console.error("Error saving quizz attempt:", error);
+    console.error('Error saving quizz attempt:', error);
     res.status(400).json({ error: 'Error saving quizz attempt.' });
   }
 });
 
 // PUT: Salva o histórico do chat de resumo
-router.put('/:lessonId/chat', async (req: AuthRequest, res) => {
-  const { messages } = req.body;
+router.put('/:lessonId/chat', async (req: AuthRequest, res: Response) => {
+  const data = parseBody(chatSchema, req.body, res);
+  if (!data) return;
   try {
-    const notebook = await Notebook.findOne({ 'lessons._id': req.params.lessonId, user: req.userId });
-    if (!notebook) return res.status(404).json({ error: 'Lesson not found.' });
+    const access = await findLessonAccess(req.params.lessonId, req.userId as string);
+    if (!access) return res.status(404).json({ error: 'Lesson not found.' });
 
-    const lesson = notebook.lessons.find(l => l._id.toString() === req.params.lessonId);
-    if (!lesson) return res.status(404).json({ error: 'Lesson not found.' });
-    
-    lesson.chatHistory = messages;
-    await notebook.save();
+    await ChatSession.findOneAndUpdate(
+      { user: req.userId, lesson: access.lesson._id },
+      { $set: { messages: data.messages } },
+      { upsert: true }
+    );
     res.status(200).json({ message: 'Conversation saved successfully.' });
   } catch (error) {
     res.status(400).json({ error: 'Error saving conversation.' });

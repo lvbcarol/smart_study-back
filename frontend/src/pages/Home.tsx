@@ -1,19 +1,20 @@
 // src/pages/Home.tsx
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import Navbar from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
 import booksIllustration from '../assets/books-illustration.png';
 import laptopUserImage from '../assets/laptop-user-image.png';
 import { FaBook } from 'react-icons/fa';
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
-  const location = useLocation();
+  const { user } = useAuth();
   const navigate = useNavigate();
   
-  const userName = location.state?.userName?.split(' ')[0] || 'Student';
+  const userName = user?.name.split(' ')[0] || 'Student';
   const [animationKey, setAnimationKey] = useState(0);
 
   const backgroundStyle = {

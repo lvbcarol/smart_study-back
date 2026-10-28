@@ -4,7 +4,8 @@
     "myNotebooks": "My notebooks",
     "progress": "My Progress",
     "aboutUs": "About us",
-    "myAccount": "My account"
+    "myAccount": "My account",
+    "logout": "Log out"
   },
   "home": {
     "welcome": "Welcome back, {{name}}.",

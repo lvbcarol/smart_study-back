@@ -1,6 +1,7 @@
 // src/components/Navbar.tsx
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import navLogo from '../assets/navbar-logo.png';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +9,14 @@ import { useTranslation } from 'react-i18next';
 const Navbar: React.FC = () => {
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    setIsMenuOpen(false);
+    navigate('/login');
+  };
 
   const navLinks = [
     { href: '/home', label: t('navbar.home') },
@@ -47,7 +56,15 @@ const Navbar: React.FC = () => {
         </nav>
 
         {/* --- Seção Direita (Botão Hambúrguer) --- */}
-        <div className="w-1/3 flex justify-end">
+        <div className="w-1/3 flex items-center justify-end gap-4">
+            {user && (
+              <>
+                <span className="hidden lg:inline text-sm text-gray-300">{user.name.split(' ')[0]}</span>
+                <button onClick={handleLogout} className="hidden md:inline text-sm text-gray-300 hover:text-white underline">
+                  {t('navbar.logout', 'Log out')}
+                </button>
+              </>
+            )}
             <button 
               onClick={() => {
                 
@@ -82,6 +99,11 @@ const Navbar: React.FC = () => {
               {link.label}
             </Link>
           ))}
+          {user && (
+            <button onClick={handleLogout} className="text-2xl text-white hover:text-purple-300 transition">
+              {t('navbar.logout', 'Log out')}
+            </button>
+          )}
         </nav>
       </div>
     </header>
