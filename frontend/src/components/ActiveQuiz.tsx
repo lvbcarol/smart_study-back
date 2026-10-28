@@ -1,143 +1,211 @@
-// src/components/ActiveQuiz.tsx
-import React, { useState, useEffect, useRef } from 'react';
-import { Save } from 'lucide-react';
+// src/components/ActiveQuiz.tsx — quiz em formato de conversa, com 5 tipos de pergunta e correção no servidor
+import React, { useEffect, useRef, useState } from 'react';
+import { ArrowRight, Flag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import api from '../services/api';
+import { AnswerValue, DraftResponse, PublicQuestion, QuestionResult } from '../types/quiz';
 import ChatMessage from './ChatMessage';
 import QuizzOptions from './QuizzOptions';
+import AnswerForm from './quiz/AnswerForm';
+import { Badge } from './ds/Misc';
 import { Button } from './ds/Button';
 import { ChatInput } from './ds/ChatInput';
 
-interface QuizQuestion {
-  question: string;
-  options: string[];
-  correctAnswerIndex: number;
-  explanation: string;
-}
-interface Message {
+interface ChatMsg {
   sender: 'user' | 'bot';
   text: string;
-  quizzOptions?: QuizQuestion;
-  questionIndex?: number;
+  /** índice da pergunta quando a mensagem traz alternativas de múltipla escolha */
+  qIndex?: number;
 }
+
+type Phase = 'topic' | 'generating' | 'answering' | 'grading' | 'feedback' | 'finishing' | 'done';
 
 interface ActiveQuizProps {
-  lessonTitle: string;
-  onQuizComplete: (score: number, chatHistory: Message[], quizData: QuizQuestion[], userAnswers: (number | null)[]) => void;
+  lessonId: string;
+  onFinish: () => void;
 }
 
-const ActiveQuiz: React.FC<ActiveQuizProps> = ({ lessonTitle, onQuizComplete }) => {
+const escapeMd = (s: string) => s.replace(/_/g, '\\_');
+
+const ActiveQuiz: React.FC<ActiveQuizProps> = ({ lessonId, onFinish }) => {
   const { t, i18n } = useTranslation();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [userInput, setUserInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [quizData, setQuizData] = useState<QuizQuestion[]>([]);
-  const [userAnswers, setUserAnswers] = useState<(number | null)[]>([]);
-  const [quizFlowState, setQuizFlowState] = useState<'initial' | 'started' | 'finished'>('initial');
-  const hasInitialized = useRef(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [topicInput, setTopicInput] = useState('');
+  const [phase, setPhase] = useState<Phase>('topic');
+  const [draftId, setDraftId] = useState('');
+  const [questions, setQuestions] = useState<PublicQuestion[]>([]);
+  const [answers, setAnswers] = useState<AnswerValue[]>([]);
+  const [results, setResults] = useState<(QuestionResult | null)[]>([]);
+  const [current, setCurrent] = useState(0);
+  const initialized = useRef(false);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  const push = (...msgs: ChatMsg[]) => setMessages((prev) => [...prev, ...msgs]);
 
   useEffect(() => {
-    if (!hasInitialized.current) {
-      addMessage('bot', t('chat.quizzInitial'));
-      hasInitialized.current = true;
+    if (!initialized.current) {
+      initialized.current = true;
+      push({ sender: 'bot', text: t('chat.quizzInitial') });
     }
   }, [t]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, phase]);
 
-  const addMessage = (sender: 'user' | 'bot', text: string, quizzOptions?: QuizQuestion, questionIndex?: number) => {
-    setMessages((prev) => [...prev, { sender, text, quizzOptions, questionIndex }]);
+  const questionText = (q: PublicQuestion, index: number, total: number) => {
+    const head = [`**${t('quizzPage.questionOf', { current: index + 1, total })}**`, t(`quizzPage.types.${q.type}`)];
+    if (q.reinforcement) head.push(`🎯 ${t('quizzPage.reinforcement')}`);
+    const scenario = q.scenario ? `> ${escapeMd(q.scenario)}\n\n` : '';
+    return `${head.join(' · ')}\n\n${scenario}${escapeMd(q.question)}`;
+  };
+
+  const answerText = (q: PublicQuestion, answer: string | string[] | number): string => {
+    if (q.type === 'multiple_choice') return q.options?.[answer as number] ?? '';
+    if (Array.isArray(answer)) return answer.map((a) => a || '—').join(' · ');
+    return String(answer);
+  };
+
+  const feedbackText = (r: QuestionResult) => {
+    const pct = Math.round(r.score * 100);
+    const verdict = r.correct ? `✅ **${t('quizzPage.verdictCorrect')}**` : r.score > 0 ? `◑ **${t('quizzPage.verdictPartial', { pct })}**` : `❌ **${t('quizzPage.verdictWrong')}**`;
+    const lines = [verdict];
+    if (r.feedback) lines.push(escapeMd(r.feedback));
+    if (!r.correct) lines.push(`**${t('quizzPage.expected')}:** ${escapeMd(r.correctAnswer)}`);
+    if (r.explanation) lines.push(`**${t('chat.explanationLabel')}:** ${escapeMd(r.explanation)}`);
+    return lines.join('\n\n');
   };
 
   const handleTopicSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const topic = userInput.trim();
-    if (!topic || isLoading) return;
+    const topic = topicInput.trim();
+    if (!topic || phase !== 'topic') return;
 
-    addMessage('user', topic);
-    setUserInput('');
-    setIsLoading(true);
-    setQuizFlowState('started');
-
+    push({ sender: 'user', text: topic });
+    setTopicInput('');
+    setPhase('generating');
     try {
-      const response = await api.post('/ai/generate-quizz', { topic, context: lessonTitle, language: i18n.language });
-      const quizz: QuizQuestion[] = response.data.quizz;
-      setQuizData(quizz);
-      setUserAnswers(Array(quizz.length).fill(null));
-      addMessage('bot', `${t('chat.questionLabel', { number: 1 })}: ${quizz[0].question}`, quizz[0], 0);
+      const { data } = await api.post<DraftResponse>('/quizz/drafts', { lessonId, topic, language: i18n.language, count: 8 });
+      setDraftId(data.draftId);
+      setQuestions(data.questions);
+      setAnswers(data.questions.map(() => null));
+      setResults(data.questions.map(() => null));
+      setCurrent(0);
+      const intro: ChatMsg[] = [];
+      if (data.reinforcing.length > 0) intro.push({ sender: 'bot', text: t('quizzPage.reinforcing', { topics: data.reinforcing.join(', ') }) });
+      intro.push({ sender: 'bot', text: questionText(data.questions[0], 0, data.questions.length), qIndex: 0 });
+      push(...intro);
+      setPhase('answering');
     } catch {
-      addMessage('bot', t('chat.aiError'));
-      setQuizFlowState('initial');
-    } finally {
-      setIsLoading(false);
+      push({ sender: 'bot', text: t('chat.aiError') });
+      setPhase('topic');
     }
   };
 
-  const handleAnswerSelect = (selectedIndex: number, questionIndex: number) => {
-    const updatedAnswers = [...userAnswers];
-    updatedAnswers[questionIndex] = selectedIndex;
-    setUserAnswers(updatedAnswers);
-
-    setTimeout(() => {
-      addMessage('bot', `${t('chat.explanationLabel')}: ${quizData[questionIndex].explanation}`);
-
-      setTimeout(() => {
-        const nextIndex = questionIndex + 1;
-        if (nextIndex < quizData.length) {
-          addMessage('bot', `${t('chat.questionLabel', { number: nextIndex + 1 })}: ${quizData[nextIndex].question}`, quizData[nextIndex], nextIndex);
-        } else {
-          finishQuizz(updatedAnswers);
-        }
-      }, 2000);
-    }, 1000);
+  const submitAnswer = async (answer: string | string[] | number) => {
+    const q = questions[current];
+    setPhase('grading');
+    if (q.type === 'multiple_choice') {
+      setAnswers((prev) => prev.map((a, i) => (i === current ? (answer as number) : a)));
+    } else {
+      push({ sender: 'user', text: answerText(q, answer) });
+    }
+    try {
+      const { data } = await api.post<{ result: QuestionResult }>(`/quizz/drafts/${draftId}/answer`, { index: current, answer });
+      setAnswers((prev) => prev.map((a, i) => (i === current ? (answer as AnswerValue) : a)));
+      setResults((prev) => prev.map((r, i) => (i === current ? data.result : r)));
+      push({ sender: 'bot', text: feedbackText(data.result) });
+      setPhase('feedback');
+    } catch {
+      toast.error(t('quizzPage.answerError'));
+      if (q.type === 'multiple_choice') setAnswers((prev) => prev.map((a, i) => (i === current ? null : a)));
+      setPhase('answering');
+    }
   };
 
-  const scoreOf = (answers: (number | null)[]) => {
-    const correct = answers.filter((answer, index) => answer === quizData[index].correctAnswerIndex).length;
-    return { correct, score: Math.round((correct / quizData.length) * 100) };
+  const next = async () => {
+    if (current + 1 < questions.length) {
+      const i = current + 1;
+      setCurrent(i);
+      push({ sender: 'bot', text: questionText(questions[i], i, questions.length), qIndex: i });
+      setPhase('answering');
+      return;
+    }
+    setPhase('finishing');
+    try {
+      const { data } = await api.post<{ score: number; correctCount: number; total: number }>(`/quizz/drafts/${draftId}/finish`);
+      push({ sender: 'bot', text: t('chat.quizzFinished', { correct: data.correctCount, total: data.total, score: data.score }) });
+      setPhase('done');
+    } catch {
+      toast.error(t('quizzPage.saveError'));
+      setPhase('feedback');
+    }
   };
 
-  const finishQuizz = (finalAnswers: (number | null)[]) => {
-    setQuizFlowState('finished');
-    const { correct, score } = scoreOf(finalAnswers);
-    addMessage('bot', t('chat.quizzFinished', { correct, total: quizData.length, score }));
-    // Para aqui, esperando o usuário clicar em "Salvar".
-  };
-
-  const handleSaveAndExit = () => {
-    onQuizComplete(scoreOf(userAnswers).score, messages, quizData, userAnswers);
-  };
+  const q = questions[current];
+  const isLast = current + 1 >= questions.length;
+  const busy = phase === 'generating' || phase === 'grading' || phase === 'finishing';
 
   return (
     <div className="chat-container flex flex-col">
-      <div role="log" aria-live="polite" aria-label={t('chat.assistant')} className="min-h-[50vh]">
+      {questions.length > 0 && phase !== 'done' && (
+        <div className="sticky top-16 z-10 -mx-1 mb-2 space-y-2 bg-background px-1 py-2">
+          <div className="flex items-center justify-between text-sm font-medium">
+            <span>{t('quizzPage.questionOf', { current: current + 1, total: questions.length })}</span>
+            <span className="flex items-center gap-2">
+              {q.reinforcement && <Badge variant="warning">{t('quizzPage.reinforcement')}</Badge>}
+              <Badge variant="primary">{t(`quizzPage.types.${q.type}`)}</Badge>
+            </span>
+          </div>
+          <div
+            role="progressbar" aria-label={t('quizzPage.progress')} aria-valuemin={0} aria-valuemax={questions.length}
+            aria-valuenow={current + (phase === 'feedback' ? 1 : 0)} className="h-2 overflow-hidden rounded-full bg-secondary"
+          >
+            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${((current + (phase === 'feedback' ? 1 : 0)) / questions.length) * 100}%` }} />
+          </div>
+        </div>
+      )}
+
+      <div role="log" aria-live="polite" aria-label={t('chat.assistant')} className="min-h-[40vh]">
         {messages.map((msg, index) => (
           <div key={index}>
             <ChatMessage message={msg} />
-            {msg.quizzOptions && (
+            {msg.qIndex !== undefined && questions[msg.qIndex]?.type === 'multiple_choice' && (
               <QuizzOptions
-                options={msg.quizzOptions.options}
-                correctAnswerIndex={msg.quizzOptions.correctAnswerIndex}
-                selectedAnswerIndex={userAnswers[msg.questionIndex!] ?? null}
-                onSelectAnswer={(selectedIndex) => handleAnswerSelect(selectedIndex, msg.questionIndex!)}
+                options={questions[msg.qIndex].options ?? []}
+                selectedIndex={typeof answers[msg.qIndex] === 'number' ? (answers[msg.qIndex] as number) : null}
+                correctIndex={results[msg.qIndex]?.correctIndex ?? null}
+                onSelect={submitAnswer}
+                disabled={msg.qIndex !== current || phase !== 'answering'}
               />
             )}
           </div>
         ))}
-        {isLoading && <ChatMessage message={{ sender: 'bot', text: t('chat.thinking') }} />}
-        <div ref={chatEndRef} />
+        {busy && <ChatMessage message={{ sender: 'bot', text: phase === 'generating' ? t('quizzPage.generating') : t('chat.thinking') }} />}
+        <div ref={endRef} />
       </div>
 
-      <div className="sticky bottom-4 mt-4">
-        {quizFlowState === 'initial' && (
-          <ChatInput value={userInput} onChange={setUserInput} onSubmit={handleTopicSubmit} placeholder={t('chat.typeSubject')} disabled={isLoading} />
+      <div className="sticky bottom-4 mt-4 space-y-3">
+        {phase === 'topic' && (
+          <ChatInput value={topicInput} onChange={setTopicInput} onSubmit={handleTopicSubmit} placeholder={t('chat.typeSubject')} />
         )}
-        {quizFlowState === 'finished' && (
+        {(phase === 'answering' || phase === 'grading') && q && q.type !== 'multiple_choice' && (
+          <AnswerForm key={q.id} question={q} onSubmit={submitAnswer} disabled={phase === 'grading'} />
+        )}
+        {phase === 'answering' && q?.type === 'multiple_choice' && (
+          <p className="text-center text-sm text-muted-foreground">{t('quizzPage.pickOption')}</p>
+        )}
+        {phase === 'feedback' && (
           <div className="flex justify-center">
-            <Button size="lg" onClick={handleSaveAndExit}><Save className="h-5 w-5" aria-hidden="true" /> {t('chat.saveQuizz')}</Button>
+            <Button size="lg" onClick={next}>
+              {isLast ? <><Flag className="h-5 w-5" aria-hidden="true" /> {t('quizzPage.seeResult')}</> : <>{t('quizzPage.next')} <ArrowRight className="h-5 w-5" aria-hidden="true" /></>}
+            </Button>
+          </div>
+        )}
+        {phase === 'done' && (
+          <div className="flex justify-center">
+            <Button size="lg" onClick={onFinish}>{t('quizzPage.viewAttempts')}</Button>
           </div>
         )}
       </div>

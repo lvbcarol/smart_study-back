@@ -4,18 +4,26 @@ import Usuario from './models/Usuario';
 import Turma from './models/Turma';
 import Notebook from './models/Notebook';
 import QuizAttempt from './models/QuizAttempt';
+import { GradeResult } from './quiz/grading';
+import { Question } from './quiz/questions';
+import { recordResults } from './quiz/weakness.service';
 
 export const DEMO_PASSWORD = 'demo1234';
 
-const makeQuestions = (topic: string) =>
-  Array.from({ length: 4 }, (_, i) => ({
-    type: 'multiple_choice',
-    topic,
-    question: `Questão ${i + 1} sobre ${topic}`,
-    options: ['A', 'B', 'C', 'D'],
-    correctAnswerIndex: i % 4,
-    explanation: 'Explicação de demonstração.',
+const makeQuestions = (topic: string): Question[] => [
+  { id: 'q1', type: 'multiple_choice', topic: `${topic}: conceitos`, question: `Qual afirmação sobre ${topic} está correta?`, options: ['A', 'B', 'C', 'D'], correctAnswerIndex: 0, explanation: 'Explicação de demonstração.' },
+  { id: 'q2', type: 'fill_blank', topic: `${topic}: conceitos`, question: `Em ${topic}, o conceito central é ____.`, acceptedAnswers: [['conceito']], explanation: 'Explicação de demonstração.' },
+  { id: 'q3', type: 'open_text', topic: `${topic}: aplicações`, question: `Explique ${topic} com suas palavras.`, expectedAnswer: 'Definição com exemplo.', rubric: ['definição', 'exemplo'], explanation: 'Explicação de demonstração.' },
+  { id: 'q4', type: 'practical', topic: `${topic}: problemas`, question: 'Quanto é 6 × 7?', expectedAnswer: '42', numeric: { value: 42, tolerance: 0 }, rubric: [], explanation: '6 × 7 = 42.' },
+];
+
+const makeResults = (questions: Question[], score: number): GradeResult[] => {
+  const correctCount = Math.round((score / 100) * questions.length);
+  return questions.map((q, i) => ({
+    type: q.type, topic: q.topic, score: i < correctCount ? 1 : 0, correct: i < correctCount,
+    correctAnswer: '—', explanation: q.explanation, method: 'exact' as const,
   }));
+};
 
 export async function seedDemo(): Promise<void> {
   if (await Usuario.exists({ email: 'professor@demo.com' })) return;
@@ -44,15 +52,18 @@ export async function seedDemo(): Promise<void> {
   });
   const [derivadas, integrais] = matematica.lessons;
 
-  const personal = await Notebook.create({
-    title: 'Anotações de Física', owner: ana._id, lessons: [{ title: 'Cinemática' }],
-  });
+  await Notebook.create({ title: 'Anotações de Física', owner: ana._id, lessons: [{ title: 'Cinemática' }] });
 
-  const attempt = (user: typeof ana, lesson: typeof derivadas, n: number, score: number, topic: string) =>
-    QuizAttempt.create({
+  // cada tentativa também alimenta as estatísticas de deficiência (usadas no reforço adaptativo)
+  const attempt = async (user: { _id: any }, lesson: { _id: any }, n: number, score: number, topic: string) => {
+    const questions = makeQuestions(topic);
+    const results = makeResults(questions, score);
+    await QuizAttempt.create({
       user: user._id, notebook: matematica._id, lesson: lesson._id, source: 'practice',
-      attemptNumber: n, score, questions: makeQuestions(topic), answers: [0, 1, 2, 3],
+      attemptNumber: n, score, questions, answers: [0, ['conceito'], 'texto', '42'], results,
     });
+    await recordResults(user._id, lesson._id, questions, results);
+  };
   await attempt(ana, derivadas, 1, 75, 'Derivadas');
   await attempt(ana, derivadas, 2, 100, 'Derivadas');
   await attempt(bruno, derivadas, 1, 50, 'Derivadas');
@@ -61,5 +72,4 @@ export async function seedDemo(): Promise<void> {
 
   console.log(`🌱 Dados de demonstração criados (senha de todos: ${DEMO_PASSWORD})`);
   console.log('   professor@demo.com · aluno1@demo.com · aluno2@demo.com · aluno3@demo.com');
-  void personal;
 }

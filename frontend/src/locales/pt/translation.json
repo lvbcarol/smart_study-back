@@ -125,7 +125,7 @@
   "chat": {
     "thinking": "Pensando...",
     "summaryInitial": "Olá, eu sou o Bob, o assistente de estudos do Smart Study. Estou aqui para te ajudar! O que você gostaria que eu resumisse hoje? Me envie o tópico para o resumo",
-    "quizzInitial": "Olá, eu sou o Bob, o assistente de estudos do Smart Study. Estou aqui para te ajudar! Este quizz tem 8 perguntas, seu progresso só será salvo se você responder todas elas. Você também pode revisar suas respostas ao clicar em uma tentativa concluida. Vamos começar! Qual tópico você gostaria de testar? Me envie o assunto para o quizz.",
+    "quizzInitial": "Olá, eu sou o Bob, o assistente de estudos do Smart Study. Vou montar um quiz de 8 perguntas de vários tipos (múltipla escolha, completar, dissertativa, prática e caso real) e corrigir cada resposta na hora. Seu progresso só é salvo se você responder todas, e o quiz se adapta ao que você mais erra. Qual tópico você gostaria de testar? Me envie o assunto.",
     "typeSubject": "Digite o assunto aqui...",
     "quizzFinished": "Quizz finalizado! 🏆\n\nVocê acertou {{correct}} de {{total}} questões ({{score}}%). Continue se dedicando nos estudos e verá sua evolução! Precisa treinar mais? Inicie uma nova tentativa na página de tentativas.",
     "feedbackError": "Sua pontuação foi salva. Ótimo trabalho no quizz!",
@@ -160,7 +160,35 @@
     "incorrect": "Incorreta",
     "yourAnswer": "Sua resposta",
     "attemptsTitle": "Suas tentativas",
-    "pointsLabel": "{{score}}%"
+    "pointsLabel": "{{score}}%",
+    "heading": "Quizzes",
+    "types": {
+      "multiple_choice": "Múltipla escolha",
+      "fill_blank": "Completar",
+      "open_text": "Dissertativa",
+      "practical": "Prática",
+      "real_case": "Caso real"
+    },
+    "reinforcement": "Reforço",
+    "questionOf": "Pergunta {{current}} de {{total}}",
+    "progress": "Progresso do quiz",
+    "next": "Próxima pergunta",
+    "seeResult": "Ver resultado",
+    "answerBtn": "Responder",
+    "blankN": "Lacuna {{n}}",
+    "numericHint": "Pode digitar só o número (ex.: 3,5).",
+    "writeHere": "Escreva sua resposta aqui...",
+    "verdictCorrect": "Correto!",
+    "verdictPartial": "Parcialmente correto ({{pct}}%)",
+    "verdictWrong": "Incorreto",
+    "expected": "Resposta esperada",
+    "feedback": "Comentário",
+    "reinforcing": "Vou reforçar, de outro jeito, o que você errou antes: {{topics}}.",
+    "pickOption": "Escolha uma alternativa acima.",
+    "generating": "Preparando as perguntas...",
+    "answerError": "Não foi possível corrigir sua resposta. Tente de novo.",
+    "viewAttempts": "Ver minhas tentativas",
+    "noAnswer": "(sem resposta)"
   },
   "progress": {
     "title": "Meu Progresso",
@@ -200,7 +228,8 @@
     "tabsLabel": "Gráficos de progresso",
     "chartSummary": "Gráfico de barras com a pontuação de 0 a 100",
     "average": "Média",
-    "score": "Pontuação"
+    "score": "Pontuação",
+    "tabWeakness": "Pontos fracos"
   },
   "myAccount": {
     "welcome": "Bem-vindo(a), {{name}}",
@@ -352,5 +381,17 @@
     "title": "Página não encontrada",
     "text": "O endereço que você tentou abrir não existe.",
     "back": "Voltar ao início"
+  },
+  "weakness": {
+    "title": "Seus pontos fracos",
+    "subtitle": "O próximo quiz dá mais atenção ao que você mais erra.",
+    "emptyTitle": "Ainda sem dados",
+    "emptyDesc": "Responda alguns quizzes e mostraremos em quais tipos de pergunta e tópicos você mais erra.",
+    "byType": "Por tipo de pergunta",
+    "byTypeDesc": "Quanto maior a barra, mais erros. O próximo quiz dá mais perguntas desses tipos.",
+    "byTopic": "Por tópico",
+    "byTopicDesc": "Tópicos marcados como \"Revisar\" voltam no próximo quiz, de outra maneira.",
+    "errorRate": "{{rate}}% de erro",
+    "review": "Revisar"
   }
 }

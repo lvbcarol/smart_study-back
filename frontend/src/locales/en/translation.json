@@ -125,7 +125,7 @@
   "chat": {
     "thinking": "Thinking...",
     "summaryInitial": "Hello! I'm Bob, the study assistant of Smart Study. I'm here to help! What topic would you like me to summarize today? Send me the subject for the summary.",
-    "quizzInitial": "Hello I'm Bob, the study assistant of Smart Study. This quiz has 8 questions, your progress will only be saved if you answer all of them. You can also review your answers by clicking on an completed attempt. Let's get started! What topic would you like to quiz yourself on? Send me the subject for the quiz.",
+    "quizzInitial": "Hi, I am Bob, Smart Study's study assistant. I will build an 8-question quiz with several question types (multiple choice, fill in the blank, open answer, practical and real case) and grade each answer right away. Your progress is only saved if you answer them all, and the quiz adapts to what you miss the most. Which topic would you like to test? Send me the subject.",
     "typeSubject": "Type your subject here...",
     "quizzFinished": "Quizz finished! 🏆\n\nYou got {{correct}} out of {{total}} correct ({{score}}%). Keep up the great work! Do you need more practice? Start a new attempt in the attempts page.",
     "feedbackError": "Your score was saved. Great job on the quiz!",
@@ -160,7 +160,35 @@
     "incorrect": "Incorrect",
     "yourAnswer": "Your answer",
     "attemptsTitle": "Your attempts",
-    "pointsLabel": "{{score}}%"
+    "pointsLabel": "{{score}}%",
+    "heading": "Quizzes",
+    "types": {
+      "multiple_choice": "Multiple choice",
+      "fill_blank": "Fill in the blank",
+      "open_text": "Open answer",
+      "practical": "Practical",
+      "real_case": "Real case"
+    },
+    "reinforcement": "Reinforcement",
+    "questionOf": "Question {{current}} of {{total}}",
+    "progress": "Quiz progress",
+    "next": "Next question",
+    "seeResult": "See result",
+    "answerBtn": "Answer",
+    "blankN": "Blank {{n}}",
+    "numericHint": "You can type just the number (e.g. 3.5).",
+    "writeHere": "Write your answer here...",
+    "verdictCorrect": "Correct!",
+    "verdictPartial": "Partially correct ({{pct}}%)",
+    "verdictWrong": "Incorrect",
+    "expected": "Expected answer",
+    "feedback": "Comment",
+    "reinforcing": "I will reinforce, in a different way, what you missed before: {{topics}}.",
+    "pickOption": "Choose an option above.",
+    "generating": "Preparing the questions...",
+    "answerError": "Could not grade your answer. Please try again.",
+    "viewAttempts": "See my attempts",
+    "noAnswer": "(no answer)"
   },
   "progress": {
     "title": "My Progress",
@@ -201,7 +229,8 @@
     "tabsLabel": "Progress charts",
     "chartSummary": "Bar chart with scores from 0 to 100",
     "average": "Average",
-    "score": "Score"
+    "score": "Score",
+    "tabWeakness": "Weak spots"
   },
   "myAccount": {
     "welcome": "Welcome, {{name}}",
@@ -353,5 +382,17 @@
     "title": "Page not found",
     "text": "The address you tried to open does not exist.",
     "back": "Back to home"
+  },
+  "weakness": {
+    "title": "Your weak spots",
+    "subtitle": "The next quiz pays more attention to what you miss the most.",
+    "emptyTitle": "No data yet",
+    "emptyDesc": "Take a few quizzes and we will show which question types and topics you miss the most.",
+    "byType": "By question type",
+    "byTypeDesc": "The longer the bar, the more mistakes. The next quiz has more questions of these types.",
+    "byTopic": "By topic",
+    "byTopicDesc": "Topics marked \"Review\" come back in the next quiz, in a different way.",
+    "errorRate": "{{rate}}% error",
+    "review": "Review"
   }
 }

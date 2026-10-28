@@ -7,6 +7,7 @@ import { requireRole } from '../src/middleware/auth.middleware';
 import Turma from '../src/models/Turma';
 import Usuario from '../src/models/Usuario';
 import { Router } from 'express';
+import { takeQuiz } from './helpers';
 
 let mongod: MongoMemoryServer;
 const app = createApp();
@@ -183,17 +184,26 @@ describe('cadernos e acesso', () => {
   });
 
   it('tentativas e chat são individuais por aluno', async () => {
-    const attempt = { score: 80, quizData: [{ question: 'q', options: ['a', 'b', 'c', 'd'], correctAnswerIndex: 0, explanation: 'e' }], userAnswers: [0], chatHistory: [{ sender: 'bot', text: 'oi' }] };
-    expect((await request(app).post(`/api/lessons/${lessonId}/quizz-attempts`).set('Authorization', anaAuth).send(attempt)).status).toBe(201);
-    expect((await request(app).post(`/api/lessons/${lessonId}/quizz-attempts`).set('Authorization', anaAuth).send(attempt)).status).toBe(201);
-    expect((await request(app).post(`/api/lessons/${lessonId}/quizz-attempts`).set('Authorization', anaAuth).send({ ...attempt, score: 500 })).status).toBe(400);
-    expect((await request(app).post(`/api/lessons/${lessonId}/quizz-attempts`).set('Authorization', outsiderAuth).send(attempt)).status).toBe(404);
+    // o aluno não consegue gravar nota por conta própria: a rota antiga de envio não existe mais
+    const forged = await request(app).post(`/api/lessons/${lessonId}/quizz-attempts`).set('Authorization', anaAuth).send({ score: 100, quizData: [], userAnswers: [] });
+    expect(forged.status).toBe(404);
+
+    const first = await takeQuiz(app, anaAuth, lessonId, 'right');
+    const second = await takeQuiz(app, anaAuth, lessonId, 'wrong');
+    expect(first.finished.status).toBe(201);
+    expect(first.finished.body.score).toBe(100);
+    expect(second.finished.body.score).toBe(0);
+
+    // quem não está na turma não consegue nem criar quiz da aula
+    const blocked = await request(app).post('/api/quizz/drafts').set('Authorization', outsiderAuth).send({ lessonId, topic: 'x' });
+    expect(blocked.status).toBe(404);
 
     await request(app).put(`/api/lessons/${lessonId}/chat`).set('Authorization', anaAuth).send({ messages: [{ sender: 'user', text: 'olá' }] });
 
     const ana = await request(app).get(`/api/lessons/${lessonId}`).set('Authorization', anaAuth);
     expect(ana.body.quizzAttempts.map((a: any) => a.attemptNumber)).toEqual([1, 2]);
-    expect(ana.body.quizzAttempts[0].quizData).toHaveLength(1);
+    expect(ana.body.quizzAttempts[0].questions).toHaveLength(8);
+    expect(ana.body.quizzAttempts[0].results).toHaveLength(8);
     expect(ana.body.chatHistory).toEqual([{ sender: 'user', text: 'olá' }]);
 
     // o professor (dono) não enxerga as tentativas do aluno por esta rota
@@ -204,10 +214,10 @@ describe('cadernos e acesso', () => {
     const list = await request(app).get('/api/notebooks').set('Authorization', anaAuth);
     const nb = list.body.find((n: any) => n._id === notebookId);
     expect(nb.lessons[0].quizzAttempts).toHaveLength(2);
-    expect(nb.lessons[0].quizzAttempts[0].quizData).toBeUndefined();
+    expect(nb.lessons[0].quizzAttempts[0].questions).toBeUndefined();
 
     const progress = await request(app).get('/api/progress/data').set('Authorization', anaAuth);
-    expect(progress.body.averageByNotebook).toEqual([{ notebook: 'Matemática', averageScore: 80 }]);
+    expect(progress.body.averageByNotebook).toEqual([{ notebook: 'Matemática', averageScore: 50 }]);
     expect(progress.body.allAttempts).toHaveLength(2);
   });
 
@@ -224,11 +234,10 @@ describe('cadernos e acesso', () => {
   });
 
   it('IA mock responde para usuário autenticado e exige token', async () => {
-    const anon = await request(app).post('/api/ai/generate-quizz').send({ topic: 'x' });
+    const anon = await request(app).post('/api/ai/summarize').send({ topic: 'x' });
     expect(anon.status).toBe(401);
-    const ok = await request(app).post('/api/ai/generate-quizz').set('Authorization', anaAuth).send({ topic: 'Derivadas', language: 'pt-BR' });
+    const ok = await request(app).post('/api/ai/summarize').set('Authorization', anaAuth).send({ topic: 'Derivadas', language: 'pt-BR' });
     expect(ok.status).toBe(200);
-    expect(ok.body.quizz).toHaveLength(8);
-    expect(ok.body.quizz[0].question).toContain('Questão');
+    expect(ok.body.summary).toContain('Resumo: Derivadas');
   });
 });

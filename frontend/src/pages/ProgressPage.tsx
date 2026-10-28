@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ds/Misc';
 import { PageHeader } from '../components/ds/PageParts';
+import WeaknessPanel from '../components/quiz/WeaknessPanel';
 
 interface BarDatum { name: string; value: number }
 
@@ -101,6 +102,7 @@ const ProgressPage: React.FC = () => {
           <TabsTrigger value="overview">{t('progress.tabOverview')}</TabsTrigger>
           <TabsTrigger value="lessons">{t('progress.tabLessons')}</TabsTrigger>
           <TabsTrigger value="attempts">{t('progress.tabAttempts')}</TabsTrigger>
+          <TabsTrigger value="weakness">{t('progress.tabWeakness')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -145,6 +147,13 @@ const ProgressPage: React.FC = () => {
                 ? <ScoreChart data={attemptsData} label={t('progress.score')} summary={t('progress.chartSummary')} color="hsl(var(--chart-3))" />
                 : <EmptyState title={t(notebookForAttempts && lessonForAttempts ? 'progress.card3.noAttempts' : 'progress.card3.pleaseSelect')} />}
             </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="weakness">
+          <Card className="shadow-soft">
+            <CardHeader><CardTitle>{t('weakness.title')}</CardTitle><CardDescription>{t('weakness.subtitle')}</CardDescription></CardHeader>
+            <CardContent><WeaknessPanel /></CardContent>
           </Card>
         </TabsContent>
       </Tabs>

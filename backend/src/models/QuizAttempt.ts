@@ -13,8 +13,7 @@ export interface IQuizAttempt extends Document {
   score: number; // 0..100
   questions: any[]; // perguntas congeladas no momento da tentativa
   answers: any[];
-  results: any[]; // por pergunta: { type, topic, score, feedback } (preenchido na correção no servidor)
-  transcript: any[]; // conversa do quiz exibida no chat
+  results: any[]; // por pergunta: GradeResult { type, topic, score, correct, feedback, correctAnswer, explanation }
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,7 +31,6 @@ const QuizAttemptSchema: Schema = new Schema<IQuizAttempt>({
   questions: mixedArray,
   answers: mixedArray,
   results: mixedArray,
-  transcript: mixedArray,
 }, { timestamps: true });
 
 QuizAttemptSchema.index({ user: 1, createdAt: 1 });

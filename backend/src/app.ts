@@ -6,6 +6,7 @@ import usuarioRoutes from './routes/usuario.routes';
 import notebookRoutes from './routes/notebook.routes';
 import lessonRoutes from './routes/lesson.routes';
 import aiRoutes from './routes/ai.routes';
+import quizzRoutes from './routes/quizz.routes';
 import progressRoutes from './routes/progress.routes';
 
 export function createApp() {
@@ -37,6 +38,7 @@ export function createApp() {
   app.use('/api/notebooks', notebookRoutes);
   app.use('/api/lessons', lessonRoutes);
   app.use('/api/ai', aiLimiter, aiRoutes);
+  app.use('/api/quizz', aiLimiter, quizzRoutes);
   app.use('/api/progress', progressRoutes);
 
   return app;

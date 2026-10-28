@@ -11,6 +11,7 @@ export default defineConfig({
       JWT_SECRET: 'test-secret',
       TEACHER_INVITE_CODE: 'invite-123',
       AI_MODE: 'mock',
+      AI_RATE_LIMIT: '1000',
     },
   },
 });
