@@ -46,10 +46,10 @@ export default function TaskScreen() {
 
   if (started) {
     return (
-      <Screen edges={['left', 'right', 'bottom']}>
+      <Screen edges={['left', 'right', 'bottom']} scroll={false} contentStyle={{ padding: 0, gap: 0 }}>
         <Stack.Screen options={{ title: started.title }} />
-        {started.answeredCount > 0 && <T variant="small">{t('tasks.resumeNote', { count: started.answeredCount, total: started.questions.length })}</T>}
         <QuizPlayer
+          header={started.answeredCount > 0 ? <T variant="small">{t('tasks.resumeNote', { count: started.answeredCount, total: started.questions.length })}</T> : undefined}
           draftId={started.draftId} questions={started.questions} startIndex={started.answeredCount} taskMode
           onComplete={(s) => { setStarted(null); setAttempt(null); setJustSent(s.score); load(); }}
         />

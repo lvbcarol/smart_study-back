@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
@@ -9,7 +9,9 @@ import { formatDate } from '@/lib/format';
 import { QuizPlayer } from '@/components/QuizPlayer';
 import { AttemptReview } from '@/components/AttemptReview';
 import type { AttemptDetail, DraftResponse } from '@/types';
-import { Badge, Button, Card, EmptyState, Field, Loading, Row, scoreVariant, Screen, T } from '@/ui';
+import { Badge, Button, Card, Chip, EmptyState, Field, Loading, Row, scoreVariant, Screen, T } from '@/ui';
+
+const QUESTION_COUNTS = [4, 6, 8, 10, 12];
 
 type Phase = 'list' | 'topic' | 'generating' | 'playing' | 'done' | 'review';
 
@@ -22,6 +24,7 @@ export default function Quiz() {
 
   const [phase, setPhase] = useState<Phase>('list');
   const [topic, setTopic] = useState('');
+  const [count, setCount] = useState(8);
   const [draft, setDraft] = useState<DraftResponse | null>(null);
   const [error, setError] = useState('');
   const [summary, setSummary] = useState<{ score: number; correctCount: number; total: number } | null>(null);
@@ -30,7 +33,7 @@ export default function Quiz() {
   const start = async () => {
     setPhase('generating'); setError('');
     try {
-      const res = await api.post<DraftResponse>('/quizz/drafts', { lessonId, topic: topic.trim(), language: i18n.language, count: 8 });
+      const res = await api.post<DraftResponse>('/quizz/drafts', { lessonId, topic: topic.trim(), language: i18n.language, count });
       setDraft(res.data); setPhase('playing');
     } catch {
       setError(t('quiz.generateError')); setPhase('topic');
@@ -42,7 +45,8 @@ export default function Quiz() {
   const backToList = () => { setPhase('list'); setTopic(''); setDraft(null); reload(); };
 
   return (
-    <Screen edges={['left', 'right', 'bottom']}>
+    // durante o quiz a tela não rola: o QuizPlayer cuida da rolagem e do rodapé fixo
+    <Screen edges={['left', 'right', 'bottom']} scroll={phase !== 'playing'} contentStyle={phase === 'playing' ? { padding: 0, gap: 0 } : undefined}>
       <Stack.Screen options={{ title: t('quiz.title') }} />
 
       {phase === 'list' && (
@@ -63,30 +67,47 @@ export default function Quiz() {
         </>
       )}
 
-      {(phase === 'topic' || phase === 'generating') && (
+      {phase === 'topic' && (
         <>
           <T variant="title">{t('quiz.topicTitle')}</T>
           <T variant="muted">{t('quiz.topicHint')}</T>
-          <Field label={t('flashcards.topic')} placeholder={t('quiz.topicPlaceholder')} value={topic} onChangeText={setTopic} autoCapitalize="sentences" maxLength={200} onSubmitEditing={start} />
+          <Field label={t('flashcards.topic')} placeholder={t('quiz.topicPlaceholder')} value={topic} onChangeText={setTopic} autoCapitalize="sentences" maxLength={200} />
+          <View style={{ gap: 8 }}>
+            <T variant="label">{t('quiz.countLabel')}</T>
+            <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {QUESTION_COUNTS.map((n) => <Chip key={n} label={String(n)} selected={count === n} onPress={() => setCount(n)} />)}
+            </View>
+            <T variant="small">{t('quiz.countOption', { count })}</T>
+          </View>
           {error ? <T variant="small" color={colors.destructive}>{error}</T> : null}
-          <Button title={phase === 'generating' ? t('quiz.generating') : t('quiz.start')} onPress={start} loading={phase === 'generating'} disabled={!topic.trim()} />
+          <Button title={t('quiz.start')} onPress={start} disabled={!topic.trim()} />
           <Button title={t('common.cancel')} variant="ghost" onPress={backToList} />
         </>
       )}
 
+      {phase === 'generating' && (
+        <View accessibilityLiveRegion="polite" style={{ alignItems: 'center', gap: 16, paddingVertical: 64 }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <T variant="title" align="center">{t('quiz.generating')}</T>
+          <T variant="muted" align="center">{t('quiz.generatingHint')}</T>
+        </View>
+      )}
+
       {phase === 'playing' && draft && (
-        <>
-          {draft.reinforcing.length > 0 && (
-            <Card style={{ backgroundColor: colors.accent, padding: 12 }}>
-              <T variant="small" color={colors.accentFg}>🎯 {t('quiz.reinforcing', { topics: draft.reinforcing.join(', ') })}</T>
-            </Card>
+        <QuizPlayer
+          draftId={draft.draftId} questions={draft.questions}
+          header={(
+            <View style={{ gap: 8 }}>
+              {draft.reinforcing.length > 0 && (
+                <Card style={{ backgroundColor: colors.accent, padding: 12 }}>
+                  <T variant="small" color={colors.accentFg}>🎯 {t('quiz.reinforcing', { topics: draft.reinforcing.join(', ') })}</T>
+                </Card>
+              )}
+              {draft.materialsUsed > 0 && <T variant="small">📎 {t('quiz.usingMaterials', { count: draft.materialsUsed })}</T>}
+            </View>
           )}
-          {draft.materialsUsed > 0 && <T variant="small">📎 {t('quiz.usingMaterials', { count: draft.materialsUsed })}</T>}
-          <QuizPlayer
-            draftId={draft.draftId} questions={draft.questions}
-            onComplete={(s) => { setSummary(s); setPhase('done'); }}
-          />
-        </>
+          onComplete={(s) => { setSummary(s); setPhase('done'); }}
+        />
       )}
 
       {phase === 'done' && summary && (

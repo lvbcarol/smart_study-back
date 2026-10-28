@@ -197,6 +197,13 @@
     "feedback": "Comment",
     "reinforcing": "I will reinforce, in a different way, what you missed before: {{topics}}.",
     "pickOption": "Choose an option above.",
+    "topicTitle": "What shall we test?",
+    "topicHint": "The quiz has several question types and adapts to what you miss the most. Your progress is only saved if you answer them all.",
+    "topicLabel": "Subject",
+    "countLabel": "How many questions do you want?",
+    "countOption": "{{count}} questions",
+    "start": "Start quiz",
+    "generatingHint": "I'm building questions just for you. It takes a few seconds.",
     "generating": "Preparing the questions...",
     "answerError": "Could not grade your answer. Please try again.",
     "viewAttempts": "See my attempts",
@@ -296,6 +303,8 @@
     "about": "About us"
   },
   "common": {
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",

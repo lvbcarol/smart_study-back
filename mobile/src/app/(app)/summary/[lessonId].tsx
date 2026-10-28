@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,7 +7,7 @@ import Markdown from 'react-native-markdown-display';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
 import { useTheme } from '@/theme/ThemeContext';
-import { Button, Loading, T } from '@/ui';
+import { Button, Loading, T, useKeyboardOffset } from '@/ui';
 
 interface Message { sender: 'user' | 'bot'; text: string }
 
@@ -23,6 +23,7 @@ export default function Summary() {
   const [saved, setSaved] = useState(false);
   const [note, setNote] = useState('');
   const scroller = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const { root, offset, onLayout: measure } = useKeyboardOffset();
 
   useEffect(() => {
     api.get(`/lessons/${lessonId}`).then((r) => {
@@ -74,9 +75,10 @@ export default function Summary() {
   const canSave = messages.length > 1 && !saved && !busy;
 
   return (
-    <SafeAreaView edges={['left', 'right', 'bottom']} style={{ flex: 1, backgroundColor: colors.background }}>
+    <View ref={root} collapsable={false} onLayout={measure} style={{ flex: 1, backgroundColor: colors.background }}>
       <Stack.Screen options={{ title: title || t('lesson.summary') }} />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={offset} style={{ flex: 1 }}>
+        <SafeAreaView edges={['left', 'right', 'bottom']} style={{ flex: 1 }}>
         <ScrollView ref={scroller} onContentSizeChange={() => scroller.current?.scrollToEnd({ animated: true })} contentContainerStyle={{ padding: 16, gap: 12 }} keyboardShouldPersistTaps="handled">
           {materials > 0 && (
             <View style={{ backgroundColor: colors.accent, borderRadius: 14, padding: 10 }}>
@@ -112,7 +114,8 @@ export default function Summary() {
             <Ionicons name="send" size={20} color={colors.primaryFg} />
           </Pressable>
         </View>
+        </SafeAreaView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }

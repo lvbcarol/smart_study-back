@@ -11,15 +11,17 @@ interface QuizzOptionsProps {
   correctIndex: number | null;
   onSelect: (index: number) => void;
   disabled?: boolean;
+  /** classes do contêiner; o padrão recua as alternativas para alinhar com a mensagem do chat */
+  className?: string;
 }
 
-const QuizzOptions: React.FC<QuizzOptionsProps> = ({ options, selectedIndex, correctIndex, onSelect, disabled }) => {
+const QuizzOptions: React.FC<QuizzOptionsProps> = ({ options, selectedIndex, correctIndex, onSelect, disabled, className }) => {
   const { t } = useTranslation();
   const revealed = correctIndex !== null;
   const locked = disabled || selectedIndex !== null;
 
   return (
-    <div role="radiogroup" className="ml-12 mt-2 max-w-lg space-y-2">
+    <div role="radiogroup" className={className ?? 'ml-12 mt-2 max-w-lg space-y-2'}>
       {options.map((option, index) => {
         const letter = String.fromCharCode(65 + index);
         const isCorrect = revealed && index === correctIndex;

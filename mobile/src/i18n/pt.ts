@@ -1,5 +1,5 @@
 const pt = {
-  common: { loading: 'Carregando...', save: 'Salvar', cancel: 'Cancelar', back: 'Voltar', retry: 'Tentar de novo', error: 'Algo deu errado. Tente de novo.', create: 'Criar' },
+  common: { loading: 'Carregando...', save: 'Salvar', cancel: 'Cancelar', back: 'Voltar', retry: 'Tentar de novo', error: 'Algo deu errado. Tente de novo.', create: 'Criar', showPassword: 'Mostrar senha', hidePassword: 'Ocultar senha' },
   auth: {
     tagline: 'Estude com calma. Aprenda com clareza.',
     loginTitle: 'Que bom te ver de novo', loginSubtitle: 'Entre para continuar seus estudos.',
@@ -34,7 +34,8 @@ const pt = {
   },
   quiz: {
     title: 'Quizzes', startNew: 'Iniciar novo quiz', attemptN: 'Tentativa nº {{n}}', noAttempts: 'Nenhuma tentativa ainda. Comece uma nova!',
-    topicTitle: 'Sobre o que vamos testar?', topicHint: 'O quiz tem 8 perguntas de vários tipos e se adapta ao que você mais erra.', topicPlaceholder: 'Ex.: Regra da cadeia',
+    topicTitle: 'Sobre o que vamos testar?', topicHint: 'O quiz tem vários tipos de pergunta e se adapta ao que você mais erra.', topicPlaceholder: 'Ex.: Regra da cadeia',
+    countLabel: 'Quantas perguntas você quer?', countOption: '{{count}} perguntas', generatingHint: 'Estou montando perguntas sob medida para você. Isso leva alguns segundos.',
     start: 'Começar', generating: 'Preparando as perguntas...', generateError: 'Não foi possível gerar o quiz. Tente de novo.',
     types: { multiple_choice: 'Múltipla escolha', fill_blank: 'Completar', open_text: 'Dissertativa', practical: 'Prática', real_case: 'Caso real' },
     reinforcement: 'Reforço', reinforcing: 'Vou reforçar, de outro jeito, o que você errou antes: {{topics}}.', usingMaterials_one: 'Usando {{count}} material do professor.', usingMaterials_other: 'Usando {{count}} materiais do professor.',

@@ -4,7 +4,7 @@ import type pt from './pt';
 type Shape<T> = { [K in keyof T]: T[K] extends string ? string : Shape<T[K]> };
 
 const en: Shape<typeof pt> = {
-  common: { loading: 'Loading...', save: 'Save', cancel: 'Cancel', back: 'Back', retry: 'Try again', error: 'Something went wrong. Please try again.', create: 'Create' },
+  common: { loading: 'Loading...', save: 'Save', cancel: 'Cancel', back: 'Back', retry: 'Try again', error: 'Something went wrong. Please try again.', create: 'Create', showPassword: 'Show password', hidePassword: 'Hide password' },
   auth: {
     tagline: 'Study calmly. Learn clearly.',
     loginTitle: 'Good to see you again', loginSubtitle: 'Log in to continue studying.',
@@ -39,7 +39,8 @@ const en: Shape<typeof pt> = {
   },
   quiz: {
     title: 'Quizzes', startNew: 'Start new quiz', attemptN: 'Attempt #{{n}}', noAttempts: 'No attempts yet. Start a new one!',
-    topicTitle: 'What shall we test?', topicHint: 'The quiz has 8 questions of several types and adapts to what you miss the most.', topicPlaceholder: 'E.g.: Chain rule',
+    topicTitle: 'What shall we test?', topicHint: 'The quiz has several question types and adapts to what you miss the most.', topicPlaceholder: 'E.g.: Chain rule',
+    countLabel: 'How many questions do you want?', countOption: '{{count}} questions', generatingHint: "I'm building questions just for you. It takes a few seconds.",
     start: 'Start', generating: 'Preparing the questions...', generateError: 'Could not generate the quiz. Please try again.',
     types: { multiple_choice: 'Multiple choice', fill_blank: 'Fill in the blank', open_text: 'Open answer', practical: 'Practical', real_case: 'Real case' },
     reinforcement: 'Reinforcement', reinforcing: 'I will reinforce, in a different way, what you missed before: {{topics}}.', usingMaterials_one: 'Using {{count}} teacher material.', usingMaterials_other: 'Using {{count}} teacher materials.',

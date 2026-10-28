@@ -1,12 +1,13 @@
-// Resolve um quiz, uma pergunta por tela. No treino a correção aparece na hora; em tarefas só depois de enviar tudo.
-import React, { useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+// Resolve um quiz, uma pergunta por tela, com transição deslizante.
+// No treino a correção aparece na hora; em tarefas só depois de enviar tudo.
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Animated, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
 import { useTheme } from '@/theme/ThemeContext';
 import type { PublicQuestion, QuestionResult } from '@/types';
-import { Badge, Button, Card, Field, ProgressBar, Row, T } from '@/ui';
+import { Badge, Button, Card, Field, Row, T } from '@/ui';
 
 interface QuizPlayerProps {
   draftId: string;
@@ -14,12 +15,17 @@ interface QuizPlayerProps {
   /** pergunta em que o aluno parou (retomada de tarefa) */
   startIndex?: number;
   taskMode?: boolean;
+  /** avisos exibidos acima da primeira pergunta (reforço, materiais...) */
+  header?: ReactNode;
   onComplete: (summary: { attemptId: string; score: number; correctCount: number; total: number }) => void;
 }
 
 type Answer = number | string | string[];
 
-export function QuizPlayer({ draftId, questions, startIndex = 0, taskMode = false, onComplete }: QuizPlayerProps) {
+const SLIDE = 36;
+
+/** Deve ficar dentro de uma tela sem rolagem própria (Screen scroll={false}): ele mesmo rola a pergunta e fixa o botão embaixo. */
+export function QuizPlayer({ draftId, questions, startIndex = 0, taskMode = false, header, onComplete }: QuizPlayerProps) {
   const { t } = useTranslation();
   const { colors, fs } = useTheme();
   const [index, setIndex] = useState(startIndex);
@@ -29,6 +35,15 @@ export function QuizPlayer({ draftId, questions, startIndex = 0, taskMode = fals
   const [result, setResult] = useState<QuestionResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const x = useRef(new Animated.Value(0)).current; // -1 saindo, 0 em repouso, 1 entrando
+  const scroller = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const native = Platform.OS !== 'web';
+
+  useEffect(() => { AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion).catch(() => {}); }, []);
+  useEffect(() => {
+    if (result) setTimeout(() => scroller.current?.scrollToEnd({ animated: true }), 120);
+  }, [result]);
 
   const q = questions[index];
   const isLast = index + 1 >= questions.length;
@@ -55,10 +70,17 @@ export function QuizPlayer({ draftId, questions, startIndex = 0, taskMode = fals
     }
   };
 
+  const swapQuestion = () => { setIndex((i) => i + 1); reset(); scroller.current?.scrollTo({ y: 0, animated: false }); };
+
   const advance = () => {
     if (isLast) return finish();
-    setIndex((i) => i + 1);
-    reset();
+    if (reduceMotion) return swapQuestion();
+    // a pergunta atual sai para a esquerda e a próxima entra pela direita
+    Animated.timing(x, { toValue: -1, duration: 140, useNativeDriver: native }).start(() => {
+      swapQuestion();
+      x.setValue(1);
+      Animated.timing(x, { toValue: 0, duration: 220, useNativeDriver: native }).start();
+    });
   };
 
   const submit = async () => {
@@ -85,99 +107,117 @@ export function QuizPlayer({ draftId, questions, startIndex = 0, taskMode = fals
     : null;
 
   const inputStyle = { minHeight: 48, borderRadius: 14, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, color: colors.foreground, paddingHorizontal: 14, paddingVertical: 12, fontSize: fs(16) };
+  const done = index + (result ? 1 : 0);
+  const progressLabel = t('quiz.questionOf', { current: index + 1, total: questions.length });
 
   return (
-    <View style={{ gap: 16 }}>
-      <View style={{ gap: 8 }}>
+    <View style={{ flex: 1 }}>
+      {/* progresso em segmentos: cada pergunta é uma barrinha */}
+      <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8, gap: 8 }}>
+        <View accessibilityRole="progressbar" accessibilityLabel={progressLabel} accessibilityValue={{ min: 0, max: questions.length, now: done }} style={{ flexDirection: 'row', gap: 4 }}>
+          {questions.map((_, i) => (
+            <View key={i} style={{ flex: 1, height: 6, borderRadius: 999, backgroundColor: i < done ? colors.primary : i === index ? colors.accent : colors.secondary }} />
+          ))}
+        </View>
         <Row style={{ justifyContent: 'space-between' }}>
-          <T variant="label">{t('quiz.questionOf', { current: index + 1, total: questions.length })}</T>
+          <T variant="label">{progressLabel}</T>
           <Row>
             {q.reinforcement && <Badge variant="warning">{t('quiz.reinforcement')}</Badge>}
             <Badge variant="primary">{t(`quiz.types.${q.type}`)}</Badge>
           </Row>
         </Row>
-        <ProgressBar value={index + (result ? 1 : 0)} max={questions.length} label={t('quiz.questionOf', { current: index + 1, total: questions.length })} />
       </View>
 
-      {q.scenario ? <Card style={{ backgroundColor: colors.secondary }}><T variant="muted">{q.scenario}</T></Card> : null}
-      <T variant="heading" selectable>{q.question}</T>
+      <ScrollView ref={scroller} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ padding: 20, paddingTop: 8, gap: 18 }}>
+        {index === startIndex && header}
+        <Animated.View
+          style={{
+            gap: 18,
+            opacity: x.interpolate({ inputRange: [-1, 0, 1], outputRange: [0, 1, 0] }),
+            transform: [{ translateX: x.interpolate({ inputRange: [-1, 0, 1], outputRange: [-SLIDE, 0, SLIDE] }) }],
+          }}
+        >
+          {q.scenario ? <Card style={{ backgroundColor: colors.secondary }}><T variant="muted">{q.scenario}</T></Card> : null}
+          <T variant="title" selectable style={{ fontWeight: '700' }}>{q.question}</T>
 
-      {q.type === 'multiple_choice' && (
-        <View accessibilityRole="radiogroup" style={{ gap: 10 }}>
-          {(q.options ?? []).map((option, i) => {
-            const revealed = !!result;
-            const isCorrect = revealed && i === result?.correctIndex;
-            const isWrongPick = revealed && i === choice && i !== result?.correctIndex;
-            const selected = choice === i;
-            const border = isCorrect ? colors.success : isWrongPick ? colors.destructive : selected ? colors.primary : colors.border;
-            const letter = String.fromCharCode(65 + i);
-            return (
-              <Pressable
-                key={i} disabled={revealed || busy} onPress={() => setChoice(i)} accessibilityRole="radio"
-                accessibilityLabel={`${letter}: ${option}${isCorrect ? ` (${t('quiz.verdictCorrect')})` : isWrongPick ? ` (${t('quiz.verdictWrong')})` : ''}`}
-                accessibilityState={{ selected, disabled: revealed }}
-                style={{ minHeight: 52, borderRadius: 14, borderWidth: 2, borderColor: border, backgroundColor: selected && !revealed ? colors.accent : colors.card, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: revealed && !isCorrect && !isWrongPick ? 0.6 : 1 }}
-              >
-                <View style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: border, alignItems: 'center', justifyContent: 'center', backgroundColor: isCorrect ? colors.success : isWrongPick ? colors.destructive : 'transparent' }}>
-                  {isCorrect ? <Ionicons name="checkmark" size={18} color={colors.card} /> : isWrongPick ? <Ionicons name="close" size={18} color={colors.destructiveFg} /> : <T variant="small">{letter}</T>}
-                </View>
-                <T variant="body" style={{ flex: 1 }}>{option}</T>
-              </Pressable>
-            );
-          })}
-        </View>
-      )}
-
-      {isFill && (
-        <View style={{ gap: 12 }}>
-          {filledBlanks.map((value, i) => (
-            <Field
-              key={i} label={t('quiz.blankN', { n: i + 1 })} value={value} editable={!result && !busy} autoCapitalize="none"
-              onChangeText={(v) => setBlanks((prev) => Array.from({ length: blankCount }, (_, j) => (j === i ? v : prev[j] ?? '')))}
-            />
-          ))}
-        </View>
-      )}
-
-      {(q.type === 'open_text' || q.type === 'real_case' || (q.type === 'practical' && !q.numeric)) && (
-        <TextInput
-          value={text} onChangeText={setText} multiline editable={!result && !busy} placeholder={t('quiz.writeHere')} placeholderTextColor={colors.mutedFg}
-          accessibilityLabel={t('quiz.yourAnswer')} style={[inputStyle, { minHeight: 120, textAlignVertical: 'top' }]}
-        />
-      )}
-
-      {q.type === 'practical' && q.numeric && (
-        <Field label={t('quiz.yourAnswer')} hint={t('quiz.numericHint')} value={text} onChangeText={setText} keyboardType="numbers-and-punctuation" editable={!result && !busy} />
-      )}
-
-      {result && verdict && (
-        <Card style={{ gap: 8, borderColor: result.correct ? colors.success : result.score > 0 ? colors.warning : colors.destructive, borderWidth: 2 }} >
-          <Badge variant={verdict.variant}>{verdict.text}</Badge>
-          {result.feedback ? <T variant="body">{result.feedback}</T> : null}
-          {!result.correct && (
-            <View>
-              <T variant="small">{t('quiz.expected')}</T>
-              <T variant="label" selectable>{result.correctAnswer}</T>
+          {q.type === 'multiple_choice' && (
+            <View accessibilityRole="radiogroup" style={{ gap: 10 }}>
+              {(q.options ?? []).map((option, i) => {
+                const revealed = !!result;
+                const isCorrect = revealed && i === result?.correctIndex;
+                const isWrongPick = revealed && i === choice && i !== result?.correctIndex;
+                const selected = choice === i;
+                const border = isCorrect ? colors.success : isWrongPick ? colors.destructive : selected ? colors.primary : colors.border;
+                const letter = String.fromCharCode(65 + i);
+                return (
+                  <Pressable
+                    key={i} disabled={revealed || busy} onPress={() => setChoice(i)} accessibilityRole="radio"
+                    accessibilityLabel={`${letter}: ${option}${isCorrect ? ` (${t('quiz.verdictCorrect')})` : isWrongPick ? ` (${t('quiz.verdictWrong')})` : ''}`}
+                    accessibilityState={{ selected, disabled: revealed }}
+                    style={{ minHeight: 56, borderRadius: 16, borderWidth: 2, borderColor: border, backgroundColor: selected && !revealed ? colors.accent : colors.card, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12, opacity: revealed && !isCorrect && !isWrongPick ? 0.6 : 1 }}
+                  >
+                    <View style={{ width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: border, alignItems: 'center', justifyContent: 'center', backgroundColor: isCorrect ? colors.success : isWrongPick ? colors.destructive : 'transparent' }}>
+                      {isCorrect ? <Ionicons name="checkmark" size={18} color={colors.card} /> : isWrongPick ? <Ionicons name="close" size={18} color={colors.destructiveFg} /> : <T variant="small">{letter}</T>}
+                    </View>
+                    <T variant="body" style={{ flex: 1 }}>{option}</T>
+                  </Pressable>
+                );
+              })}
             </View>
           )}
-          {result.explanation ? (
-            <View>
-              <T variant="small">{t('quiz.explanation')}</T>
-              <T variant="body" selectable>{result.explanation}</T>
+
+          {isFill && (
+            <View style={{ gap: 12 }}>
+              {filledBlanks.map((value, i) => (
+                <Field
+                  key={i} label={t('quiz.blankN', { n: i + 1 })} value={value} editable={!result && !busy} autoCapitalize="none"
+                  onChangeText={(v) => setBlanks((prev) => Array.from({ length: blankCount }, (_, j) => (j === i ? v : prev[j] ?? '')))}
+                />
+              ))}
             </View>
-          ) : null}
-        </Card>
-      )}
+          )}
 
-      {error ? <T variant="small" color={colors.destructive} accessibilityLiveRegion="polite">{error}</T> : null}
+          {(q.type === 'open_text' || q.type === 'real_case' || (q.type === 'practical' && !q.numeric)) && (
+            <TextInput
+              value={text} onChangeText={setText} multiline editable={!result && !busy} placeholder={t('quiz.writeHere')} placeholderTextColor={colors.mutedFg}
+              accessibilityLabel={t('quiz.yourAnswer')} style={[inputStyle, { minHeight: 120, textAlignVertical: 'top' }]}
+            />
+          )}
 
-      {result ? (
-        <Button title={isLast ? t('quiz.seeResult') : t('quiz.next')} onPress={advance} loading={busy} />
-      ) : (
-        <Button
-          title={taskMode && isLast ? t('quiz.finish') : t('quiz.answer')} onPress={submit} loading={busy} disabled={answer() === null}
-        />
-      )}
+          {q.type === 'practical' && q.numeric && (
+            <Field label={t('quiz.yourAnswer')} hint={t('quiz.numericHint')} value={text} onChangeText={setText} keyboardType="numbers-and-punctuation" editable={!result && !busy} />
+          )}
+
+          {result && verdict && (
+            <Card style={{ gap: 8, borderColor: result.correct ? colors.success : result.score > 0 ? colors.warning : colors.destructive, borderWidth: 2 }}>
+              <Badge variant={verdict.variant}>{verdict.text}</Badge>
+              {result.feedback ? <T variant="body">{result.feedback}</T> : null}
+              {!result.correct && (
+                <View>
+                  <T variant="small">{t('quiz.expected')}</T>
+                  <T variant="label" selectable>{result.correctAnswer}</T>
+                </View>
+              )}
+              {result.explanation ? (
+                <View>
+                  <T variant="small">{t('quiz.explanation')}</T>
+                  <T variant="body" selectable>{result.explanation}</T>
+                </View>
+              ) : null}
+            </Card>
+          )}
+        </Animated.View>
+      </ScrollView>
+
+      {/* rodapé fixo: o botão principal nunca fica escondido atrás do teclado */}
+      <View style={{ padding: 16, gap: 8, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.card }}>
+        {error ? <T variant="small" color={colors.destructive} accessibilityLiveRegion="polite">{error}</T> : null}
+        {result ? (
+          <Button title={isLast ? t('quiz.seeResult') : t('quiz.next')} onPress={advance} loading={busy} />
+        ) : (
+          <Button title={taskMode && isLast ? t('quiz.finish') : t('quiz.answer')} onPress={submit} loading={busy} disabled={answer() === null} />
+        )}
+      </View>
     </View>
   );
 }

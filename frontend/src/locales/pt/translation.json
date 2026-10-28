@@ -197,6 +197,13 @@
     "feedback": "Comentário",
     "reinforcing": "Vou reforçar, de outro jeito, o que você errou antes: {{topics}}.",
     "pickOption": "Escolha uma alternativa acima.",
+    "topicTitle": "Sobre o que vamos testar?",
+    "topicHint": "O quiz tem vários tipos de pergunta e se adapta ao que você mais erra. Seu progresso só é salvo se você responder todas.",
+    "topicLabel": "Assunto",
+    "countLabel": "Quantas perguntas você quer?",
+    "countOption": "{{count}} perguntas",
+    "start": "Começar quiz",
+    "generatingHint": "Estou montando perguntas sob medida para você. Isso leva alguns segundos.",
     "generating": "Preparando as perguntas...",
     "answerError": "Não foi possível corrigir sua resposta. Tente de novo.",
     "viewAttempts": "Ver minhas tentativas",
@@ -295,6 +302,8 @@
     "about": "Sobre nós"
   },
   "common": {
+    "showPassword": "Mostrar senha",
+    "hidePassword": "Ocultar senha",
     "loading": "Carregando...",
     "save": "Salvar",
     "cancel": "Cancelar",

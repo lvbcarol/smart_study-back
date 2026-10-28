@@ -1,9 +1,11 @@
 // Componentes visuais do app, sobre os tokens do tema (mesma identidade do web)
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleProp, Text as RNText, TextInput, TextInputProps, TextStyle, View, ViewStyle,
+  ActivityIndicator, KeyboardAvoidingView, Pressable, RefreshControl, ScrollView, StyleProp, Text as RNText, TextInput, TextInputProps, TextStyle, View, ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme/ThemeContext';
 
 /* ---------- Texto ---------- */
@@ -81,16 +83,31 @@ export const Card: React.FC<{ children: ReactNode; style?: StyleProp<ViewStyle>;
 /* ---------- Campo ---------- */
 interface FieldProps extends TextInputProps { label: string; hint?: string; error?: string }
 
-export const Field = React.forwardRef<React.ComponentRef<typeof TextInput>, FieldProps>(({ label, hint, error, style, ...props }, ref) => {
+export const Field = React.forwardRef<React.ComponentRef<typeof TextInput>, FieldProps>(({ label, hint, error, style, secureTextEntry, ...props }, ref) => {
   const { colors, fs } = useTheme();
+  const { t } = useTranslation();
+  const [hidden, setHidden] = useState(true);
+  const isPassword = !!secureTextEntry;
   return (
     <View style={{ gap: 6 }}>
       <T variant="label">{label}</T>
-      <TextInput
-        ref={ref} accessibilityLabel={label} placeholderTextColor={colors.mutedFg} autoCapitalize="none"
-        style={[{ minHeight: 48, borderRadius: 14, borderWidth: 1, borderColor: error ? colors.destructive : colors.border, backgroundColor: colors.card, color: colors.foreground, paddingHorizontal: 14, paddingVertical: 10, fontSize: fs(16) }, style]}
-        {...props}
-      />
+      <View style={{ justifyContent: 'center' }}>
+        <TextInput
+          ref={ref} accessibilityLabel={label} placeholderTextColor={colors.mutedFg} autoCapitalize="none"
+          secureTextEntry={isPassword && hidden}
+          style={[{ minHeight: 48, borderRadius: 14, borderWidth: 1, borderColor: error ? colors.destructive : colors.border, backgroundColor: colors.card, color: colors.foreground, paddingHorizontal: 14, paddingVertical: 10, fontSize: fs(16), paddingRight: isPassword ? 52 : 14 }, style]}
+          {...props}
+        />
+        {isPassword && (
+          <Pressable
+            onPress={() => setHidden((h) => !h)} hitSlop={8} accessibilityRole="button"
+            accessibilityLabel={hidden ? t('common.showPassword') : t('common.hidePassword')}
+            style={{ position: 'absolute', right: 4, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Ionicons name={hidden ? 'eye-outline' : 'eye-off-outline'} size={22} color={colors.mutedFg} />
+          </Pressable>
+        )}
+      </View>
       {hint && !error ? <T variant="small">{hint}</T> : null}
       {error ? <T variant="small" color={colors.destructive}>{error}</T> : null}
     </View>
@@ -118,23 +135,63 @@ export const Badge: React.FC<{ children: ReactNode; variant?: 'neutral' | 'prima
 export const scoreVariant = (score: number): 'success' | 'warning' | 'destructive' => (score >= 70 ? 'success' : score >= 50 ? 'warning' : 'destructive');
 
 /* ---------- Tela ---------- */
-interface ScreenProps { children: ReactNode; scroll?: boolean; refreshing?: boolean; onRefresh?: () => void; contentStyle?: StyleProp<ViewStyle>; edges?: ('top' | 'bottom' | 'left' | 'right')[] }
+interface ScreenProps {
+  children: ReactNode; scroll?: boolean; refreshing?: boolean; onRefresh?: () => void; contentStyle?: StyleProp<ViewStyle>; edges?: ('top' | 'bottom' | 'left' | 'right')[];
+  /** Área fixa embaixo (ex.: botão principal); sobe junto com o teclado */
+  footer?: ReactNode;
+}
 
-export const Screen: React.FC<ScreenProps> = ({ children, scroll = true, refreshing, onRefresh, contentStyle, edges = ['top', 'left', 'right'] }) => {
+/**
+ * Toda tela fica dentro de um KeyboardAvoidingView: ao abrir o teclado, o conteúdo encolhe e o campo
+ * em foco continua visível. O deslocamento (cabeçalho + barra de status) é medido na janela, então
+ * não depende de números fixos. No Android com edge-to-edge o sistema não redimensiona a janela,
+ * por isso o "padding" é necessário; se a janela for redimensionada, o cálculo do componente zera sozinho.
+ */
+/** Mede a distância do topo da janela até a view (cabeçalho + barra de status) para o KeyboardAvoidingView. */
+export function useKeyboardOffset() {
+  const root = useRef<React.ComponentRef<typeof View>>(null);
+  const [offset, setOffset] = useState(0);
+  const onLayout = () => root.current?.measureInWindow((_x, y) => setOffset(Math.max(0, Math.round(y))));
+  return { root, offset, onLayout };
+}
+
+export const Screen: React.FC<ScreenProps> = ({ children, scroll = true, refreshing, onRefresh, contentStyle, edges = ['top', 'left', 'right'], footer }) => {
+  const { colors } = useTheme();
+  const { root, offset, onLayout: measure } = useKeyboardOffset();
+  return (
+    <View ref={root} collapsable={false} onLayout={measure} style={{ flex: 1, backgroundColor: colors.background }}>
+      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={offset} style={{ flex: 1 }}>
+        <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: colors.background }}>
+          {scroll ? (
+            <ScrollView
+              keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" style={{ flex: 1 }}
+              contentContainerStyle={[{ padding: 20, gap: 16, paddingBottom: 40 }, contentStyle]}
+              refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.primary} /> : undefined}
+            >
+              {children}
+            </ScrollView>
+          ) : (
+            <View style={[{ flex: 1, padding: 20, gap: 16 }, contentStyle]}>{children}</View>
+          )}
+          {footer ? (
+            <View style={{ padding: 16, gap: 10, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.card }}>{footer}</View>
+          ) : null}
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+    </View>
+  );
+};
+
+/* ---------- Chip (escolha única em fileira) ---------- */
+export const Chip: React.FC<{ label: string; selected: boolean; onPress: () => void }> = ({ label, selected, onPress }) => {
   const { colors } = useTheme();
   return (
-    <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor: colors.background }}>
-      {scroll ? (
-        <ScrollView
-          keyboardShouldPersistTaps="handled" contentContainerStyle={[{ padding: 20, gap: 16, paddingBottom: 40 }, contentStyle]}
-          refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.primary} /> : undefined}
-        >
-          {children}
-        </ScrollView>
-      ) : (
-        <View style={[{ flex: 1, padding: 20, gap: 16 }, contentStyle]}>{children}</View>
-      )}
-    </SafeAreaView>
+    <Pressable
+      onPress={onPress} accessibilityRole="radio" accessibilityState={{ selected }} accessibilityLabel={label}
+      style={{ minHeight: 44, minWidth: 56, paddingHorizontal: 16, borderRadius: 999, borderWidth: 2, alignItems: 'center', justifyContent: 'center', borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.accent : colors.card }}
+    >
+      <T variant="label" color={selected ? colors.accentFg : colors.foreground}>{label}</T>
+    </Pressable>
   );
 };
 
