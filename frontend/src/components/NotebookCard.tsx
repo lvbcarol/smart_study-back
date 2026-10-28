@@ -1,7 +1,7 @@
 // src/components/NotebookCard.tsx
 import React, { useState } from 'react';
-import { Check, ChevronRight, GraduationCap, Pencil, Plus, Trash2, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Check, ChevronRight, FileText, GraduationCap, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -140,10 +140,13 @@ const NotebookCard: React.FC<NotebookCardProps> = ({ notebook, onDelete, onUpdat
           ) : (
             <>
               <div className="min-w-0 space-y-1.5">
-                <h3 id={`nb-${notebook._id}`} className="break-words font-display text-xl font-bold leading-tight">{notebook.title}</h3>
+                <h3 id={`nb-${notebook._id}`} className="break-words font-display text-xl font-bold leading-tight">
+                  <Link to={`/notebook/${notebook._id}`} className="rounded hover:underline">{notebook.title}</Link>
+                </h3>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge>{t('myNotebooks.lessons', { count: notebook.lessons.length })}</Badge>
-                  {readOnly && <Badge variant="primary"><GraduationCap className="h-3 w-3" aria-hidden="true" />{t('myNotebooks.fromTeacher')}</Badge>}
+                  {readOnly && <Badge variant="primary"><GraduationCap className="h-3 w-3" aria-hidden="true" />{notebook.ownerName ?? t('myNotebooks.fromTeacher')}</Badge>}
+                  {notebook.turmaName && <Badge>{notebook.turmaName}</Badge>}
                 </div>
               </div>
               {!readOnly && (
@@ -191,6 +194,13 @@ const NotebookCard: React.FC<NotebookCardProps> = ({ notebook, onDelete, onUpdat
           ))}
         </ul>
 
+        <Link
+          to={`/notebook/${notebook._id}?tab=materials`}
+          className="mt-4 inline-flex min-h-9 items-center gap-2 self-start rounded-lg px-1 text-sm font-semibold text-primary hover:underline"
+        >
+          <FileText className="h-4 w-4" aria-hidden="true" /> {t('notebookPage.openMaterials')}
+        </Link>
+
         {!readOnly && (
           isAddingLesson ? (
             <form onSubmit={handleAddLesson} className="mt-4 flex gap-2">
@@ -203,7 +213,7 @@ const NotebookCard: React.FC<NotebookCardProps> = ({ notebook, onDelete, onUpdat
               <Button type="button" size="sm" variant="ghost" aria-label={t('myNotebooks.cancel')} onClick={() => setIsAddingLesson(false)}><X className="h-4 w-4" aria-hidden="true" /></Button>
             </form>
           ) : (
-            <Button variant="ghost" size="sm" className="mt-4 self-start text-primary" onClick={() => setIsAddingLesson(true)} title={t('myNotebooks.tooltipNewLesson')}>
+            <Button variant="ghost" size="sm" className="mt-1 self-start text-primary" onClick={() => setIsAddingLesson(true)} title={t('myNotebooks.tooltipNewLesson')}>
               <Plus className="h-4 w-4" aria-hidden="true" /> {t('myNotebooks.newLesson')}
             </Button>
           )

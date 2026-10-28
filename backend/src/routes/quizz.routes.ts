@@ -12,6 +12,7 @@ import { AuthRequest } from '../types';
 import { findLessonAccess } from '../services/access';
 import { getAIService } from '../services/ai.service';
 import { parseBody } from '../utils/validate';
+import { buildMaterialsContext } from '../services/materials';
 import { gradeAnswer, GradeResult } from '../quiz/grading';
 import { answerSchemaFor, normalizeQuestion, Question, questionSchema, toPublic } from '../quiz/questions';
 import { buildQuizPlan, decayed, errorRateByType, smoothedErrorRate } from '../quiz/weakness';
@@ -49,10 +50,12 @@ router.post('/drafts', async (req: AuthRequest, res: Response) => {
     const lessonStats = allStats.length ? await loadStats(req.userId as string, String(access.lesson._id)) : [];
     const plan = buildQuizPlan({ count: data.count, allStats, lessonStats });
 
+    const materials = await buildMaterialsContext(access.notebook._id, access.lesson._id);
     const generated = await getAIService().generateQuizz({
       topic: data.topic,
       context: `${access.notebook.title} - ${access.lesson.title}`,
       language: data.language,
+      materials: materials.count > 0 ? materials.text : undefined,
       plan,
     });
     const questions = generated.map((q, i) => normalizeQuestion(questionSchema.parse(q), i));
@@ -73,6 +76,7 @@ router.post('/drafts', async (req: AuthRequest, res: Response) => {
       draftId: draft._id,
       questions: questions.map(toPublic),
       reinforcing: plan.reinforce.map((r) => r.topic),
+      materialsUsed: materials.count,
     });
   } catch (error) {
     console.error('QUIZ GENERATION FAILED:', error);

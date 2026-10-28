@@ -8,6 +8,8 @@ import lessonRoutes from './routes/lesson.routes';
 import aiRoutes from './routes/ai.routes';
 import quizzRoutes from './routes/quizz.routes';
 import progressRoutes from './routes/progress.routes';
+import turmaRoutes from './routes/turma.routes';
+import materialRoutes from './routes/material.routes';
 
 export function createApp() {
   const app = express();
@@ -35,6 +37,8 @@ export function createApp() {
   });
 
   app.use('/api/usuario', usuarioRoutes);
+  app.use('/api/turmas', turmaRoutes);
+  app.use('/api/notebooks/:notebookId/materials', materialRoutes);
   app.use('/api/notebooks', notebookRoutes);
   app.use('/api/lessons', lessonRoutes);
   app.use('/api/ai', aiLimiter, aiRoutes);

@@ -6,6 +6,7 @@ import ChatSession from '../models/ChatSession';
 import { AuthRequest } from '../types';
 import { findLessonAccess } from '../services/access';
 import { parseBody } from '../utils/validate';
+import { countMaterials } from '../services/materials';
 
 const router = Router();
 router.use(authMiddleware);
@@ -20,15 +21,17 @@ router.get('/:lessonId', async (req: AuthRequest, res: Response) => {
     const access = await findLessonAccess(req.params.lessonId, req.userId as string);
     if (!access) return res.status(404).json({ error: 'Lesson not found.' });
 
-    const [attempts, chat] = await Promise.all([
+    const [attempts, chat, materialsCount] = await Promise.all([
       QuizAttempt.find({ user: req.userId, lesson: access.lesson._id }).sort({ createdAt: 1 }).lean(),
       ChatSession.findOne({ user: req.userId, lesson: access.lesson._id }).lean(),
+      countMaterials(access.notebook._id, access.lesson._id),
     ]);
 
     res.json({
       notebookTitle: access.notebook.title,
       lessonTitle: access.lesson.title,
       readOnly: !access.canWrite,
+      materialsCount,
       quizzAttempts: attempts.map((a) => ({
         _id: a._id,
         attemptNumber: a.attemptNumber,

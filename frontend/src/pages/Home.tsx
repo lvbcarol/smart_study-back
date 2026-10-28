@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Notebook } from '../types';
+import { TurmaSummary } from '../types/classes';
 import { buttonVariants } from '../components/ds/Button';
 import { Skeleton } from '../components/ds/Misc';
 import { FeatureTile, StatCard } from '../components/ds/PageParts';
@@ -15,10 +16,15 @@ const Home: React.FC = () => {
   const { user } = useAuth();
   const isTeacher = user?.role === 'teacher';
   const [notebooks, setNotebooks] = useState<Notebook[] | null>(null);
+  const [turmas, setTurmas] = useState<TurmaSummary[] | null>(null);
 
   useEffect(() => {
     api.get<Notebook[]>('/notebooks').then((r) => setNotebooks(r.data)).catch(() => setNotebooks([]));
   }, []);
+
+  useEffect(() => {
+    if (isTeacher) api.get<TurmaSummary[]>('/turmas').then((r) => setTurmas(r.data)).catch(() => setTurmas([]));
+  }, [isTeacher]);
 
   const lessons = notebooks?.reduce((sum, n) => sum + n.lessons.length, 0) ?? 0;
   const scores = notebooks?.flatMap((n) => n.lessons.flatMap((l) => (l.quizzAttempts ?? []).map((a) => a.score))) ?? [];
@@ -26,13 +32,15 @@ const Home: React.FC = () => {
 
   const stats = isTeacher
     ? [
-        { label: t('home.statTeacherNotebooks'), value: notebooks?.length ?? 0 },
-        { label: t('home.statLessons'), value: lessons },
+        { label: t('home.statClasses'), value: turmas?.length ?? 0, loading: turmas === null },
+        { label: t('home.statStudents'), value: turmas?.reduce((sum, x) => sum + x.studentsCount, 0) ?? 0, loading: turmas === null },
+        { label: t('home.statTeacherNotebooks'), value: notebooks?.length ?? 0, loading: notebooks === null },
+        { label: t('home.statLessons'), value: lessons, loading: notebooks === null },
       ]
     : [
-        { label: t('home.statNotebooks'), value: notebooks?.length ?? 0 },
-        { label: t('home.statLessons'), value: lessons },
-        { label: t('home.statAverage'), value: average },
+        { label: t('home.statNotebooks'), value: notebooks?.length ?? 0, loading: notebooks === null },
+        { label: t('home.statLessons'), value: lessons, loading: notebooks === null },
+        { label: t('home.statAverage'), value: average, loading: notebooks === null },
       ];
 
   const soon = t('home.soon');
@@ -55,10 +63,8 @@ const Home: React.FC = () => {
         <div aria-hidden="true" className="absolute -bottom-24 right-24 h-64 w-64 rounded-full bg-primary/10" />
       </section>
 
-      <section aria-label="Stats" className={isTeacher ? 'grid gap-4 sm:grid-cols-2' : 'grid gap-4 sm:grid-cols-3'}>
-        {stats.map((s) =>
-          notebooks === null ? <Skeleton key={s.label} className="h-24" /> : <StatCard key={s.label} label={s.label} value={s.value} />
-        )}
+      <section aria-label="Stats" className={isTeacher ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4' : 'grid gap-4 sm:grid-cols-3'}>
+        {stats.map((s) => (s.loading ? <Skeleton key={s.label} className="h-24" /> : <StatCard key={s.label} label={s.label} value={s.value} />))}
       </section>
 
       <section className="space-y-4">
@@ -67,8 +73,8 @@ const Home: React.FC = () => {
           {isTeacher ? (
             <>
               <FeatureTile to="/my-notebooks" icon={<BookOpen className={icon} />} title={t('navbar.teacherNotebooks')} description={t('myNotebooks.subtitleShort')} />
-              <FeatureTile icon={<Users className={icon} />} title={t('home.fClasses')} description={t('home.fClassesDesc')} soonLabel={soon} />
-              <FeatureTile icon={<FileText className={icon} />} title={t('home.fMaterials')} description={t('home.fMaterialsDesc')} soonLabel={soon} />
+              <FeatureTile to="/classes" icon={<Users className={icon} />} title={t('home.fClasses')} description={t('home.fClassesDesc')} />
+              <FeatureTile to="/my-notebooks" icon={<FileText className={icon} />} title={t('home.fMaterials')} description={t('home.fMaterialsDesc')} />
               <FeatureTile icon={<ClipboardCheck className={icon} />} title={t('home.fTasks')} description={t('home.fTasksDesc')} soonLabel={soon} />
             </>
           ) : (

@@ -1,7 +1,7 @@
 // src/pages/SubjectPage.tsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { BookOpen, ListChecks } from 'lucide-react';
+import { BookOpen, FileText, ListChecks } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { Badge, Skeleton } from '../components/ds/Misc';
@@ -11,6 +11,7 @@ interface SubjectDetails {
   notebookTitle: string;
   lessonTitle: string;
   readOnly?: boolean;
+  materialsCount?: number;
 }
 
 const SubjectPage: React.FC = () => {
@@ -45,6 +46,12 @@ const SubjectPage: React.FC = () => {
           )}
           <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">{t('subject.title')}</h1>
         </header>
+      )}
+
+      {!!details?.materialsCount && (
+        <p className="flex items-center gap-2 rounded-2xl bg-accent px-4 py-3 text-sm font-medium text-accent-foreground">
+          <FileText className="h-4 w-4 shrink-0" aria-hidden="true" /> {t('chat.materialsBanner', { count: details.materialsCount })}
+        </p>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">

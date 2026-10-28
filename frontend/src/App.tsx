@@ -28,6 +28,9 @@ import ProgressPage from './pages/ProgressPage';
 import TermsOfUse from './pages/TermsOfUse';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import NotebookPage from './pages/NotebookPage';
+import TurmasPage from './pages/TurmasPage';
+import TurmaDetailPage from './pages/TurmaDetailPage';
 import NotFound from './pages/NotFound';
 import DesignPreview from './pages/DesignPreview';
 
@@ -82,6 +85,13 @@ const AppContent: React.FC = () => {
             <Route path="/subjects/:lessonId" element={<SubjectPage />} />
             <Route path="/summary/:lessonId" element={<SummaryPage />} />
             <Route path="/quizz/:lessonId" element={<QuizzPage />} />
+            <Route path="/notebook/:notebookId" element={<NotebookPage />} />
+          </Route>
+
+          {/* Só professores */}
+          <Route element={<ProtectedRoute roles={['teacher']} />}>
+            <Route path="/classes" element={<TurmasPage />} />
+            <Route path="/classes/:turmaId" element={<TurmaDetailPage />} />
           </Route>
         </Route>
 

@@ -6,6 +6,8 @@ import Notebook from '../models/Notebook';
 import Turma from '../models/Turma';
 import QuizAttempt from '../models/QuizAttempt';
 import ChatSession from '../models/ChatSession';
+import Material from '../models/Material';
+import Usuario from '../models/Usuario';
 import { AuthRequest } from '../types';
 import { accessibleNotebooksFilter } from '../services/access';
 import { parseBody } from '../utils/validate';
@@ -15,6 +17,11 @@ router.use(authMiddleware);
 
 const titleSchema = z.object({ title: z.string().trim().min(1, 'Título obrigatório.').max(120) });
 const createSchema = titleSchema.extend({ turma: z.string().optional() });
+// turma: id para vincular o caderno a uma turma; null para desvincular
+const updateSchema = z.object({
+  title: z.string().trim().min(1, 'Título obrigatório.').max(120).optional(),
+  turma: z.string().nullable().optional(),
+}).refine((d) => d.title !== undefined || d.turma !== undefined, { message: 'Nada para atualizar.' });
 
 // Apaga chat e tentativas ligados às aulas removidas
 async function cascadeLessons(lessonIds: mongoose.Types.ObjectId[]) {
@@ -22,6 +29,7 @@ async function cascadeLessons(lessonIds: mongoose.Types.ObjectId[]) {
   await Promise.all([
     QuizAttempt.deleteMany({ lesson: { $in: lessonIds } }),
     ChatSession.deleteMany({ lesson: { $in: lessonIds } }),
+    Material.deleteMany({ lesson: { $in: lessonIds } }),
   ]);
 }
 
@@ -44,10 +52,22 @@ router.get('/', async (req: AuthRequest, res: Response) => {
       byLesson.set(key, list);
     }
 
+    // nomes da turma e do professor para exibir nos cadernos
+    const turmaIds = notebooks.map((n) => n.turma).filter(Boolean);
+    const ownerIds = notebooks.filter((n) => n.owner.toString() !== req.userId).map((n) => n.owner);
+    const [turmas, owners] = await Promise.all([
+      Turma.find({ _id: { $in: turmaIds } }).select('name').lean(),
+      Usuario.find({ _id: { $in: ownerIds } }).select('name').lean(),
+    ]);
+    const turmaName = new Map(turmas.map((t) => [String(t._id), t.name]));
+    const ownerName = new Map(owners.map((o) => [String(o._id), o.name]));
+
     res.json(
       notebooks.map((n) => ({
         ...n,
         readOnly: n.owner.toString() !== req.userId,
+        turmaName: n.turma ? turmaName.get(String(n.turma)) : undefined,
+        ownerName: n.owner.toString() !== req.userId ? ownerName.get(String(n.owner)) : undefined,
         lessons: (n.lessons ?? []).map((l) => ({ ...l, quizzAttempts: byLesson.get(l._id.toString()) ?? [] })),
       }))
     );
@@ -76,16 +96,22 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// PUT: Editar o título de um caderno (somente o dono)
+// PUT: Editar o título e/ou a turma de um caderno (somente o dono)
 router.put('/:notebookId', async (req: AuthRequest, res: Response) => {
-  const data = parseBody(titleSchema, req.body, res);
+  const data = parseBody(updateSchema, req.body, res);
   if (!data) return;
   try {
-    const notebook = await Notebook.findOneAndUpdate(
-      { _id: req.params.notebookId, owner: req.userId },
-      { title: data.title },
-      { new: true }
-    );
+    const update: Record<string, unknown> = {};
+    if (data.title !== undefined) update.title = data.title;
+    if (data.turma) {
+      const turma = mongoose.isValidObjectId(data.turma)
+        ? await Turma.findOne({ _id: data.turma, teacher: req.userId })
+        : null;
+      if (!turma) return res.status(404).json({ error: 'Turma not found.' });
+      update.turma = data.turma;
+    }
+    const mongoUpdate = data.turma === null ? { $set: update, $unset: { turma: 1 } } : { $set: update };
+    const notebook = await Notebook.findOneAndUpdate({ _id: req.params.notebookId, owner: req.userId }, mongoUpdate, { new: true });
     if (!notebook) return res.status(404).json({ error: 'Notebook not found.' });
     res.json(notebook);
   } catch (error) {
@@ -99,6 +125,7 @@ router.delete('/:notebookId', async (req: AuthRequest, res: Response) => {
     const deleted = await Notebook.findOneAndDelete({ _id: req.params.notebookId, owner: req.userId });
     if (!deleted) return res.status(404).json({ error: 'Notebook not found.' });
     await cascadeLessons(deleted.lessons.map((l) => l._id));
+    await Material.deleteMany({ notebook: deleted._id });
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: 'Error deleting notebook.' });

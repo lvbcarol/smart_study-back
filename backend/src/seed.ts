@@ -4,6 +4,7 @@ import Usuario from './models/Usuario';
 import Turma from './models/Turma';
 import Notebook from './models/Notebook';
 import QuizAttempt from './models/QuizAttempt';
+import Material from './models/Material';
 import { GradeResult } from './quiz/grading';
 import { Question } from './quiz/questions';
 import { recordResults } from './quiz/weakness.service';
@@ -51,6 +52,15 @@ export async function seedDemo(): Promise<void> {
     lessons: [{ title: 'Derivadas' }, { title: 'Integrais' }],
   });
   const [derivadas, integrais] = matematica.lessons;
+
+  const demoMaterial = (title: string, text: string, lesson?: unknown) =>
+    Material.create({ notebook: matematica._id, lesson, title, kind: 'text', extractedText: text, charCount: text.length, truncated: false, uploadedBy: teacher._id });
+  await demoMaterial(
+    'Regras de derivação (resumo da professora)',
+    "Regra da potência: d/dx x^n = n·x^(n-1). Regra da soma: a derivada da soma é a soma das derivadas. Regra do produto: (f·g)' = f'·g + f·g'. Regra da cadeia: (f∘g)' = f'(g)·g'.",
+    derivadas._id
+  );
+  await demoMaterial('Plano de curso de Cálculo', 'Unidade 1: limites e continuidade. Unidade 2: derivadas e aplicações. Unidade 3: integrais. Avaliações: 2 provas e listas semanais.');
 
   await Notebook.create({ title: 'Anotações de Física', owner: ana._id, lessons: [{ title: 'Cinemática' }] });
 

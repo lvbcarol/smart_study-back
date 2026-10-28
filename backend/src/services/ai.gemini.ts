@@ -96,6 +96,29 @@ Return only the JSON.`;
       return result.response.text();
     },
 
+    async chat({ message, history, context, language, materials }) {
+      const lang = isPt(language) ? 'Brazilian Portuguese' : 'English';
+      const transcript = history
+        .slice(-12)
+        .map((m) => `${m.sender === 'user' ? 'Student' : 'StudyBot'}: ${m.text}`)
+        .join('\n');
+      const source = materials
+        ? `The teacher shared the material below. Prefer it as your source. If the answer is not in the material, say so first, then answer from general knowledge and make clear which part is outside the material.\n"""\n${materials}\n"""`
+        : 'Base your answer on established academic knowledge.';
+      const prompt = `
+You are "StudyBot", a friendly and didactic AI tutor for university students. Answer in ${lang}, in Markdown, concisely.
+Course context: "${context || 'General'}"
+${source}
+
+Conversation so far:
+${transcript || '(none)'}
+
+Student: ${message}
+StudyBot:`;
+      const result = await getModel().generateContent(prompt);
+      return result.response.text();
+    },
+
     async generateQuizz(input) {
       const prompt = buildQuizPrompt(input);
       let questions = parseQuestions((await getModel(true).generateContent(prompt)).response.text());

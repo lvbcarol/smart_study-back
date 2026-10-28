@@ -23,6 +23,7 @@ const AppNavbar: React.FC = () => {
     ? isTeacher
       ? [
           { to: '/home', label: t('navbar.teacherHome') },
+          { to: '/classes', label: t('navbar.teacherClasses') },
           { to: '/my-notebooks', label: t('navbar.teacherNotebooks') },
         ]
       : [

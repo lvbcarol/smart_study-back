@@ -50,4 +50,5 @@ export interface DraftResponse {
   draftId: string;
   questions: PublicQuestion[];
   reinforcing: string[];
+  materialsUsed: number;
 }

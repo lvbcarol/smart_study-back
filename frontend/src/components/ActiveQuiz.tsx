@@ -93,6 +93,7 @@ const ActiveQuiz: React.FC<ActiveQuizProps> = ({ lessonId, onFinish }) => {
       setResults(data.questions.map(() => null));
       setCurrent(0);
       const intro: ChatMsg[] = [];
+      if (data.materialsUsed > 0) intro.push({ sender: 'bot', text: `📎 ${t('chat.materialsBanner', { count: data.materialsUsed })}` });
       if (data.reinforcing.length > 0) intro.push({ sender: 'bot', text: t('quizzPage.reinforcing', { topics: data.reinforcing.join(', ') }) });
       intro.push({ sender: 'bot', text: questionText(data.questions[0], 0, data.questions.length), qIndex: 0 });
       push(...intro);

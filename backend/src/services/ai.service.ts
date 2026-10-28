@@ -16,21 +16,48 @@ export interface QuizGenInput extends AIInput {
   plan: QuizPlan;
 }
 
+export interface ChatInput extends AIInput {
+  /** conversa até aqui (sem a mensagem atual) */
+  history: { sender: 'user' | 'bot'; text: string }[];
+  message: string;
+}
+
 export interface AIService {
   summarize(input: AIInput): Promise<string>;
+  chat(input: ChatInput): Promise<string>;
   generateQuizz(input: QuizGenInput): Promise<Question[]>;
   gradeAnswer(input: { question: Question; answer: string; language?: string }): Promise<{ score: number; feedback: string }>;
 }
 
 const isPt = (language?: string) => !!language && language.toLowerCase().startsWith('pt');
 
+/** Títulos dos materiais que o servidor colocou no contexto ("### Material: título") */
+const materialTitles = (materials?: string) => [...(materials ?? '').matchAll(/^### Material: (.+)$/gm)].map((m) => m[1]);
+
 const mockService: AIService = {
-  async summarize({ topic, context, language }) {
+  async summarize({ topic, context, language, materials }) {
     const pt = isPt(language);
+    const titles = materialTitles(materials);
+    const note = titles.length
+      ? (pt ? `> 📎 Baseado nos materiais do professor: ${titles.join(', ')}.\n\n` : `> 📎 Based on the teacher's materials: ${titles.join(', ')}.\n\n`)
+      : '';
     return pt
-      ? `# Resumo: ${topic}\n\n> ⚠️ Resposta de **demonstração** (IA em modo mock).\n\n## Ideias principais\n* **Definição:** visão geral de "${topic}"${context ? ` no contexto de ${context}` : ''}.\n* **Importância:** por que o tema aparece com frequência nos estudos.\n* **Aplicações:** exemplos práticos para fixar o conteúdo.\n\n## Fontes\n* Khan Academy\n* MIT OpenCourseWare\n\n## Para aprofundar\n1. Conceitos fundamentais de ${topic}\n2. Exercícios resolvidos\n3. Aplicações em projetos reais`
-      : `# Summary: ${topic}\n\n> ⚠️ **Demo** response (AI in mock mode).\n\n## Key ideas\n* **Definition:** overview of "${topic}"${context ? ` in the context of ${context}` : ''}.\n* **Importance:** why the topic shows up so often in your studies.\n* **Applications:** practical examples to reinforce the content.\n\n## Sources\n* Khan Academy\n* MIT OpenCourseWare\n\n## To Deepen Your Knowledge\n1. Core concepts of ${topic}\n2. Worked exercises\n3. Applications in real projects`;
+      ? `# Resumo: ${topic}\n\n${note}> ⚠️ Resposta de **demonstração** (IA em modo mock).\n\n## Ideias principais\n* **Definição:** visão geral de "${topic}"${context ? ` no contexto de ${context}` : ''}.\n* **Importância:** por que o tema aparece com frequência nos estudos.\n* **Aplicações:** exemplos práticos para fixar o conteúdo.\n\n## Fontes\n* Khan Academy\n* MIT OpenCourseWare\n\n## Para aprofundar\n1. Conceitos fundamentais de ${topic}\n2. Exercícios resolvidos\n3. Aplicações em projetos reais`
+      : `# Summary: ${topic}\n\n${note}> ⚠️ **Demo** response (AI in mock mode).\n\n## Key ideas\n* **Definition:** overview of "${topic}"${context ? ` in the context of ${context}` : ''}.\n* **Importance:** why the topic shows up so often in your studies.\n* **Applications:** practical examples to reinforce the content.\n\n## Sources\n* Khan Academy\n* MIT OpenCourseWare\n\n## To Deepen Your Knowledge\n1. Core concepts of ${topic}\n2. Worked exercises\n3. Applications in real projects`;
   },
+
+  async chat({ message, language, materials }) {
+    const pt = isPt(language);
+    const titles = materialTitles(materials);
+    const base = pt
+      ? `Resposta de demonstração (IA em modo mock) para: "${message}".`
+      : `Demo answer (AI in mock mode) for: "${message}".`;
+    const note = titles.length
+      ? (pt ? `\n\n📎 Consultei os materiais do professor: ${titles.join(', ')}.` : `\n\n📎 I checked the teacher's materials: ${titles.join(', ')}.`)
+      : '';
+    return base + note;
+  },
+
   ...mockQuizzer,
 };
 

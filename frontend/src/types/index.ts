@@ -38,4 +38,6 @@ export interface Notebook {
   turma?: string;
   /** true quando o caderno é de um professor e o usuário só pode ler */
   readOnly?: boolean;
+  turmaName?: string;
+  ownerName?: string;
 }
