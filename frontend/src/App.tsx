@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 // Provedores de Contexto
 import { AccessibilityProvider, useAccessibility } from './context/AccessibilityContext';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Componentes Globais e Widgets
@@ -31,6 +32,7 @@ import LessonPage from './pages/LessonPage';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import NotFound from './pages/NotFound';
+import DesignPreview from './pages/DesignPreview';
 
 const AppContent: React.FC = () => {
   const { isSignLanguageEnabled, isAudioEnabled } = useAccessibility();
@@ -62,6 +64,7 @@ const AppContent: React.FC = () => {
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/terms-of-use" element={<TermsOfUse />} />
+            {import.meta.env.DEV && <Route path="/design" element={<DesignPreview />} />}
 
             {/* Rotas que exigem login */}
             <Route element={<ProtectedRoute />}>
@@ -89,7 +92,9 @@ function App() {
   return (
     <AccessibilityProvider>
       <AuthProvider>
-        <AppContent />
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
       </AuthProvider>
     </AccessibilityProvider>
   );
