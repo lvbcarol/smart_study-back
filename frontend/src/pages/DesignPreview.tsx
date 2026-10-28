@@ -140,9 +140,12 @@ const DesignPreview: React.FC = () => {
             <Swatch name="Sucesso" className="bg-success" />
             <Swatch name="Aviso" className="bg-warning" />
             <Swatch name="Erro" className="bg-destructive" />
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Swatch key={i} name={`Gráfico ${i}`} className={`bg-chart-${i}`} />
-            ))}
+            {/* classes explícitas: o Tailwind não gera nomes montados dinamicamente */}
+            <Swatch name="Gráfico 1" className="bg-chart-1" />
+            <Swatch name="Gráfico 2" className="bg-chart-2" />
+            <Swatch name="Gráfico 3" className="bg-chart-3" />
+            <Swatch name="Gráfico 4" className="bg-chart-4" />
+            <Swatch name="Gráfico 5" className="bg-chart-5" />
           </div>
           <p className="text-sm text-muted-foreground">
             Todas as combinações texto/fundo das 6 paletas nos 2 modos passam no contraste WCAG AA (<code>npm run check:contrast</code>).
