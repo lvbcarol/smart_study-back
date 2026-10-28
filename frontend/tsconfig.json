@@ -4,16 +4,15 @@
     "allowJs": true, // <-- Garanta que esta linha exista
     
     // --- Configurações que você já tinha ---
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
 
     // --- Configurações essenciais para React + TypeScript ---
     "jsx": "react-jsx", // A mais importante: diz para o TS entender e processar JSX
     "target": "ES6", // Define para qual versão do JavaScript o código será compilado
     "module": "esnext", // Usa o sistema de módulos mais moderno
-    "moduleResolution": "node", // Como o TS procura os módulos
+    "moduleResolution": "bundler", // Como o TS procura os módulos (igual ao Vite)
     "lib": ["dom", "dom.iterable", "esnext"], // Bibliotecas padrão disponíveis
     "esModuleInterop": true, // Permite melhor compatibilidade entre CommonJS e ES Modules
     "allowSyntheticDefaultImports": true, // Permite importações padrão de módulos sem um 'default' export
