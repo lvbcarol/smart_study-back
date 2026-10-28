@@ -5,48 +5,15 @@ import { ChevronRight, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
-import { AnswerValue, AttemptDetail, PublicQuestion, QuestionResult } from '../types/quiz';
+import { AttemptDetail } from '../types/quiz';
 import ActiveQuiz from '../components/ActiveQuiz';
 import WeaknessPanel from '../components/quiz/WeaknessPanel';
+import { AttemptReview } from '../components/quiz/AttemptReview';
 import { Button } from '../components/ds/Button';
+import { scoreVariant } from '../lib/format';
 import { Badge, EmptyState, Skeleton } from '../components/ds/Misc';
 import { BackLink, PageHeader } from '../components/ds/PageParts';
 
-const scoreVariant = (score: number) => (score >= 70 ? 'success' : score >= 50 ? 'warning' : 'destructive');
-
-/** Uma pergunta da tentativa, com a resposta do aluno e o resultado. */
-const ReviewItem: React.FC<{ index: number; question: PublicQuestion; answer: AnswerValue; result?: QuestionResult }> = ({ index, question, answer, result }) => {
-  const { t } = useTranslation();
-  const answerText =
-    answer === null || answer === undefined ? t('quizzPage.noAnswer')
-    : question.type === 'multiple_choice' ? (question.options?.[answer as number] ?? '')
-    : Array.isArray(answer) ? answer.map((a) => a || '—').join(' · ')
-    : String(answer);
-  const pct = result ? Math.round(result.score * 100) : 0;
-  const verdict = result?.correct ? 'success' : result && result.score > 0 ? 'warning' : 'destructive';
-  const verdictText = result?.correct ? t('quizzPage.verdictCorrect') : result && result.score > 0 ? t('quizzPage.verdictPartial', { pct }) : t('quizzPage.verdictWrong');
-
-  return (
-    <li className="space-y-3 rounded-2xl border border-border bg-card p-5 shadow-soft">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-display font-bold">{index + 1}.</span>
-        <Badge variant="primary">{t(`quizzPage.types.${question.type}`)}</Badge>
-        {question.reinforcement && <Badge variant="warning">{t('quizzPage.reinforcement')}</Badge>}
-        <Badge variant={verdict} className="ml-auto">{verdictText}</Badge>
-      </div>
-      {question.scenario && <p className="rounded-xl bg-secondary p-3 text-sm text-muted-foreground">{question.scenario}</p>}
-      <p className="font-medium">{question.question}</p>
-      <dl className="space-y-2 text-sm">
-        <div><dt className="text-muted-foreground">{t('quizzPage.yourAnswer')}</dt><dd className="whitespace-pre-wrap font-medium">{answerText}</dd></div>
-        {result && !result.correct && (
-          <div><dt className="text-muted-foreground">{t('quizzPage.expected')}</dt><dd className="font-medium">{result.correctAnswer}</dd></div>
-        )}
-        {result?.feedback && <div><dt className="text-muted-foreground">{t('quizzPage.feedback')}</dt><dd>{result.feedback}</dd></div>}
-        {result?.explanation && <div><dt className="text-muted-foreground">{t('chat.explanationLabel')}</dt><dd>{result.explanation}</dd></div>}
-      </dl>
-    </li>
-  );
-};
 
 const QuizzPage: React.FC = () => {
   const { lessonId } = useParams<{ lessonId: string }>();
@@ -84,11 +51,7 @@ const QuizzPage: React.FC = () => {
           <h1 className="text-2xl font-extrabold">{t('quizzPage.reviewingAttempt', { number: selectedAttempt.attemptNumber, score: selectedAttempt.score })}</h1>
           <Button variant="outline" onClick={() => setView('list')}>{t('quizzPage.backToAttempts')}</Button>
         </div>
-        <ol className="space-y-4">
-          {selectedAttempt.questions.map((q, i) => (
-            <ReviewItem key={q.id ?? i} index={i} question={q} answer={selectedAttempt.answers[i]} result={selectedAttempt.results[i]} />
-          ))}
-        </ol>
+        <AttemptReview questions={selectedAttempt.questions} answers={selectedAttempt.answers} results={selectedAttempt.results} />
       </div>
     );
   }

@@ -25,10 +25,12 @@ const AppNavbar: React.FC = () => {
           { to: '/home', label: t('navbar.teacherHome') },
           { to: '/classes', label: t('navbar.teacherClasses') },
           { to: '/my-notebooks', label: t('navbar.teacherNotebooks') },
+          { to: '/tasks', label: t('navbar.tasks') },
         ]
       : [
           { to: '/home', label: t('navbar.home') },
           { to: '/my-notebooks', label: t('navbar.myNotebooks') },
+          { to: '/tasks', label: t('navbar.tasks') },
           { to: '/progress', label: t('navbar.progress') },
         ]
     : [{ to: '/about-us', label: t('navbar.aboutUs') }];

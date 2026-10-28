@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth.middleware';
 import QuizAttempt from '../models/QuizAttempt';
 import QuizDraft from '../models/QuizDraft';
+import Task from '../models/Task';
 import { AuthRequest } from '../types';
 import { findLessonAccess } from '../services/access';
 import { getAIService } from '../services/ai.service';
@@ -109,6 +110,8 @@ router.post('/drafts/:id/answer', async (req: AuthRequest, res: Response) => {
     );
     if (!saved) return res.status(409).json({ error: 'Question already answered.' });
 
+    // em tarefas o aluno só vê o resultado depois de enviar tudo (e o servidor nunca o devolve antes)
+    if (draft.task) return res.json({ saved: true });
     res.json({ result });
   } catch (error) {
     console.error('QUIZ ANSWER FAILED:', error);
@@ -128,25 +131,37 @@ router.post('/drafts/:id/finish', async (req: AuthRequest, res: Response) => {
     const questions = draft.questions as Question[];
     const results = draft.results as GradeResult[];
     const score = Math.round((results.reduce((sum, r) => sum + r.score, 0) / results.length) * 100);
-    const attemptNumber = (await QuizAttempt.countDocuments({ user: req.userId, lesson: draft.lesson })) + 1;
+    const task = draft.task ? await Task.findById(draft.task).lean() : null;
+    const source = task ? 'task' : 'practice';
+    // a numeração conta só os treinos; tarefas têm envio único
+    const attemptNumber = task ? 1 : (await QuizAttempt.countDocuments({ user: req.userId, lesson: draft.lesson, source: 'practice' })) + 1;
 
-    const attempt = await QuizAttempt.create({
-      user: req.userId,
-      notebook: draft.notebook,
-      lesson: draft.lesson,
-      source: 'practice',
-      attemptNumber,
-      score,
-      questions,
-      answers: draft.answers,
-      results,
-    });
+    let attempt;
+    try {
+      attempt = await QuizAttempt.create({
+        user: req.userId,
+        notebook: draft.notebook,
+        lesson: draft.lesson,
+        task: task?._id,
+        source,
+        late: task?.dueDate ? new Date() > task.dueDate : undefined,
+        attemptNumber,
+        score,
+        questions,
+        answers: draft.answers,
+        results,
+      });
+    } catch (error: any) {
+      if (error?.code === 11000) return res.status(409).json({ error: 'Task already submitted.' });
+      throw error;
+    }
 
     await recordResults(req.userId as string, draft.lesson, questions, results);
     await draft.deleteOne();
 
     res.status(201).json({
       attemptId: attempt._id,
+      source,
       attemptNumber,
       score,
       correctCount: results.filter((r) => r.correct).length,

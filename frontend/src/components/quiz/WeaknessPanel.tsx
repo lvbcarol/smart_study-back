@@ -9,17 +9,9 @@ import { cn } from '@/lib/utils';
 
 const tone = (rate: number) => (rate >= 60 ? 'bg-destructive' : rate >= 40 ? 'bg-warning' : 'bg-success');
 
-const WeaknessPanel: React.FC<{ lessonId?: string }> = ({ lessonId }) => {
+/** Parte visual: usada pelo aluno (dados próprios) e pelo professor (dados do aluno). */
+export const WeaknessView: React.FC<{ data: WeaknessData }> = ({ data }) => {
   const { t } = useTranslation();
-  const [data, setData] = useState<WeaknessData | null>(null);
-
-  useEffect(() => {
-    api.get<WeaknessData>('/quizz/weakness', { params: lessonId ? { lessonId } : {} })
-      .then((r) => setData(r.data))
-      .catch(() => setData({ types: [], topics: [] }));
-  }, [lessonId]);
-
-  if (data === null) return <Skeleton className="h-40" />;
   if (data.types.length === 0) {
     return <EmptyState icon={<Target className="h-6 w-6" />} title={t('weakness.emptyTitle')} description={t('weakness.emptyDesc')} />;
   }
@@ -64,6 +56,19 @@ const WeaknessPanel: React.FC<{ lessonId?: string }> = ({ lessonId }) => {
       </section>
     </div>
   );
+};
+
+const WeaknessPanel: React.FC<{ lessonId?: string }> = ({ lessonId }) => {
+  const [data, setData] = useState<WeaknessData | null>(null);
+
+  useEffect(() => {
+    api.get<WeaknessData>('/quizz/weakness', { params: lessonId ? { lessonId } : {} })
+      .then((r) => setData(r.data))
+      .catch(() => setData({ types: [], topics: [] }));
+  }, [lessonId]);
+
+  if (data === null) return <Skeleton className="h-40" />;
+  return <WeaknessView data={data} />;
 };
 
 export default WeaknessPanel;

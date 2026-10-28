@@ -31,6 +31,11 @@ import ResetPassword from './pages/ResetPassword';
 import NotebookPage from './pages/NotebookPage';
 import TurmasPage from './pages/TurmasPage';
 import TurmaDetailPage from './pages/TurmaDetailPage';
+import TasksPage from './pages/TasksPage';
+import TaskPage from './pages/TaskPage';
+import TaskEditorPage from './pages/TaskEditorPage';
+import StudentResultsPage from './pages/StudentResultsPage';
+import AttemptViewPage from './pages/AttemptViewPage';
 import NotFound from './pages/NotFound';
 import DesignPreview from './pages/DesignPreview';
 
@@ -86,12 +91,18 @@ const AppContent: React.FC = () => {
             <Route path="/summary/:lessonId" element={<SummaryPage />} />
             <Route path="/quizz/:lessonId" element={<QuizzPage />} />
             <Route path="/notebook/:notebookId" element={<NotebookPage />} />
+            <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/tasks/:taskId" element={<TaskPage />} />
           </Route>
 
           {/* Só professores */}
           <Route element={<ProtectedRoute roles={['teacher']} />}>
             <Route path="/classes" element={<TurmasPage />} />
             <Route path="/classes/:turmaId" element={<TurmaDetailPage />} />
+            <Route path="/classes/:turmaId/students/:studentId" element={<StudentResultsPage />} />
+            <Route path="/tasks/new" element={<TaskEditorPage />} />
+            <Route path="/tasks/:taskId/edit" element={<TaskEditorPage />} />
+            <Route path="/results/attempts/:attemptId" element={<AttemptViewPage />} />
           </Route>
         </Route>
 

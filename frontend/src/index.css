@@ -7,6 +7,11 @@
   :root {
     --radius: 1rem;
   }
+  /* A barra do topo e a barra de ações fixas não podem cobrir o elemento focado (WCAG 2.4.11) */
+  html {
+    scroll-padding-top: 5rem;
+    scroll-padding-bottom: 6rem;
+  }
   * {
     @apply border-border;
   }

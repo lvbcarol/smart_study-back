@@ -5,6 +5,7 @@ import Turma from './models/Turma';
 import Notebook from './models/Notebook';
 import QuizAttempt from './models/QuizAttempt';
 import Material from './models/Material';
+import Task from './models/Task';
 import { GradeResult } from './quiz/grading';
 import { Question } from './quiz/questions';
 import { recordResults } from './quiz/weakness.service';
@@ -79,6 +80,19 @@ export async function seedDemo(): Promise<void> {
   await attempt(bruno, derivadas, 1, 50, 'Derivadas');
   await attempt(bruno, derivadas, 2, 75, 'Derivadas');
   await attempt(carla, integrais, 1, 50, 'Integrais');
+
+  // tarefa publicada: a Ana já entregou, o Bruno e a Carla ainda não
+  const taskQuestions = makeQuestions('Derivadas');
+  const task = await Task.create({
+    turma: turma._id, notebook: matematica._id, lesson: derivadas._id, title: 'Lista de Derivadas', description: 'Resolva com calma e envie até o prazo.',
+    questions: taskQuestions, dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), published: true, createdBy: teacher._id,
+  });
+  const taskResults = makeResults(taskQuestions, 75);
+  await QuizAttempt.create({
+    user: ana._id, notebook: matematica._id, lesson: derivadas._id, task: task._id, source: 'task', late: false,
+    attemptNumber: 1, score: 75, questions: taskQuestions, answers: [0, ['conceito'], 'texto', '42'], results: taskResults,
+  });
+  await recordResults(ana._id as any, derivadas._id as any, taskQuestions, taskResults);
 
   console.log(`🌱 Dados de demonstração criados (senha de todos: ${DEMO_PASSWORD})`);
   console.log('   professor@demo.com · aluno1@demo.com · aluno2@demo.com · aluno3@demo.com');

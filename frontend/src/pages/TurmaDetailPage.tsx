@@ -11,6 +11,7 @@ import { Field } from '../components/ds/Field';
 import { Modal } from '../components/ds/Modal';
 import { Badge, EmptyState, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ds/Misc';
 import { BackLink } from '../components/ds/PageParts';
+import ResultsTab from '../components/ResultsTab';
 
 const statusVariant = (status: EnrollResult['status']) =>
   status === 'enrolled' ? 'success' : status === 'pending' || status === 'already' || status === 'already_pending' ? 'primary' : 'destructive';
@@ -141,6 +142,7 @@ const TurmaDetailPage: React.FC = () => {
         <TabsList aria-label={t('classes.tabsLabel')}>
           <TabsTrigger value="students">{t('classes.tabStudents')} ({turma.students.length})</TabsTrigger>
           <TabsTrigger value="subjects">{t('classes.tabSubjects')} ({turma.notebooks.length})</TabsTrigger>
+          <TabsTrigger value="results">{t('results.tab')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="students" className="space-y-8">
@@ -235,6 +237,9 @@ const TurmaDetailPage: React.FC = () => {
               ))}
             </ul>
           )}
+        </TabsContent>
+        <TabsContent value="results">
+          <ResultsTab turmaId={turma._id} />
         </TabsContent>
       </Tabs>
 

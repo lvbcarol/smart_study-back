@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { AnswerValue, DraftResponse, PublicQuestion, QuestionResult } from '../types/quiz';
+import { TaskStart } from '../types/tasks';
 import ChatMessage from './ChatMessage';
 import QuizzOptions from './QuizzOptions';
 import AnswerForm from './quiz/AnswerForm';
@@ -23,31 +24,41 @@ type Phase = 'topic' | 'generating' | 'answering' | 'grading' | 'feedback' | 'fi
 
 interface ActiveQuizProps {
   lessonId: string;
-  onFinish: () => void;
+  onFinish: (attemptId?: string) => void;
+  /** Modo tarefa: perguntas fixas do professor, sem correção na hora; retoma de onde o aluno parou */
+  task?: TaskStart;
 }
 
 const escapeMd = (s: string) => s.replace(/_/g, '\\_');
 
-const ActiveQuiz: React.FC<ActiveQuizProps> = ({ lessonId, onFinish }) => {
+const ActiveQuiz: React.FC<ActiveQuizProps> = ({ lessonId, onFinish, task }) => {
   const { t, i18n } = useTranslation();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [topicInput, setTopicInput] = useState('');
-  const [phase, setPhase] = useState<Phase>('topic');
-  const [draftId, setDraftId] = useState('');
-  const [questions, setQuestions] = useState<PublicQuestion[]>([]);
-  const [answers, setAnswers] = useState<AnswerValue[]>([]);
-  const [results, setResults] = useState<(QuestionResult | null)[]>([]);
-  const [current, setCurrent] = useState(0);
+  const [phase, setPhase] = useState<Phase>(task ? 'answering' : 'topic');
+  const [draftId, setDraftId] = useState(task?.draftId ?? '');
+  const [questions, setQuestions] = useState<PublicQuestion[]>(task?.questions ?? []);
+  const [answers, setAnswers] = useState<AnswerValue[]>(task ? task.questions.map(() => null) : []);
+  const [results, setResults] = useState<(QuestionResult | null)[]>(task ? task.questions.map(() => null) : []);
+  const [current, setCurrent] = useState(task?.answeredCount ?? 0);
+  const [attemptId, setAttemptId] = useState<string | undefined>();
   const initialized = useRef(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   const push = (...msgs: ChatMsg[]) => setMessages((prev) => [...prev, ...msgs]);
 
   useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true;
+    if (initialized.current) return;
+    initialized.current = true;
+    if (!task) {
       push({ sender: 'bot', text: t('chat.quizzInitial') });
+      return;
     }
+    const intro: ChatMsg[] = [{ sender: 'bot', text: t('tasks.taskIntro', { title: task.title }) }];
+    if (task.answeredCount > 0) intro.push({ sender: 'bot', text: t('tasks.resumeNote', { count: task.answeredCount, total: task.questions.length }) });
+    intro.push({ sender: 'bot', text: questionText(task.questions[task.answeredCount], task.answeredCount, task.questions.length), qIndex: task.answeredCount });
+    push(...intro);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t]);
 
   useEffect(() => {
@@ -113,10 +124,14 @@ const ActiveQuiz: React.FC<ActiveQuizProps> = ({ lessonId, onFinish }) => {
       push({ sender: 'user', text: answerText(q, answer) });
     }
     try {
-      const { data } = await api.post<{ result: QuestionResult }>(`/quizz/drafts/${draftId}/answer`, { index: current, answer });
+      const { data } = await api.post<{ result?: QuestionResult; saved?: boolean }>(`/quizz/drafts/${draftId}/answer`, { index: current, answer });
       setAnswers((prev) => prev.map((a, i) => (i === current ? (answer as AnswerValue) : a)));
-      setResults((prev) => prev.map((r, i) => (i === current ? data.result : r)));
-      push({ sender: 'bot', text: feedbackText(data.result) });
+      // em tarefas o servidor não devolve o resultado: ele só aparece depois do envio
+      if (data.result) {
+        const result = data.result;
+        setResults((prev) => prev.map((r, i) => (i === current ? result : r)));
+        push({ sender: 'bot', text: feedbackText(result) });
+      }
       setPhase('feedback');
     } catch {
       toast.error(t('quizzPage.answerError'));
@@ -135,8 +150,9 @@ const ActiveQuiz: React.FC<ActiveQuizProps> = ({ lessonId, onFinish }) => {
     }
     setPhase('finishing');
     try {
-      const { data } = await api.post<{ score: number; correctCount: number; total: number }>(`/quizz/drafts/${draftId}/finish`);
-      push({ sender: 'bot', text: t('chat.quizzFinished', { correct: data.correctCount, total: data.total, score: data.score }) });
+      const { data } = await api.post<{ attemptId: string; score: number; correctCount: number; total: number }>(`/quizz/drafts/${draftId}/finish`);
+      setAttemptId(data.attemptId);
+      push({ sender: 'bot', text: task ? t('tasks.sent', { score: data.score }) : t('chat.quizzFinished', { correct: data.correctCount, total: data.total, score: data.score }) });
       setPhase('done');
     } catch {
       toast.error(t('quizzPage.saveError'));
@@ -200,13 +216,13 @@ const ActiveQuiz: React.FC<ActiveQuizProps> = ({ lessonId, onFinish }) => {
         {phase === 'feedback' && (
           <div className="flex justify-center">
             <Button size="lg" onClick={next}>
-              {isLast ? <><Flag className="h-5 w-5" aria-hidden="true" /> {t('quizzPage.seeResult')}</> : <>{t('quizzPage.next')} <ArrowRight className="h-5 w-5" aria-hidden="true" /></>}
+              {isLast ? <><Flag className="h-5 w-5" aria-hidden="true" /> {task ? t('tasks.sendTask') : t('quizzPage.seeResult')}</> : <>{t('quizzPage.next')} <ArrowRight className="h-5 w-5" aria-hidden="true" /></>}
             </Button>
           </div>
         )}
         {phase === 'done' && (
           <div className="flex justify-center">
-            <Button size="lg" onClick={onFinish}>{t('quizzPage.viewAttempts')}</Button>
+            <Button size="lg" onClick={() => onFinish(attemptId)}>{task ? t('tasks.viewResult') : t('quizzPage.viewAttempts')}</Button>
           </div>
         )}
       </div>

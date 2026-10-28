@@ -9,6 +9,8 @@ export interface IQuizAttempt extends Document {
   lesson: Types.ObjectId;
   task?: Types.ObjectId;
   source: 'practice' | 'task';
+  /** só em tarefas: enviada depois do prazo */
+  late?: boolean;
   attemptNumber: number;
   score: number; // 0..100
   questions: any[]; // perguntas congeladas no momento da tentativa
@@ -26,6 +28,7 @@ const QuizAttemptSchema: Schema = new Schema<IQuizAttempt>({
   lesson: { type: Schema.Types.ObjectId, required: true },
   task: { type: Schema.Types.ObjectId, ref: 'Task' },
   source: { type: String, enum: ['practice', 'task'], default: 'practice' },
+  late: { type: Boolean },
   attemptNumber: { type: Number, required: true },
   score: { type: Number, required: true, min: 0, max: 100 },
   questions: mixedArray,
@@ -35,7 +38,8 @@ const QuizAttemptSchema: Schema = new Schema<IQuizAttempt>({
 
 QuizAttemptSchema.index({ user: 1, createdAt: 1 });
 QuizAttemptSchema.index({ lesson: 1, user: 1 });
-QuizAttemptSchema.index({ task: 1, user: 1 });
+// cada aluno envia a tarefa uma única vez
+QuizAttemptSchema.index({ task: 1, user: 1 }, { unique: true, partialFilterExpression: { task: { $type: 'objectId' } } });
 
 const QuizAttempt: Model<IQuizAttempt> = mongoose.models.QuizAttempt || mongoose.model<IQuizAttempt>('QuizAttempt', QuizAttemptSchema);
 

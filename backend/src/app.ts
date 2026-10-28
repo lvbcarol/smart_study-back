@@ -10,6 +10,8 @@ import quizzRoutes from './routes/quizz.routes';
 import progressRoutes from './routes/progress.routes';
 import turmaRoutes from './routes/turma.routes';
 import materialRoutes from './routes/material.routes';
+import tasksRoutes from './routes/tasks.routes';
+import resultsRoutes from './routes/results.routes';
 
 export function createApp() {
   const app = express();
@@ -43,6 +45,8 @@ export function createApp() {
   app.use('/api/lessons', lessonRoutes);
   app.use('/api/ai', aiLimiter, aiRoutes);
   app.use('/api/quizz', aiLimiter, quizzRoutes);
+  app.use('/api/tasks', tasksRoutes);
+  app.use('/api/results', resultsRoutes);
   app.use('/api/progress', progressRoutes);
 
   return app;
