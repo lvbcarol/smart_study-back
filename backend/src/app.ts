@@ -12,6 +12,7 @@ import turmaRoutes from './routes/turma.routes';
 import materialRoutes from './routes/material.routes';
 import tasksRoutes from './routes/tasks.routes';
 import resultsRoutes from './routes/results.routes';
+import flashcardsRoutes from './routes/flashcards.routes';
 
 export function createApp() {
   const app = express();
@@ -47,6 +48,7 @@ export function createApp() {
   app.use('/api/quizz', aiLimiter, quizzRoutes);
   app.use('/api/tasks', tasksRoutes);
   app.use('/api/results', resultsRoutes);
+  app.use('/api/flashcards', flashcardsRoutes);
   app.use('/api/progress', progressRoutes);
 
   return app;

@@ -22,8 +22,15 @@ export interface ChatInput extends AIInput {
   message: string;
 }
 
+export interface FlashcardDraft {
+  front: string;
+  back: string;
+  topic: string;
+}
+
 export interface AIService {
   summarize(input: AIInput): Promise<string>;
+  generateFlashcards(input: AIInput & { count: number }): Promise<FlashcardDraft[]>;
   chat(input: ChatInput): Promise<string>;
   generateQuizz(input: QuizGenInput): Promise<Question[]>;
   gradeAnswer(input: { question: Question; answer: string; language?: string }): Promise<{ score: number; feedback: string }>;
@@ -56,6 +63,22 @@ const mockService: AIService = {
       ? (pt ? `\n\n📎 Consultei os materiais do professor: ${titles.join(', ')}.` : `\n\n📎 I checked the teacher's materials: ${titles.join(', ')}.`)
       : '';
     return base + note;
+  },
+
+  async generateFlashcards({ topic, count, language }) {
+    const pt = isPt(language);
+    const aspects = pt
+      ? ['definição', 'exemplo', 'aplicação', 'erro comum', 'propriedade', 'por que importa', 'como começar', 'resumo']
+      : ['definition', 'example', 'application', 'common mistake', 'property', 'why it matters', 'how to start', 'summary'];
+    return Array.from({ length: count }, (_, i) => {
+      const aspect = aspects[i % aspects.length];
+      const n = Math.floor(i / aspects.length) + 1;
+      return {
+        front: pt ? `[Mock] Qual é a ${aspect} de ${topic}? (${n})` : `[Mock] What is the ${aspect} of ${topic}? (${n})`,
+        back: pt ? `Resposta de demonstração sobre ${aspect} de ${topic}.` : `Demo answer about the ${aspect} of ${topic}.`,
+        topic: `${topic}: ${aspect}`,
+      };
+    });
   },
 
   ...mockQuizzer,

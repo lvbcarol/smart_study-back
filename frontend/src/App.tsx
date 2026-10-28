@@ -36,6 +36,8 @@ import TaskPage from './pages/TaskPage';
 import TaskEditorPage from './pages/TaskEditorPage';
 import StudentResultsPage from './pages/StudentResultsPage';
 import AttemptViewPage from './pages/AttemptViewPage';
+import FlashcardsPage from './pages/FlashcardsPage';
+import FlashcardStudyPage from './pages/FlashcardStudyPage';
 import NotFound from './pages/NotFound';
 import DesignPreview from './pages/DesignPreview';
 
@@ -91,6 +93,8 @@ const AppContent: React.FC = () => {
             <Route path="/summary/:lessonId" element={<SummaryPage />} />
             <Route path="/quizz/:lessonId" element={<QuizzPage />} />
             <Route path="/notebook/:notebookId" element={<NotebookPage />} />
+            <Route path="/flashcards" element={<FlashcardsPage />} />
+            <Route path="/flashcards/:deckId" element={<FlashcardStudyPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/tasks/:taskId" element={<TaskPage />} />
           </Route>

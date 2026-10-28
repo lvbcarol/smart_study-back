@@ -19,6 +19,7 @@ const Home: React.FC = () => {
   const [notebooks, setNotebooks] = useState<Notebook[] | null>(null);
   const [turmas, setTurmas] = useState<TurmaSummary[] | null>(null);
   const [tasks, setTasks] = useState<StudentTaskRow[] | null>(null);
+  const [flash, setFlash] = useState<{ due: number } | null>(null);
 
   useEffect(() => {
     api.get<Notebook[]>('/notebooks').then((r) => setNotebooks(r.data)).catch(() => setNotebooks([]));
@@ -26,7 +27,10 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     if (isTeacher) api.get<TurmaSummary[]>('/turmas').then((r) => setTurmas(r.data)).catch(() => setTurmas([]));
-    else api.get<StudentTaskRow[]>('/tasks/mine').then((r) => setTasks(r.data)).catch(() => setTasks([]));
+    else {
+      api.get<StudentTaskRow[]>('/tasks/mine').then((r) => setTasks(r.data)).catch(() => setTasks([]));
+      api.get<{ due: number }>('/flashcards/summary').then((r) => setFlash(r.data)).catch(() => setFlash({ due: 0 }));
+    }
   }, [isTeacher]);
 
   const lessons = notebooks?.reduce((sum, n) => sum + n.lessons.length, 0) ?? 0;
@@ -45,6 +49,7 @@ const Home: React.FC = () => {
         { label: t('home.statLessons'), value: lessons, loading: notebooks === null },
         { label: t('home.statAverage'), value: average, loading: notebooks === null },
         { label: t('home.statPendingTasks'), value: tasks?.filter((x) => x.status !== 'submitted').length ?? 0, loading: tasks === null },
+        { label: t('home.statFlashcards'), value: flash?.due ?? 0, loading: flash === null },
       ];
 
   const soon = t('home.soon');
@@ -67,7 +72,7 @@ const Home: React.FC = () => {
         <div aria-hidden="true" className="absolute -bottom-24 right-24 h-64 w-64 rounded-full bg-primary/10" />
       </section>
 
-      <section aria-label="Stats" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section aria-label="Stats" className={isTeacher ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4' : 'grid gap-4 sm:grid-cols-2 lg:grid-cols-5'}>
         {stats.map((s) => (s.loading ? <Skeleton key={s.label} className="h-24" /> : <StatCard key={s.label} label={s.label} value={s.value} />))}
       </section>
 
@@ -87,7 +92,7 @@ const Home: React.FC = () => {
               <FeatureTile to="/my-notebooks" icon={<ListChecks className={icon} />} title={t('home.fQuiz')} description={t('home.fQuizDesc')} />
               <FeatureTile to="/tasks" icon={<ClipboardCheck className={icon} />} title={t('home.fTasksStudent')} description={t('home.fTasksStudentDesc')} />
               <FeatureTile to="/progress" icon={<BarChart3 className={icon} />} title={t('home.fProgress')} description={t('home.fProgressDesc')} />
-              <FeatureTile icon={<Layers className={icon} />} title={t('home.fFlashcards')} description={t('home.fFlashcardsDesc')} soonLabel={soon} />
+              <FeatureTile to="/flashcards" icon={<Layers className={icon} />} title={t('home.fFlashcards')} description={t('home.fFlashcardsDesc')} />
             </>
           )}
         </div>

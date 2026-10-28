@@ -2,7 +2,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 import { normalizeQuestion, Question, questionSchema } from '../quiz/questions';
-import type { AIService, QuizGenInput } from './ai.service';
+import type { AIService, FlashcardDraft, QuizGenInput } from './ai.service';
 
 const isPt = (language?: string) => !!language && language.toLowerCase().startsWith('pt');
 
@@ -117,6 +117,28 @@ Student: ${message}
 StudyBot:`;
       const result = await getModel().generateContent(prompt);
       return result.response.text();
+    },
+
+    async generateFlashcards({ topic, context, language, count, materials }) {
+      const lang = isPt(language) ? 'Brazilian Portuguese' : 'English';
+      const prompt = `
+You are an expert tutor creating spaced-repetition flashcards for a university student. Write in ${lang}.
+Topic: "${topic}"
+Course context: "${context || 'General'}"
+${materials ? `Base the cards ONLY on this teacher material:\n"""\n${materials}\n"""\n` : ''}
+Create exactly ${count} flashcards. Each card tests ONE idea: "front" is a short question or prompt (max 200 characters), "back" is the concise answer (max 400 characters, no filler). Vary the cards: definitions, examples, formulas, cause and effect, common mistakes. Do not repeat ideas.
+Respond with JSON only: {"cards": [{"front": string, "back": string, "topic": string (2-4 words)}]}`;
+      const text = (await getModel(true).generateContent(prompt)).response.text();
+      const parsed = z.object({
+        cards: z.array(z.object({
+          front: z.string().trim().min(3).max(400),
+          back: z.string().trim().min(1).max(1000),
+          topic: z.string().trim().max(80).default(topic),
+        })),
+      }).parse(extractJson(text));
+      const cards: FlashcardDraft[] = parsed.cards.slice(0, count);
+      if (cards.length === 0) throw new Error('AI returned no flashcards');
+      return cards;
     },
 
     async generateQuizz(input) {

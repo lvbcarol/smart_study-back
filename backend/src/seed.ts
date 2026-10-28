@@ -6,6 +6,7 @@ import Notebook from './models/Notebook';
 import QuizAttempt from './models/QuizAttempt';
 import Material from './models/Material';
 import Task from './models/Task';
+import FlashcardDeck from './models/FlashcardDeck';
 import { GradeResult } from './quiz/grading';
 import { Question } from './quiz/questions';
 import { recordResults } from './quiz/weakness.service';
@@ -93,6 +94,23 @@ export async function seedDemo(): Promise<void> {
     attemptNumber: 1, score: 75, questions: taskQuestions, answers: [0, ['conceito'], 'texto', '42'], results: taskResults,
   });
   await recordResults(ana._id as any, derivadas._id as any, taskQuestions, taskResults);
+
+  // baralho da Ana: 3 cartões vencem agora (1 revisão atrasada + 2 novos), 3 só nos próximos dias
+  const day = 24 * 60 * 60 * 1000;
+  const card = (front: string, back: string, box: number, dueInMs: number) => ({
+    front, back, topic: 'Derivadas', box, dueAt: new Date(Date.now() + dueInMs), lapses: 0, reps: box > 0 ? box : 0,
+  });
+  await FlashcardDeck.create({
+    user: ana._id, notebook: matematica._id, lesson: derivadas._id, title: 'Derivadas',
+    cards: [
+      card('O que é uma derivada?', 'A taxa de variação instantânea de uma função em um ponto.', 2, -2 * day),
+      card('Qual é a derivada de x²?', '2x (regra da potência).', 0, 0),
+      card('Enuncie a regra do produto.', "(f·g)' = f'·g + f·g'.", 0, 0),
+      card('Qual é a derivada de uma constante?', 'Zero.', 3, 2 * day),
+      card('O que diz a regra da cadeia?', "A derivada de f(g(x)) é f'(g(x))·g'(x).", 4, 5 * day),
+      card('Qual é a derivada de sen(x)?', 'cos(x).', 5, 15 * day),
+    ],
+  });
 
   console.log(`🌱 Dados de demonstração criados (senha de todos: ${DEMO_PASSWORD})`);
   console.log('   professor@demo.com · aluno1@demo.com · aluno2@demo.com · aluno3@demo.com');
