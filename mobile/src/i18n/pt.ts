@@ -1,0 +1,76 @@
+const pt = {
+  common: { loading: 'Carregando...', save: 'Salvar', cancel: 'Cancelar', back: 'Voltar', retry: 'Tentar de novo', error: 'Algo deu errado. Tente de novo.', create: 'Criar' },
+  auth: {
+    tagline: 'Estude com calma. Aprenda com clareza.',
+    loginTitle: 'Que bom te ver de novo', loginSubtitle: 'Entre para continuar seus estudos.',
+    email: 'E-mail', emailPlaceholder: 'voce@email.com', password: 'Senha', passwordPlaceholder: 'Sua senha',
+    signIn: 'Entrar', signingIn: 'Entrando...', noAccount: 'Ainda não tem conta?', signUp: 'Criar conta',
+    registerTitle: 'Crie sua conta de aluno', registerSubtitle: 'Leva menos de um minuto. Professores se cadastram pelo site.',
+    name: 'Nome completo', passwordHint: 'Mínimo de 6 caracteres.', createAccount: 'Criar conta', creating: 'Criando...',
+    haveAccount: 'Já tem uma conta?', logIn: 'Entrar', invalid: 'E-mail ou senha inválidos.',
+    registerError: 'Não foi possível criar a conta. Tente novamente.', passwordShort: 'A senha deve ter ao menos 6 caracteres.',
+    network: 'Não foi possível falar com o servidor. Confira a conexão e o endereço da API.',
+  },
+  tabs: { home: 'Início', notebooks: 'Cadernos', tasks: 'Tarefas', flashcards: 'Flashcards', profile: 'Perfil' },
+  home: {
+    greeting: 'Olá, {{name}}!', title: 'O que vamos estudar hoje?',
+    statNotebooks: 'Cadernos', statLessons: 'Aulas', statAverage: 'Média nos quizzes', statTasks: 'Tarefas pendentes', statCards: 'Cartões para revisar',
+    nextTask: 'Próxima tarefa', reviewCards: 'Revisar flashcards', openNotebooks: 'Abrir meus cadernos', quick: 'Atalhos',
+  },
+  notebooks: {
+    title: 'Meus cadernos', new: 'Novo caderno', newPlaceholder: 'Ex.: Programação Orientada a Objetos',
+    lessons_one: '{{count}} aula', lessons_other: '{{count}} aulas', noLessons: 'Nenhuma aula ainda.', newLesson: 'Nova aula', lessonPlaceholder: 'Nome da aula',
+    emptyTitle: 'Nenhum caderno ainda', emptyDesc: 'Crie o primeiro caderno para organizar suas aulas.', fromTeacher: 'Do professor', createError: 'Não foi possível criar.',
+  },
+  lesson: {
+    summary: 'Resumo e conversa', summaryDesc: 'Peça um resumo e tire dúvidas com a IA.', quiz: 'Quizzes', quizDesc: 'Teste o que aprendeu, com vários tipos de pergunta.',
+    flashcards: 'Gerar flashcards', flashcardsDesc: 'Cartões para revisar com repetição espaçada.',
+    materials_one: 'A IA está usando {{count}} material do professor nesta aula.', materials_other: 'A IA está usando {{count}} materiais do professor nesta aula.',
+  },
+  summary: {
+    initial: 'Olá, eu sou o Bob, o assistente de estudos do Smart Study. Me envie um tópico para eu resumir. Depois do resumo, você pode me fazer perguntas sobre ele.',
+    placeholder: 'Digite o assunto...', followUp: 'Faça uma pergunta sobre a aula...', send: 'Enviar', thinking: 'Pensando...',
+    aiError: 'O serviço de IA está ocupado no momento. Aguarde um instante e tente de novo.', save: 'Salvar conversa', saved: 'Conversa salva!', saveError: 'Não foi possível salvar.',
+  },
+  quiz: {
+    title: 'Quizzes', startNew: 'Iniciar novo quiz', attemptN: 'Tentativa nº {{n}}', noAttempts: 'Nenhuma tentativa ainda. Comece uma nova!',
+    topicTitle: 'Sobre o que vamos testar?', topicHint: 'O quiz tem 8 perguntas de vários tipos e se adapta ao que você mais erra.', topicPlaceholder: 'Ex.: Regra da cadeia',
+    start: 'Começar', generating: 'Preparando as perguntas...', generateError: 'Não foi possível gerar o quiz. Tente de novo.',
+    types: { multiple_choice: 'Múltipla escolha', fill_blank: 'Completar', open_text: 'Dissertativa', practical: 'Prática', real_case: 'Caso real' },
+    reinforcement: 'Reforço', reinforcing: 'Vou reforçar, de outro jeito, o que você errou antes: {{topics}}.', usingMaterials_one: 'Usando {{count}} material do professor.', usingMaterials_other: 'Usando {{count}} materiais do professor.',
+    questionOf: 'Pergunta {{current}} de {{total}}', answer: 'Responder', next: 'Próxima pergunta', finish: 'Concluir e enviar', seeResult: 'Ver resultado',
+    yourAnswer: 'Sua resposta', blankN: 'Lacuna {{n}}', writeHere: 'Escreva sua resposta aqui...', numericHint: 'Pode digitar só o número (ex.: 3,5).',
+    verdictCorrect: 'Correto!', verdictPartial: 'Parcialmente correto ({{pct}}%)', verdictWrong: 'Incorreto', expected: 'Resposta esperada', explanation: 'Explicação', feedback: 'Comentário',
+    doneTitle: 'Quiz concluído!', doneScore: 'Você fez {{score}}% ({{correct}} de {{total}} corretas).', backToLesson: 'Voltar para a aula', reviewTitle: 'Tentativa nº {{n}} ({{score}}%)', noAnswer: '(sem resposta)',
+    saveError: 'Não foi possível enviar. Tente de novo.', answerError: 'Não foi possível corrigir sua resposta. Tente de novo.', loadError: 'Não foi possível carregar.',
+  },
+  tasks: {
+    title: 'Tarefas', emptyTitle: 'Nenhuma tarefa por aqui', emptyDesc: 'Quando um professor publicar uma tarefa, ela aparece aqui.',
+    due: 'Prazo: {{date}}', noDue: 'Sem prazo', status: { pending: 'Pendente', in_progress: 'Em andamento', submitted: 'Entregue' },
+    overdue: 'Atrasada', late: 'Entregue com atraso', score: 'Nota {{score}}%', start: 'Começar tarefa', resume: 'Continuar tarefa',
+    instructions: 'As respostas só são corrigidas depois que você enviar tudo, e o envio é único. Você pode parar e continuar depois.',
+    alreadySubmitted: 'Você já enviou esta tarefa.', myAnswers: 'Suas respostas', sent: 'Tarefa enviada! Sua nota: {{score}}%.', questions_one: '{{count}} pergunta', questions_other: '{{count}} perguntas',
+    resumeNote: 'Você já respondeu {{count}} de {{total}} perguntas. Continue de onde parou.', loadError: 'Não foi possível carregar as tarefas.',
+  },
+  flashcards: {
+    title: 'Flashcards', subtitle: 'Deslize para a direita se lembrou e para a esquerda se não lembrou.', generate: 'Gerar cartões', generateTitle: 'Gerar flashcards com IA',
+    lesson: 'Aula', topic: 'Tópico', topicPlaceholder: 'Ex.: Regra da cadeia', count: 'Quantidade', generating: 'Gerando...',
+    generated_one: '{{count}} cartão novo adicionado!', generated_other: '{{count}} cartões novos adicionados!', noneNew: 'Nenhum cartão novo: esses já estavam no baralho.',
+    generateError: 'Não foi possível gerar os cartões.', emptyTitle: 'Nenhum baralho ainda', emptyDesc: 'Gere cartões a partir de uma aula para começar a revisar.',
+    due: 'Para revisar', new: 'Novos', learned: 'Bem fixados', study: 'Estudar', nothingDue: 'Nada para revisar agora', noLessons: 'Crie uma aula em um caderno para gerar cartões.',
+    session: {
+      progress: '{{done}} de {{total}} cartões', flip: 'Mostrar resposta', flipHint: 'Toque no cartão para ver a resposta.', swipeHint: 'Deslize para a direita se lembrou, para a esquerda se não lembrou.',
+      answer: 'Resposta', remembered: 'Lembrei', forgot: 'Não lembrei', retry: 'Este cartão volta no fim da sessão.', box: 'Caixa {{box}}', newCard: 'Novo',
+      doneTitle: 'Sessão concluída!', doneRemembered: 'Você acertou {{count}} cartões.', doneMissed_one: '{{count}} cartão precisou de reforço e volta em breve.',
+      doneMissed_other: '{{count}} cartões precisaram de reforço e voltam em breve.', doneClean: 'Sem nenhum esquecimento. Ótimo!', studyMore: 'Estudar mais', back: 'Voltar aos baralhos',
+      saveError: 'Não foi possível salvar. Tente de novo.', nothingLeft: 'Não há mais cartões para revisar agora.',
+    },
+  },
+  profile: {
+    title: 'Meu perfil', role: 'Aluno(a)', appearance: 'Aparência', mode: 'Modo de cor', light: 'Claro', dark: 'Escuro', system: 'Sistema', palette: 'Paleta de cores',
+    textSize: 'Tamanho do texto', sizes: { small: 'Pequeno', normal: 'Normal', large: 'Grande' }, language: 'Idioma', logout: 'Sair', saveError: 'Não foi possível salvar.',
+  },
+  teacher: { title: 'Perfil de professor', text: 'O app do Smart Study é para alunos. Turmas, materiais, tarefas e resultados ficam no site.', logout: 'Sair' },
+};
+
+export default pt;

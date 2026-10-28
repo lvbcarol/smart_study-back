@@ -65,6 +65,23 @@ Monorepo: `backend/` (Express + MongoDB) and `frontend/` (Vite + React).
 
 ---
 
+## 📱 Mobile app (Expo)
+
+The `mobile/` folder is a React Native app (Expo SDK 58 + Expo Router) for **students**: sign in, notebooks, summary chat, quizzes (all question types, with adaptive reinforcement), tasks, flashcards with swipe, and a profile with theme and palette. Teachers use the website.
+
+```bash
+npm run install:mobile      # once
+npm run dev                 # backend + website (in another terminal)
+npm run dev:mobile          # Expo: scan the QR code with Expo Go on your phone
+npm run dev:mobile:web      # or test in the browser
+```
+
+* The phone and the computer must be on the **same Wi-Fi**. The app finds the backend through the computer's IP (port 3000); on Windows, allow Node.js through the firewall when asked.
+* To point to another backend, set `EXPO_PUBLIC_API_URL` (see `mobile/.env.example`).
+* Palettes are shared with the website: if you edit `frontend/src/theme/palettes.ts`, copy it to `mobile/src/theme/palettes.ts` and run `npm --prefix mobile run check:palettes`.
+
+---
+
 ## 👩‍💻 Developed By
 
 **Carolina Lansoni Vilas Boas**
