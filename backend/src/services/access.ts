@@ -5,6 +5,7 @@
 import mongoose, { Types } from 'mongoose';
 import Notebook, { INotebook } from '../models/Notebook';
 import Turma from '../models/Turma';
+import Usuario from '../models/Usuario';
 
 export interface NotebookAccess {
   notebook: INotebook;
@@ -41,4 +42,18 @@ export async function findLessonAccess(lessonId: string, userId: string): Promis
   if (!access) return null;
   const lesson = access.notebook.lessons.find((l) => l._id.toString() === lessonId);
   return lesson ? { ...access, lesson } : null;
+}
+
+export interface TurmaSummary {
+  _id: Types.ObjectId;
+  name: string;
+  teacherName: string;
+}
+
+/** Turmas em que o aluno está matriculado. Lista vazia = aluno avulso (sem vínculo com escola). */
+export async function listStudentTurmas(userId: string): Promise<TurmaSummary[]> {
+  const turmas = await Turma.find({ students: userId }).sort({ createdAt: 1 }).select('name teacher').lean();
+  const teachers = await Usuario.find({ _id: { $in: turmas.map((t) => t.teacher) } }).select('name').lean();
+  const names = new Map(teachers.map((u) => [String(u._id), u.name as string]));
+  return turmas.map((t) => ({ _id: t._id as Types.ObjectId, name: t.name, teacherName: names.get(String(t.teacher)) ?? '' }));
 }

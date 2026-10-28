@@ -66,6 +66,10 @@ export async function seedDemo(): Promise<void> {
 
   await Notebook.create({ title: 'Anotações de Física', owner: ana._id, lessons: [{ title: 'Cinemática' }] });
 
+  // aluno avulso: não está em nenhuma turma, estuda só com os próprios cadernos (pode entrar em uma turma pelo código)
+  const diego = await Usuario.create({ name: 'Diego', email: 'aluno4@demo.com', password: DEMO_PASSWORD, role: 'student', language: 'pt-BR' });
+  await Notebook.create({ title: 'Inglês para viagem', owner: diego._id, lessons: [{ title: 'Present Simple' }, { title: 'Vocabulário de aeroporto' }] });
+
   // cada tentativa também alimenta as estatísticas de deficiência (usadas no reforço adaptativo)
   const attempt = async (user: { _id: any }, lesson: { _id: any }, n: number, score: number, topic: string) => {
     const questions = makeQuestions(topic);
@@ -113,5 +117,6 @@ export async function seedDemo(): Promise<void> {
   });
 
   console.log(`🌱 Dados de demonstração criados (senha de todos: ${DEMO_PASSWORD})`);
-  console.log('   professor@demo.com · aluno1@demo.com · aluno2@demo.com · aluno3@demo.com');
+  console.log('   professor@demo.com · aluno1@demo.com · aluno2@demo.com · aluno3@demo.com · aluno4@demo.com (avulso)');
+  console.log(`   código da turma "3º Ano A": ${turma.joinCode}`);
 }

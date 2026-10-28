@@ -121,6 +121,10 @@
     "attempts_other": "{{count}} quizzes"
   },
   "subject": {
+    "teacherTaskTitle": "Create task",
+    "teacherTaskDesc": "Build an AI quiz for this lesson, edit the questions and publish it to the class.",
+    "teacherMaterialsTitle": "Support materials",
+    "teacherMaterialsDesc": "Upload PDFs, texts and notes: the AI uses this content in tasks and in your students' study sessions.",
     "title": "How would you like to study today?",
     "summaryTitle": "Summary",
     "summaryDesc": "Keep in mind the main topics of each class!",
@@ -302,6 +306,27 @@
     "terms": "Terms of Use",
     "about": "About us"
   },
+  "joinClass": {
+    "title": "My school / class",
+    "description": "Join a class with your teacher's code to see their notebooks and tasks. Without a class, you study with your own notebooks.",
+    "independent": "Independent student",
+    "independentHint": "You are not in any class. Your notebooks are yours alone.",
+    "linked": "Linked to a class",
+    "linkedHint": "You see your teacher's notebooks and tasks, plus your own.",
+    "teacher": "Teacher: {{name}}",
+    "codeLabel": "Class code",
+    "codeHint": "Your teacher shows the code on the class page.",
+    "join": "Join class",
+    "joined": "You joined {{name}}!",
+    "already": "You are already in {{name}}.",
+    "invalid": "Invalid code. Check with your teacher.",
+    "tooMany": "Too many attempts. Wait a minute.",
+    "error": "Could not complete. Please try again.",
+    "leave": "Leave class",
+    "leaveTitle": "Leave {{name}}?",
+    "leaveText": "You will stop seeing this class's notebooks and tasks. Your quizzes and flashcards stay saved, and you can join again with the code.",
+    "left": "You left {{name}}."
+  },
   "common": {
     "showPassword": "Show password",
     "hidePassword": "Hide password",
@@ -417,6 +442,16 @@
     "review": "Review"
   },
   "classes": {
+    "joinCodeTitle": "Class code",
+    "joinCodeHint": "Give this code to your students: they join the class on their own in My account. You can also enroll by e-mail.",
+    "joinCodeAria": "Class code: {{code}}",
+    "copyCode": "Copy",
+    "codeCopied": "Code copied!",
+    "codeCopyError": "Could not copy.",
+    "newCode": "Generate new code",
+    "newCodeTitle": "Generate a new code?",
+    "newCodeBody": "The current code stops working for new students. Students already in the class stay.",
+    "codeRegenerated": "New code generated.",
     "title": "My classes",
     "subtitle": "Organize your students into classes and enroll them by e-mail.",
     "new": "New class",

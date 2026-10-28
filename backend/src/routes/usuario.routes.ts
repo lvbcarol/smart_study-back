@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { z } from 'zod';
 import Usuario from '../models/Usuario';
 import Turma from '../models/Turma';
+import { listStudentTurmas } from '../services/access';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { AuthRequest } from '../types';
 import { parseBody } from '../utils/validate';
@@ -48,6 +49,12 @@ function validInviteCode(provided?: string): boolean {
   const a = Buffer.from(provided);
   const b = Buffer.from(expected);
   return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+/** Usuário + vínculo com escola: aluno sem turma é "avulso", com turma é "vinculado". */
+async function withLinks(user: InstanceType<typeof Usuario>) {
+  const turmas = user.role === 'student' ? await listStudentTurmas(String(user._id)) : [];
+  return { ...user.toJSON(), turmas, linked: turmas.length > 0 };
 }
 
 // ROTA DE REGISTRO
@@ -126,7 +133,7 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
-    res.json(user);
+    res.json(await withLinks(user));
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch user data.' });
   }
@@ -147,7 +154,7 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
-    res.json(user);
+    res.json(await withLinks(user));
   } catch (error) {
     console.error('Erro ao salvar preferências:', error);
     res.status(500).json({ error: 'Failed to update preferences.' });

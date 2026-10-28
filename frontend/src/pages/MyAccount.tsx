@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { PALETTES } from '../theme/palettes';
 import type { ThemeMode } from '../types';
+import JoinClassSection from '../components/JoinClassSection';
 import { Button } from '../components/ds/Button';
 import { Field } from '../components/ds/Field';
 import { Badge, Switch } from '../components/ds/Misc';
@@ -137,6 +138,12 @@ const MyAccount: React.FC = () => {
         </div>
         <Field label={t('profile.name')} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
       </Section>
+
+      {user.role === 'student' && (
+        <Section title={t('joinClass.title')} description={t('joinClass.description')}>
+          <JoinClassSection />
+        </Section>
+      )}
 
       <Section title={t('profile.appearance')} description={t('profile.appearanceDesc')}>
         <div role="radiogroup" aria-label={t('profile.mode')} className="grid grid-cols-3 gap-3">

@@ -2,6 +2,7 @@
 export interface TurmaSummary {
   _id: string;
   name: string;
+  joinCode?: string;
   studentsCount: number;
   pendingCount: number;
   notebooksCount: number;
@@ -10,6 +11,7 @@ export interface TurmaSummary {
 export interface TurmaDetail {
   _id: string;
   name: string;
+  joinCode?: string;
   students: { _id: string; name: string; email: string }[];
   pendingEmails: string[];
   notebooks: { _id: string; title: string; lessonsCount: number }[];

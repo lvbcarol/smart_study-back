@@ -15,6 +15,8 @@ interface AuthContextType {
   setUser: (user: User) => void;
   /** Salva preferências/perfil no servidor e atualiza o usuário no estado */
   savePreferences: (changes: PreferenceChanges) => Promise<User>;
+  /** Recarrega só o vínculo com turmas (entrar/sair de uma turma) sem mexer em tema e idioma */
+  refreshLinks: () => Promise<void>;
 }
 
 export type PreferenceChanges = Partial<Pick<User, 'name' | 'language' | 'theme' | 'palette' | 'fontScale' | 'avatarColor'>> & {
@@ -75,8 +77,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return res.data;
   };
 
+  const refreshLinks = async () => {
+    const res = await api.get<User>('/usuario/me');
+    setUserState((prev) => (prev ? { ...prev, turmas: res.data.turmas, linked: res.data.linked } : res.data));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, setUser, savePreferences }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, setUser, savePreferences, refreshLinks }}>
       {children}
     </AuthContext.Provider>
   );

@@ -5,7 +5,7 @@
 import { Router, Response } from 'express';
 import mongoose from 'mongoose';
 import { z } from 'zod';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware, requireRole } from '../middleware/auth.middleware';
 import QuizAttempt from '../models/QuizAttempt';
 import QuizDraft from '../models/QuizDraft';
 import Task from '../models/Task';
@@ -21,7 +21,8 @@ import { loadStats, recordResults } from '../quiz/weakness.service';
 import { QUESTION_TYPES } from '../quiz/questions';
 
 const router = Router();
-router.use(authMiddleware);
+// Só alunos estudam com IA: o professor cria tarefas (/api/tasks) e acompanha resultados
+router.use(authMiddleware, requireRole('student'));
 
 const DRAFT_TTL_MS = 6 * 60 * 60 * 1000;
 

@@ -16,6 +16,14 @@ const en: Shape<typeof pt> = {
     registerError: 'Could not create the account. Please try again.', passwordShort: 'Password must be at least 6 characters long.',
     network: 'Could not reach the server. Check your connection and the API address.',
   },
+  joinClass: {
+    title: 'My school / class', independent: 'Independent student', independentHint: 'You are not in any class. Your notebooks are yours alone.',
+    linked: 'Linked to a class', linkedHint: "You see your teacher's notebooks and tasks, plus your own.", teacher: 'Teacher: {{name}}',
+    codeLabel: 'Class code', codePlaceholder: 'E.g.: ABC234', codeHint: 'Your teacher shows the code on the class page.', join: 'Join class',
+    joined: 'You joined {{name}}!', already: 'You are already in {{name}}.', invalid: 'Invalid code. Check with your teacher.',
+    tooMany: 'Too many attempts. Wait a minute.', error: 'Could not complete. Please try again.',
+    leave: 'Leave class', leaveConfirm: 'Confirm leaving {{name}}', left: 'You left {{name}}.',
+  },
   tabs: { home: 'Home', notebooks: 'Notebooks', tasks: 'Tasks', flashcards: 'Flashcards', profile: 'Profile' },
   home: {
     greeting: 'Hi, {{name}}!', title: 'What will we study today?',

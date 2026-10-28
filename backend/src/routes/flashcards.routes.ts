@@ -6,7 +6,7 @@ import { Router, Response } from 'express';
 import mongoose from 'mongoose';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware, requireRole } from '../middleware/auth.middleware';
 import FlashcardDeck, { IFlashcardDeck } from '../models/FlashcardDeck';
 import Notebook from '../models/Notebook';
 import { AuthRequest } from '../types';
@@ -18,7 +18,8 @@ import { normalizeText } from '../quiz/grading';
 import { newCardState, orderForSession, review, summarize } from '../flashcards/leitner';
 
 const router = Router();
-router.use(authMiddleware);
+// Só alunos estudam com IA: o professor cria tarefas (/api/tasks) e acompanha resultados
+router.use(authMiddleware, requireRole('student'));
 
 const MAX_CARDS_PER_DECK = 120;
 

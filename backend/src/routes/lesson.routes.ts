@@ -28,6 +28,8 @@ router.get('/:lessonId', async (req: AuthRequest, res: Response) => {
     ]);
 
     res.json({
+      notebookId: access.notebook._id,
+      inTurma: !!access.notebook.turma,
       notebookTitle: access.notebook.title,
       lessonTitle: access.lesson.title,
       readOnly: !access.canWrite,

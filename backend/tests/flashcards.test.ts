@@ -142,7 +142,7 @@ describe('sessão de estudo e revisão', () => {
     expect((await request(app).post(url).set('Authorization', ana).send({ cardId: String(new mongoose.Types.ObjectId()), remembered: true })).status).toBe(404);
     expect((await request(app).post(url).set('Authorization', bia).send({ cardId, remembered: true })).status).toBe(404);
     expect((await request(app).get(`/api/flashcards/decks/${deckId}/session`).set('Authorization', bia)).status).toBe(404);
-    expect((await request(app).get(`/api/flashcards/decks/${deckId}`).set('Authorization', teacher)).status).toBe(404);
+    expect((await request(app).get(`/api/flashcards/decks/${deckId}`).set('Authorization', teacher)).status).toBe(403); // professor não usa flashcards
     expect((await request(app).get('/api/flashcards/decks/invalido/session').set('Authorization', ana)).status).toBe(404);
   });
 

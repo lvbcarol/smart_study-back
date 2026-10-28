@@ -11,6 +11,14 @@ const pt = {
     registerError: 'Não foi possível criar a conta. Tente novamente.', passwordShort: 'A senha deve ter ao menos 6 caracteres.',
     network: 'Não foi possível falar com o servidor. Confira a conexão e o endereço da API.',
   },
+  joinClass: {
+    title: 'Minha escola / turma', independent: 'Aluno avulso', independentHint: 'Você não está em nenhuma turma. Seus cadernos são só seus.',
+    linked: 'Vinculado a uma turma', linkedHint: 'Você vê os cadernos e as tarefas do professor, além dos seus.', teacher: 'Professor(a): {{name}}',
+    codeLabel: 'Código da turma', codePlaceholder: 'Ex.: ABC234', codeHint: 'O professor mostra o código na página da turma.', join: 'Entrar na turma',
+    joined: 'Você entrou na turma {{name}}!', already: 'Você já está na turma {{name}}.', invalid: 'Código inválido. Confira com o professor.',
+    tooMany: 'Muitas tentativas. Aguarde um minuto.', error: 'Não foi possível concluir. Tente de novo.',
+    leave: 'Sair da turma', leaveConfirm: 'Confirmar saída de {{name}}', left: 'Você saiu da turma {{name}}.',
+  },
   tabs: { home: 'Início', notebooks: 'Cadernos', tasks: 'Tarefas', flashcards: 'Flashcards', profile: 'Perfil' },
   home: {
     greeting: 'Olá, {{name}}!', title: 'O que vamos estudar hoje?',

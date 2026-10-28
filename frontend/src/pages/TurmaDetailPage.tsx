@@ -1,7 +1,7 @@
 // src/pages/TurmaDetailPage.tsx — alunos (matrícula por e-mail) e matérias de uma turma
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, ChevronRight, MoreHorizontal, Pencil, Plus, Trash2, UserMinus, X } from 'lucide-react';
+import { BookOpen, ChevronRight, Copy, MoreHorizontal, Pencil, Plus, RefreshCw, Trash2, UserMinus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -31,6 +31,7 @@ const TurmaDetailPage: React.FC = () => {
   const [newName, setNewName] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [subjectOpen, setSubjectOpen] = useState(false);
+  const [codeOpen, setCodeOpen] = useState(false);
   const [subjectTitle, setSubjectTitle] = useState('');
 
   const load = useCallback(() => {
@@ -88,6 +89,27 @@ const TurmaDetailPage: React.FC = () => {
     }
   };
 
+  const copyCode = async () => {
+    if (!turma?.joinCode) return;
+    try {
+      await navigator.clipboard.writeText(turma.joinCode);
+      toast.success(t('classes.codeCopied'));
+    } catch {
+      toast.error(t('classes.codeCopyError'));
+    }
+  };
+
+  const regenerateCode = async () => {
+    try {
+      const { data } = await api.post<{ joinCode: string }>(`/turmas/${turmaId}/code`);
+      setTurma((cur) => (cur ? { ...cur, joinCode: data.joinCode } : cur));
+      setCodeOpen(false);
+      toast.success(t('classes.codeRegenerated'));
+    } catch {
+      toast.error(t('classes.removeError'));
+    }
+  };
+
   const deleteTurma = async () => {
     try {
       await api.delete(`/turmas/${turmaId}`);
@@ -137,6 +159,20 @@ const TurmaDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {turma.joinCode && (
+        <section aria-labelledby="join-code-title" className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
+          <div>
+            <h2 id="join-code-title" className="font-display text-lg font-bold">{t('classes.joinCodeTitle')}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t('classes.joinCodeHint')}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span aria-label={t('classes.joinCodeAria', { code: turma.joinCode.split('').join(' ') })} className="rounded-xl bg-accent px-4 py-2 font-mono text-2xl font-bold tracking-[0.3em] text-accent-foreground">{turma.joinCode}</span>
+            <Button variant="outline" onClick={copyCode}><Copy className="h-4 w-4" aria-hidden="true" /> {t('classes.copyCode')}</Button>
+            <Button variant="ghost" onClick={() => setCodeOpen(true)}><RefreshCw className="h-4 w-4" aria-hidden="true" /> {t('classes.newCode')}</Button>
+          </div>
+        </section>
+      )}
 
       <Tabs defaultValue="students">
         <TabsList aria-label={t('classes.tabsLabel')}>
@@ -262,6 +298,11 @@ const TurmaDetailPage: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      <Modal
+        open={codeOpen} onOpenChange={setCodeOpen} title={t('classes.newCodeTitle')} description={t('classes.newCodeBody')} closeLabel={t('common.close')}
+        footer={<><Button variant="ghost" onClick={() => setCodeOpen(false)}>{t('common.cancel')}</Button><Button onClick={regenerateCode}>{t('classes.newCode')}</Button></>}
+      />
 
       <Modal
         open={deleteOpen} onOpenChange={setDeleteOpen} title={t('classes.deleteTitle')} description={t('classes.deleteBody')} closeLabel={t('common.close')}

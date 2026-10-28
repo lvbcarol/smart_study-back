@@ -16,6 +16,15 @@ export interface User {
   palette: string;
   fontScale: number;
   avatarColor: string;
+  /** só para alunos: turmas em que está matriculado (vazio = aluno avulso) */
+  turmas?: StudentTurma[];
+  linked?: boolean;
+}
+
+export interface StudentTurma {
+  _id: string;
+  name: string;
+  teacherName: string;
 }
 
 export interface AttemptSummary {

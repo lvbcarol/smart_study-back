@@ -1,6 +1,6 @@
 // src/pages/TaskEditorPage.tsx — o professor gera perguntas com IA, edita tudo e publica
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Plus, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -28,11 +28,13 @@ const TaskEditorPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const editing = !!taskId;
 
   const [notebooks, setNotebooks] = useState<Notebook[] | null>(null);
-  const [notebookId, setNotebookId] = useState('');
-  const [lessonId, setLessonId] = useState('');
+  // vindo da página da aula (?notebook=&lesson=), já abre com a matéria e a aula escolhidas
+  const [notebookId, setNotebookId] = useState(() => (taskId ? '' : searchParams.get('notebook') ?? ''));
+  const [lessonId, setLessonId] = useState(() => (taskId ? '' : searchParams.get('lesson') ?? ''));
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');

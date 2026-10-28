@@ -121,6 +121,10 @@
     "attempts_other": "{{count}} quizzes"
   },
   "subject": {
+    "teacherTaskTitle": "Criar tarefa",
+    "teacherTaskDesc": "Monte um quiz com IA para esta aula, edite as perguntas e publique para a turma.",
+    "teacherMaterialsTitle": "Materiais de apoio",
+    "teacherMaterialsDesc": "Envie PDFs, textos e anotações: a IA usa esse conteúdo nas tarefas e nos estudos dos alunos.",
     "title": "Como vamos estudar hoje?",
     "summaryTitle": "Resumo",
     "summaryDesc": "Tenha em mente os tópicos principais de cada aula!",
@@ -301,6 +305,27 @@
     "terms": "Termos de uso",
     "about": "Sobre nós"
   },
+  "joinClass": {
+    "title": "Minha escola / turma",
+    "description": "Entre em uma turma com o código do professor para ver os cadernos e as tarefas dele. Sem turma, você estuda com os seus próprios cadernos.",
+    "independent": "Aluno avulso",
+    "independentHint": "Você não está em nenhuma turma. Seus cadernos são só seus.",
+    "linked": "Vinculado a uma turma",
+    "linkedHint": "Você vê os cadernos e as tarefas do professor, além dos seus próprios.",
+    "teacher": "Professor(a): {{name}}",
+    "codeLabel": "Código da turma",
+    "codeHint": "O professor mostra o código na página da turma.",
+    "join": "Entrar na turma",
+    "joined": "Você entrou na turma {{name}}!",
+    "already": "Você já está na turma {{name}}.",
+    "invalid": "Código inválido. Confira com o professor.",
+    "tooMany": "Muitas tentativas. Aguarde um minuto.",
+    "error": "Não foi possível concluir. Tente de novo.",
+    "leave": "Sair da turma",
+    "leaveTitle": "Sair da turma {{name}}?",
+    "leaveText": "Você deixa de ver os cadernos e as tarefas dessa turma. Seus quizzes e flashcards continuam salvos, e você pode entrar de novo com o código.",
+    "left": "Você saiu da turma {{name}}."
+  },
   "common": {
     "showPassword": "Mostrar senha",
     "hidePassword": "Ocultar senha",
@@ -416,6 +441,16 @@
     "review": "Revisar"
   },
   "classes": {
+    "joinCodeTitle": "Código da turma",
+    "joinCodeHint": "Passe este código aos alunos: em Minha conta, eles entram na turma sozinhos. Você também pode matricular por e-mail.",
+    "joinCodeAria": "Código da turma: {{code}}",
+    "copyCode": "Copiar",
+    "codeCopied": "Código copiado!",
+    "codeCopyError": "Não foi possível copiar.",
+    "newCode": "Gerar novo código",
+    "newCodeTitle": "Gerar um novo código?",
+    "newCodeBody": "O código atual deixa de funcionar para novos alunos. Quem já entrou continua na turma.",
+    "codeRegenerated": "Novo código gerado.",
     "title": "Minhas turmas",
     "subtitle": "Organize seus alunos em turmas e matricule-os por e-mail.",
     "new": "Nova turma",

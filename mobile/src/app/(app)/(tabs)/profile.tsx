@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/theme/ThemeContext';
 import { PALETTES } from '@/theme/palettes';
+import { JoinClassCard } from '@/components/JoinClassCard';
 import { Badge, Button, Card, Row, Screen, T } from '@/ui';
 
 /** Opção selecionável (rádio) com estado acessível. */
@@ -44,6 +45,8 @@ export default function Profile() {
           <Badge variant="primary">{t('profile.role')}</Badge>
         </View>
       </Card>
+
+      <JoinClassCard />
 
       <Card style={{ gap: 14 }}>
         <T variant="heading">{t('profile.appearance')}</T>

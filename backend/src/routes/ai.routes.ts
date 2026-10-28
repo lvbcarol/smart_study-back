@@ -2,7 +2,7 @@
 // A geração e a correção de quizzes ficam em quizz.routes.ts (com gabarito protegido no servidor).
 import { Router, Response } from 'express';
 import { z } from 'zod';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware, requireRole } from '../middleware/auth.middleware';
 import { AuthRequest } from '../types';
 import { findLessonAccess } from '../services/access';
 import { getAIService } from '../services/ai.service';
@@ -10,7 +10,8 @@ import { buildMaterialsContext } from '../services/materials';
 import { parseBody } from '../utils/validate';
 
 const router = Router();
-router.use(authMiddleware);
+// Só alunos estudam com IA: o professor cria tarefas (/api/tasks) e acompanha resultados
+router.use(authMiddleware, requireRole('student'));
 
 const summarizeSchema = z.object({
   topic: z.string().trim().min(1, 'Topic is required.').max(500),

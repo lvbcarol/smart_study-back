@@ -1,13 +1,16 @@
 // src/pages/SubjectPage.tsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { BookOpen, FileText, ListChecks } from 'lucide-react';
+import { BookOpen, ClipboardCheck, FileText, ListChecks } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Badge, Skeleton } from '../components/ds/Misc';
 import { BackLink, FeatureTile } from '../components/ds/PageParts';
 
 interface SubjectDetails {
+  notebookId: string;
+  inTurma: boolean;
   notebookTitle: string;
   lessonTitle: string;
   readOnly?: boolean;
@@ -16,6 +19,8 @@ interface SubjectDetails {
 
 const SubjectPage: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isTeacher = user?.role === 'teacher';
   const { lessonId } = useParams<{ lessonId: string }>();
   const [details, setDetails] = useState<SubjectDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,10 +59,28 @@ const SubjectPage: React.FC = () => {
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FeatureTile to={`/summary/${lessonId}`} icon={<BookOpen className="h-5 w-5" />} title={t('subject.summaryTitle')} description={t('subject.summaryDesc')} />
-        <FeatureTile to={`/quizz/${lessonId}`} icon={<ListChecks className="h-5 w-5" />} title={t('subject.quizzTitle')} description={t('subject.quizzDesc')} />
-      </div>
+      {isTeacher ? (
+        // professor não estuda com IA: cria tarefas para a turma e cuida dos materiais
+        details && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {details.inTurma && (
+              <FeatureTile
+                to={`/tasks/new?notebook=${details.notebookId}&lesson=${lessonId}`} icon={<ClipboardCheck className="h-5 w-5" />}
+                title={t('subject.teacherTaskTitle')} description={t('subject.teacherTaskDesc')}
+              />
+            )}
+            <FeatureTile
+              to={`/notebook/${details.notebookId}?tab=materials`} icon={<FileText className="h-5 w-5" />}
+              title={t('subject.teacherMaterialsTitle')} description={t('subject.teacherMaterialsDesc')}
+            />
+          </div>
+        )
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FeatureTile to={`/summary/${lessonId}`} icon={<BookOpen className="h-5 w-5" />} title={t('subject.summaryTitle')} description={t('subject.summaryDesc')} />
+          <FeatureTile to={`/quizz/${lessonId}`} icon={<ListChecks className="h-5 w-5" />} title={t('subject.quizzTitle')} description={t('subject.quizzDesc')} />
+        </div>
+      )}
     </div>
   );
 };

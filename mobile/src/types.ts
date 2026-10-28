@@ -12,7 +12,12 @@ export interface User {
   theme: ThemeMode;
   palette: string;
   fontScale: number;
+  /** turmas em que o aluno está matriculado (vazio = aluno avulso) */
+  turmas?: StudentTurma[];
+  linked?: boolean;
 }
+
+export interface StudentTurma { _id: string; name: string; teacherName: string }
 
 export interface AttemptSummary { _id: string; attemptNumber: number; score: number; date: string }
 export interface Lesson { _id: string; title: string; quizzAttempts?: AttemptSummary[] }

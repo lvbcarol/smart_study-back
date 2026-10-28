@@ -14,6 +14,8 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   savePreferences: (changes: PreferenceChanges) => Promise<User>;
+  /** recarrega só o vínculo com turmas (entrar/sair) sem reaplicar idioma e tema */
+  refreshLinks: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -66,7 +68,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return data;
   };
 
-  return <AuthContext.Provider value={{ user, loading, login, register, logout, savePreferences }}>{children}</AuthContext.Provider>;
+  const refreshLinks = async () => {
+    const { data } = await api.get<User>('/usuario/me');
+    setUserState((prev) => (prev ? { ...prev, turmas: data.turmas, linked: data.linked } : data));
+  };
+
+  return <AuthContext.Provider value={{ user, loading, login, register, logout, savePreferences, refreshLinks }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {
