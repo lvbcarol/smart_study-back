@@ -14,6 +14,7 @@ import { PageHeader, StatCard } from '../components/ds/PageParts';
 import { axisTick, chartColor, ChartCard, DataTable, reducedMotion, tooltipStyle } from '../components/dash/ChartCard';
 import StudyTimerCard from '../components/dash/StudyTimerCard';
 import StudyWeekCard from '../components/dash/StudyWeekCard';
+import KolbCard from '../components/dash/KolbCard';
 import { cn } from '@/lib/utils';
 
 const RANGES = [7, 30, 90] as const;
@@ -196,6 +197,45 @@ const ProgressPage: React.FC = () => {
               )}
             </section>
           </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <KolbCard kolb={data.kolb} onChanged={load} />
+
+            <ChartCard
+              title={t('bloom.title')} description={t('bloom.desc')}
+              empty={data.byBloom.every((b) => b.accuracy === null) ? t('dash.noQuizzes') : undefined}
+              table={<DataTable caption={t('bloom.title')} head={[t('bloom.level'), t('dash.accuracy'), t('dash.answered')]} rows={data.byBloom.map((b) => [t(`bloom.levels.${b.level}`), b.accuracy === null ? '–' : `${b.accuracy}%`, b.answered])} />}
+            >
+              <div className="h-64" role="img" aria-label={`${t('bloom.title')}: ${data.byBloom.filter((b) => b.accuracy !== null).map((b) => `${t(`bloom.levels.${b.level}`)} ${b.accuracy}%`).join(', ')}`}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.byBloom.map((b) => ({ ...b, name: t(`bloom.levels.${b.level}`), value: b.accuracy }))} margin={{ left: -16, right: 8, top: 8 }}>
+                    <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} tick={axisTick} interval={0} />
+                    <YAxis domain={[0, 100]} tickLine={false} axisLine={false} tick={axisTick} />
+                    <Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} contentStyle={tooltipStyle} formatter={(v: number) => [`${v}%`, t('dash.accuracy')]} />
+                    <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={40} isAnimationActive={!reducedMotion()}>
+                      {data.byBloom.map((b, i) => <Cell key={b.level} fill={chartColor(i)} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </ChartCard>
+          </div>
+
+          {data.byCompetency.length > 0 && (
+            <section aria-labelledby="comp-title" className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+              <h2 id="comp-title" className="font-display text-xl font-bold">{t('competencies.studentTitle')}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{t('competencies.studentDesc')}</p>
+              <ul className="mt-4 space-y-3">
+                {data.byCompetency.map((c) => (
+                  <li key={c.name} className="flex items-center justify-between gap-3">
+                    <span className="font-medium">{c.name}</span>
+                    <span className="flex items-center gap-2 text-sm text-muted-foreground">{t('dash.attemptsCount', { count: c.answered })} <Badge variant={c.accuracy >= 70 ? 'success' : c.accuracy >= 50 ? 'warning' : 'destructive'}>{c.accuracy}%</Badge></span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </>
       )}
     </div>

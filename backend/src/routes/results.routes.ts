@@ -11,7 +11,12 @@ import Task from '../models/Task';
 import Turma from '../models/Turma';
 import Usuario from '../models/Usuario';
 import WeaknessStat from '../models/WeaknessStat';
+import StudySession from '../models/StudySession';
 import { clampOffset, localDay } from '../study/dates';
+import { computeKolb, KolbStyle } from '../study/kolb';
+import { loadKolbInput } from '../study/kolbData';
+import { assessRisk } from '../study/risk';
+import { BLOOM_LEVELS } from '../quiz/questions';
 import { AuthRequest } from '../types';
 import { QUESTION_TYPES } from '../quiz/questions';
 import { decayed, errorRateByType, smoothedErrorRate } from '../quiz/weakness';
@@ -210,6 +215,19 @@ router.get('/overview', async (req: AuthRequest, res: Response) => {
     ]);
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
+    // tempo de estudo da semana: só de quem permitiu que o professor veja (a média ignora os demais)
+    const allSharing = await Usuario.find({ _id: { $in: turmas.flatMap((t) => t.students) }, shareStudyTimeWithTeacher: true }).select('_id').lean();
+    const sharingIds = new Set(allSharing.map((u) => String(u._id)));
+    const weekSessions = await StudySession.aggregate<{ _id: unknown; seconds: number }>([
+      { $match: { user: { $in: allSharing.map((u) => u._id) }, startedAt: { $gte: weekAgo } } },
+      { $group: { _id: '$user', seconds: { $sum: '$seconds' } } },
+    ]);
+    const secondsByUser = new Map(weekSessions.map((x) => [String(x._id), x.seconds]));
+    const sharedMinutes = new Map(turmas.map((t) => {
+      const mine = t.students.map(String).filter((id) => sharingIds.has(id));
+      return [String(t._id), mine.length ? round(mine.reduce((s, id) => s + (secondsByUser.get(id) ?? 0), 0) / mine.length / 60) : null] as const;
+    }));
+
     const rows = await Promise.all(turmas.map(async (t) => {
       const notebookIds = notebooks.filter((n) => String(n.turma) === String(t._id)).map((n) => n._id);
       const taskIds = tasks.filter((x) => String(x.turma) === String(t._id)).map((x) => x._id);
@@ -229,6 +247,7 @@ router.get('/overview', async (req: AuthRequest, res: Response) => {
         turmaId: t._id, name: t.name, students: t.students.length,
         average: agg ? round(agg.average) : null, attempts: agg?.attempts ?? 0, lastActivityAt: agg?.lastAt ?? null,
         activeStudents: active.length,
+        sharedStudyMinutes: sharedMinutes.get(String(t._id)) ?? null,
         tasksPublished: taskIds.length,
         deliveryRate: expected ? round(((submitted?.n ?? 0) / expected) * 100) : null,
       };
@@ -278,16 +297,17 @@ router.get('/turmas/:turmaId/weakness', async (req: AuthRequest, res: Response) 
     if (!turma) return res.status(404).json({ error: 'Class not found.' });
     const notebooks = await Notebook.find({ turma: turma._id, owner: req.userId }).select('title lessons').lean();
     const lessonTitle = new Map(notebooks.flatMap((n) => n.lessons.map((l) => [String(l._id), `${n.title} · ${l.title}`] as const)));
+    const lessonNotebook = new Map(notebooks.flatMap((n) => n.lessons.map((l) => [String(l._id), String(n._id)] as const)));
 
     const docs = await WeaknessStat.find({ user: { $in: turma.students }, lesson: { $in: [...lessonTitle.keys()] } }).lean();
     const now = new Date();
 
-    const topics = new Map<string, { topic: string; lesson: string; seen: number; wrong: number; struggling: Set<string> }>();
+    const topics = new Map<string, { topic: string; lesson: string; lessonId: string; notebookId: string; seen: number; wrong: number; struggling: Set<string> }>();
     const types = new Map<string, { seen: number; wrong: number }>();
     for (const d of docs) {
       const dec = decayed(d, now);
       const key = `${d.lesson}:${d.topicKey}`;
-      const t = topics.get(key) ?? { topic: d.topic, lesson: lessonTitle.get(String(d.lesson)) ?? '', seen: 0, wrong: 0, struggling: new Set<string>() };
+      const t = topics.get(key) ?? { topic: d.topic, lesson: lessonTitle.get(String(d.lesson)) ?? '', lessonId: String(d.lesson), notebookId: lessonNotebook.get(String(d.lesson)) ?? '', seen: 0, wrong: 0, struggling: new Set<string>() };
       t.seen += dec.seen; t.wrong += dec.wrong;
       if (dec.wrong >= 0.5) t.struggling.add(String(d.user));
       topics.set(key, t);
@@ -300,7 +320,7 @@ router.get('/turmas/:turmaId/weakness', async (req: AuthRequest, res: Response) 
       studentsTotal: turma.students.length,
       topics: [...topics.values()]
         .filter((t) => t.seen >= 2)
-        .map((t) => ({ topic: t.topic, lesson: t.lesson, errorRate: round(smoothedErrorRate(t.seen, t.wrong) * 100), answers: Math.round(t.seen), students: t.struggling.size }))
+        .map((t) => ({ topic: t.topic, lesson: t.lesson, lessonId: t.lessonId, notebookId: t.notebookId, errorRate: round(smoothedErrorRate(t.seen, t.wrong) * 100), answers: Math.round(t.seen), students: t.struggling.size }))
         .sort((a, b) => b.errorRate * Math.sqrt(b.answers) - a.errorRate * Math.sqrt(a.answers))
         .slice(0, 10),
       byType: QUESTION_TYPES.map((type) => {
@@ -310,6 +330,108 @@ router.get('/turmas/:turmaId/weakness', async (req: AuthRequest, res: Response) 
     });
   } catch {
     res.status(500).json({ error: 'Error fetching class weakness.' });
+  }
+});
+
+// GET /turmas/:turmaId/risk — alunos que precisam de atenção (sem atividade, notas em queda, tarefa atrasada)
+router.get('/turmas/:turmaId/risk', async (req: AuthRequest, res: Response) => {
+  try {
+    const turma = await ownTurma(req.params.turmaId, req.userId as string);
+    if (!turma) return res.status(404).json({ error: 'Class not found.' });
+    const now = new Date();
+    const [students, notebooks, tasks] = await Promise.all([
+      Usuario.find({ _id: { $in: turma.students } }).select('name createdAt shareStudyTimeWithTeacher').lean(),
+      Notebook.find({ turma: turma._id, owner: req.userId }).select('_id').lean(),
+      Task.find({ turma: turma._id, published: true }).select('dueDate').lean(),
+    ]);
+    const sharing = students.filter((s) => s.shareStudyTimeWithTeacher).map((s) => s._id);
+    const overdueTasks = tasks.filter((t) => t.dueDate && t.dueDate < now);
+
+    const [attempts, delivered, lastSessions] = await Promise.all([
+      QuizAttempt.find({ notebook: { $in: notebooks.map((n) => n._id) }, user: { $in: turma.students }, createdAt: { $gte: new Date(now.getTime() - 60 * 86400_000) } }).select('user score createdAt').lean(),
+      QuizAttempt.find({ task: { $in: overdueTasks.map((t) => t._id) }, user: { $in: turma.students } }).select('user task').lean(),
+      // o tempo de estudo só conta como atividade para quem permitiu que o professor o veja
+      StudySession.aggregate<{ _id: unknown; last: Date }>([{ $match: { user: { $in: sharing } } }, { $group: { _id: '$user', last: { $max: '$startedAt' } } }]),
+    ]);
+    const lastByUser = new Map(lastSessions.map((x) => [String(x._id), x.last]));
+    const deliveredKeys = new Set(delivered.map((d) => `${d.user}:${d.task}`));
+
+    const rows = assessRisk(students.map((s) => ({
+      id: String(s._id), name: s.name, joinedAt: (s as unknown as { createdAt: Date }).createdAt,
+      attempts: attempts.filter((a) => String(a.user) === String(s._id)).map((a) => ({ score: a.score, at: a.createdAt })),
+      lastSessionAt: lastByUser.get(String(s._id)) ?? null,
+      overdueTasks: overdueTasks.filter((t) => !deliveredKeys.has(`${s._id}:${t._id}`)).length,
+    })), now);
+    res.json({ studentsTotal: students.length, students: rows });
+  } catch {
+    res.status(500).json({ error: 'Error fetching risk.' });
+  }
+});
+
+// GET /turmas/:turmaId/learning-styles — distribuição dos estilos de aprendizagem (Kolb) da turma
+router.get('/turmas/:turmaId/learning-styles', async (req: AuthRequest, res: Response) => {
+  try {
+    const turma = await ownTurma(req.params.turmaId, req.userId as string);
+    if (!turma) return res.status(404).json({ error: 'Class not found.' });
+    const now = new Date();
+    const students = await Usuario.find({ _id: { $in: turma.students } }).select('shareStudyTimeWithTeacher showLearningProfile').lean();
+    // quem ocultou o perfil não entra; o tempo de estudo só entra para quem o compartilha
+    const visible = students.filter((s) => s.showLearningProfile !== false);
+    const withTime = visible.filter((s) => s.shareStudyTimeWithTeacher).map((s) => s._id);
+    const withoutTime = visible.filter((s) => !s.shareStudyTimeWithTeacher).map((s) => s._id);
+    const inputs = new Map([
+      ...(withTime.length ? [...(await loadKolbInput(withTime, now, true))] : []),
+      ...(withoutTime.length ? [...(await loadKolbInput(withoutTime, now, false))] : []),
+    ]);
+
+    const styles: Record<KolbStyle | 'insufficient', number> = { diverging: 0, assimilating: 0, converging: 0, accommodating: 0, insufficient: 0 };
+    const shares = { EC: 0, OR: 0, CA: 0, EA: 0 };
+    let enough = 0;
+    for (const input of inputs.values()) {
+      const k = computeKolb(input);
+      if (!k.style) { styles.insufficient += 1; continue; }
+      styles[k.style] += 1;
+      enough += 1;
+      k.quadrants.forEach((q) => { shares[q.id] += q.share; });
+    }
+    res.json({
+      studentsTotal: students.length, hidden: students.length - visible.length, styles,
+      quadrants: (Object.keys(shares) as (keyof typeof shares)[]).map((id) => ({ id, share: enough ? Math.round((shares[id] / enough) * 1000) / 1000 : 0 })),
+    });
+  } catch {
+    res.status(500).json({ error: 'Error fetching learning styles.' });
+  }
+});
+
+// GET /turmas/:turmaId/outcomes?range= — acerto da turma por nível de Bloom e por competência
+router.get('/turmas/:turmaId/outcomes', async (req: AuthRequest, res: Response) => {
+  try {
+    const turma = await ownTurma(req.params.turmaId, req.userId as string);
+    if (!turma) return res.status(404).json({ error: 'Class not found.' });
+    const range = [7, 30, 90].includes(Number(req.query.range)) ? Number(req.query.range) : 30;
+    const notebooks = await Notebook.find({ turma: turma._id, owner: req.userId }).select('_id').lean();
+    const attempts = await QuizAttempt.find({
+      notebook: { $in: notebooks.map((n) => n._id) }, user: { $in: turma.students },
+      createdAt: { $gte: new Date(Date.now() - range * 86400_000) },
+    }).select('questions.bloomLevel questions.competency results.score').lean();
+
+    const bloom = new Map<string, number[]>();
+    const comp = new Map<string, number[]>();
+    for (const a of attempts) {
+      (a.results ?? []).forEach((r: { score: number }, i: number) => {
+        const q = (a.questions ?? [])[i] as { bloomLevel?: string; competency?: string } | undefined;
+        if (q?.bloomLevel) bloom.set(q.bloomLevel, [...(bloom.get(q.bloomLevel) ?? []), r.score]);
+        if (q?.competency) comp.set(q.competency, [...(comp.get(q.competency) ?? []), r.score]);
+      });
+    }
+    const mean = (xs: number[]) => round((xs.reduce((a, b) => a + b, 0) / xs.length) * 100);
+    res.json({
+      range,
+      byBloom: BLOOM_LEVELS.map((level) => ({ level, answers: bloom.get(level)?.length ?? 0, accuracy: bloom.get(level) ? mean(bloom.get(level)!) : null })),
+      byCompetency: [...comp.entries()].map(([name, xs]) => ({ name, answers: xs.length, accuracy: mean(xs) })).sort((a, b) => a.accuracy - b.accuracy),
+    });
+  } catch {
+    res.status(500).json({ error: 'Error fetching outcomes.' });
   }
 });
 

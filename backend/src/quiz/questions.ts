@@ -4,8 +4,25 @@ import { z } from 'zod';
 export const QUESTION_TYPES = ['multiple_choice', 'fill_blank', 'open_text', 'practical', 'real_case'] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
+/** Taxonomia Revisada de Bloom, do mais simples ao mais complexo */
+export const BLOOM_LEVELS = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'] as const;
+export type BloomLevel = (typeof BLOOM_LEVELS)[number];
+
+/** Nível padrão por tipo de pergunta, quando a IA (ou o professor) não informa */
+export const DEFAULT_BLOOM: Record<QuestionType, BloomLevel> = {
+  multiple_choice: 'remember',
+  fill_blank: 'remember',
+  open_text: 'understand',
+  practical: 'apply',
+  real_case: 'analyze',
+};
+
 const base = {
   id: z.string().optional(),
+  /** nível da Taxonomia de Bloom que a pergunta exige */
+  bloomLevel: z.enum(BLOOM_LEVELS).optional(),
+  /** competência trabalhada (definida pelo professor no caderno) */
+  competency: z.string().trim().max(80).optional(),
   topic: z.string().trim().min(1).max(80),
   question: z.string().trim().min(3),
   explanation: z.string().default(''),
@@ -65,7 +82,7 @@ const BLANK = /_{3,}/g;
 
 /** Ajusta detalhes que a IA costuma errar (ex.: nº de lacunas diferente do nº de respostas) */
 export function normalizeQuestion(q: Question, index: number): Question {
-  const withId = { ...q, id: q.id ?? `q${index + 1}` } as Question;
+  const withId = { ...q, id: q.id ?? `q${index + 1}`, bloomLevel: q.bloomLevel ?? DEFAULT_BLOOM[q.type] } as Question;
   if (withId.type === 'fill_blank') {
     const markers = (withId.question.match(BLANK) ?? []).length;
     if (markers === 0) return { ...withId, question: `${withId.question} ____`, acceptedAnswers: withId.acceptedAnswers.slice(0, 1) };

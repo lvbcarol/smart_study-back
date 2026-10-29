@@ -43,7 +43,8 @@ const TaskEditorPage: React.FC = () => {
   const [locked, setLocked] = useState(false);
   const [loading, setLoading] = useState(editing);
 
-  const [topic, setTopic] = useState('');
+  const [topic, setTopic] = useState(() => (taskId ? '' : searchParams.get('topic') ?? ''));
+  const [competencies, setCompetencies] = useState<string[]>([]);
   const [count, setCount] = useState(8);
   const [types, setTypes] = useState<QuestionType[]>([...QUESTION_TYPES]);
   const [generating, setGenerating] = useState(false);
@@ -65,6 +66,12 @@ const TaskEditorPage: React.FC = () => {
       setDueDate(toLocalInput(d.dueDate)); setPublished(d.published); setQuestions(d.questions); setLocked(d.submitted > 0);
     }).catch(() => navigate('/tasks', { replace: true })).finally(() => setLoading(false));
   }, [taskId, navigate]);
+
+  // competências da matéria escolhida (para marcar em cada pergunta)
+  useEffect(() => {
+    if (!notebookId) { setCompetencies([]); return; }
+    api.get<{ name: string }[]>(`/notebooks/${notebookId}/competencies`).then((r) => setCompetencies(r.data.map((c) => c.name))).catch(() => setCompetencies([]));
+  }, [notebookId]);
 
   const lessons = useMemo(() => notebooks?.find((n) => n._id === notebookId)?.lessons ?? [], [notebooks, notebookId]);
 
@@ -184,7 +191,7 @@ const TaskEditorPage: React.FC = () => {
           <ol className="space-y-4">
             {questions.map((q, i) => (
               <QuestionEditor
-                key={q.id ?? i} question={q} index={i} locked={locked}
+                key={q.id ?? i} question={q} index={i} locked={locked} competencies={competencies}
                 onChange={(next) => setQuestions((cur) => cur.map((x, j) => (j === i ? next : x)))}
                 onRemove={() => setQuestions((cur) => cur.filter((_, j) => j !== i))}
               />

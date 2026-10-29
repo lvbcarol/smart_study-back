@@ -15,6 +15,7 @@ import resultsRoutes from './routes/results.routes';
 import flashcardsRoutes from './routes/flashcards.routes';
 import agendaRoutes from './routes/agenda.routes';
 import studyRoutes from './routes/study.routes';
+import competencyRoutes from './routes/competency.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 
 export function createApp() {
@@ -45,6 +46,7 @@ export function createApp() {
   app.use('/api/usuario', usuarioRoutes);
   app.use('/api/turmas', turmaRoutes);
   app.use('/api/notebooks/:notebookId/materials', materialRoutes);
+  app.use('/api/notebooks/:notebookId/competencies', competencyRoutes);
   app.use('/api/notebooks', notebookRoutes);
   app.use('/api/lessons', lessonRoutes);
   app.use('/api/ai', aiLimiter, aiRoutes);

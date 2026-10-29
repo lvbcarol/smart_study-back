@@ -86,6 +86,12 @@ export async function seedDemo(): Promise<void> {
   await attempt(bruno, derivadas, 2, 75, 'Derivadas');
   await attempt(carla, integrais, 1, 50, 'Integrais');
 
+  // a Carla sumiu há duas semanas e as contas são antigas: ela aparece no painel de atenção do professor
+  // (createdAt é imutável no Mongoose, então a data vai direto no driver)
+  const DAYS = 24 * 60 * 60 * 1000;
+  await QuizAttempt.collection.updateMany({ user: carla._id }, { $set: { createdAt: new Date(Date.now() - 16 * DAYS) } });
+  await Usuario.collection.updateMany({ _id: { $in: [ana._id, bruno._id, carla._id] as any[] } }, { $set: { createdAt: new Date(Date.now() - 45 * DAYS) } });
+
   // tarefa publicada: a Ana já entregou, o Bruno e a Carla ainda não
   const taskQuestions = makeQuestions('Derivadas');
   const task = await Task.create({

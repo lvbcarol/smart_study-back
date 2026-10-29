@@ -4,7 +4,7 @@ import { getItem, removeItem, setItem } from '@/services/storage';
 import i18n, { serverLang, shortLang } from '@/i18n';
 import type { User } from '@/types';
 
-export type PreferenceChanges = Partial<Pick<User, 'name' | 'language' | 'theme' | 'palette' | 'fontScale' | 'weeklyGoalMinutes'>>;
+export type PreferenceChanges = Partial<Pick<User, 'name' | 'language' | 'theme' | 'palette' | 'fontScale' | 'weeklyGoalMinutes' | 'shareStudyTimeWithTeacher' | 'showLearningProfile'>>;
 
 interface AuthContextType {
   user: User | null;
@@ -13,6 +13,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<User>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  /** exclui a conta e os dados (exige a senha) e sai */
+  deleteAccount: (password: string) => Promise<void>;
   savePreferences: (changes: PreferenceChanges) => Promise<User>;
   /** recarrega só o vínculo com turmas (entrar/sair) sem reaplicar idioma e tema */
   refreshLinks: () => Promise<void>;
@@ -59,7 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // o app só cria contas de aluno
   const register = async (name: string, email: string, password: string) => {
-    await api.post('/usuario/register', { name, email, password, role: 'student', language: serverLang(i18n.language) });
+    await api.post('/usuario/register', { name, email, password, role: 'student', acceptTerms: true, language: serverLang(i18n.language) });
   };
 
   const savePreferences = async (changes: PreferenceChanges) => {
@@ -68,12 +70,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return data;
   };
 
+  const deleteAccount = async (password: string) => {
+    await api.delete('/usuario/me', { data: { password } });
+    await logout();
+  };
+
   const refreshLinks = async () => {
     const { data } = await api.get<User>('/usuario/me');
     setUserState((prev) => (prev ? { ...prev, turmas: data.turmas, linked: data.linked } : data));
   };
 
-  return <AuthContext.Provider value={{ user, loading, login, register, logout, savePreferences, refreshLinks }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading, login, register, logout, deleteAccount, savePreferences, refreshLinks }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {

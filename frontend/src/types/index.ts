@@ -21,6 +21,9 @@ export interface User {
   linked?: boolean;
   /** meta de estudo da semana, em minutos (0 = sem meta) */
   weeklyGoalMinutes?: number;
+  /** LGPD: o professor só vê o tempo de estudo se o aluno permitir */
+  shareStudyTimeWithTeacher?: boolean;
+  showLearningProfile?: boolean;
 }
 
 export interface StudentTurma {

@@ -8,6 +8,7 @@ import api from '../services/api';
 import { Notebook } from '../types';
 import { TurmaSummary } from '../types/classes';
 import MaterialsTab from '../components/MaterialsTab';
+import CompetenciesTab from '../components/CompetenciesTab';
 import { SelectField } from '../components/ds/SelectField';
 import { Badge, EmptyState, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ds/Misc';
 import { BackLink } from '../components/ds/PageParts';
@@ -53,7 +54,8 @@ const NotebookPage: React.FC = () => {
     );
   }
 
-  const tab = params.get('tab') === 'materials' ? 'materials' : 'lessons';
+  const requested = params.get('tab');
+  const tab = requested === 'materials' ? 'materials' : requested === 'competencies' && canEdit ? 'competencies' : 'lessons';
 
   return (
     <div className="space-y-8">
@@ -77,10 +79,11 @@ const NotebookPage: React.FC = () => {
         </div>
       )}
 
-      <Tabs value={tab} onValueChange={(v) => setParams(v === 'materials' ? { tab: 'materials' } : {})}>
+      <Tabs value={tab} onValueChange={(v) => setParams(v === 'lessons' ? {} : { tab: v })}>
         <TabsList aria-label={t('notebookPage.tabsLabel')}>
           <TabsTrigger value="lessons">{t('notebookPage.tabLessons')} ({notebook.lessons.length})</TabsTrigger>
           <TabsTrigger value="materials">{t('notebookPage.tabMaterials')}</TabsTrigger>
+          {canEdit && notebook.turma && <TabsTrigger value="competencies">{t('competencies.tab')}</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="lessons">
@@ -98,6 +101,10 @@ const NotebookPage: React.FC = () => {
               ))}
             </ul>
           )}
+        </TabsContent>
+
+        <TabsContent value="competencies">
+          <CompetenciesTab notebookId={notebook._id} canEdit={canEdit} />
         </TabsContent>
 
         <TabsContent value="materials">

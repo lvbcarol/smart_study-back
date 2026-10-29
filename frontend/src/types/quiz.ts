@@ -18,6 +18,10 @@ export interface PublicQuestion {
 
 export type AnswerValue = number | string | string[] | null;
 
+/** Taxonomia Revisada de Bloom, do mais simples ao mais complexo */
+export const BLOOM_LEVELS = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'] as const;
+export type BloomLevel = (typeof BLOOM_LEVELS)[number];
+
 export interface QuestionResult {
   type: QuestionType;
   topic: string;

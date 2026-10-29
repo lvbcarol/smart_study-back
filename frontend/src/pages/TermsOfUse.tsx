@@ -8,7 +8,7 @@ const TermsOfUse: React.FC = () => {
     <div className="mx-auto max-w-3xl">
       <article className="rounded-2xl border border-border bg-card p-6 shadow-soft md:p-10">
         <h1 className="mb-2 text-4xl font-extrabold tracking-tight">Terms of Use</h1>
-        <p className="mb-8 text-muted-foreground">Last Updated: 2025-07-07</p>
+        <p className="mb-8 text-muted-foreground">Last Updated: 2026-03 (version 2026-03)</p>
 
           <div className="prose prose-themed max-w-none space-y-6">
             <p>Welcome to Smart Study! These Terms of Use ("Terms") govern your access to and use of our website, services, and applications (collectively, the "Service"). Please read these Terms carefully before using our Service.</p>
@@ -50,13 +50,23 @@ const TermsOfUse: React.FC = () => {
             <p>The Service is provided on an "AS IS" and "AS AVAILABLE" basis. While we aim to provide a high-quality experience, we do not warrant that the service will be uninterrupted, secure, or error-free.</p>
             <p>In no event shall Smart Study, its creators, or its partners be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or in connection with your use of the Service.</p>
 
-            <h2 className="text-2xl font-bold pt-4 border-t mt-8">9. Governing Law</h2>
+            <h2 className="text-2xl font-bold pt-4 border-t mt-8">9. Privacy and Data Protection (LGPD)</h2>
+            <p>Smart Study is an academic project and processes personal data in line with Brazil's General Data Protection Law (Lei n.º 13.709/2018, "LGPD"). This section explains what we collect, why, and the choices you have.</p>
+            <p><strong>What we collect:</strong> your name, e-mail and (hashed) password; your preferences (language, theme, accessibility); the notebooks, lessons, chats, flashcards and agenda items you create; your quiz and task answers and scores; your study time; and a learning profile inferred from how you study (Kolb's experiential learning cycle).</p>
+            <p><strong>Why we collect it:</strong> only to run the Service: to grade answers, build your study plan and dashboards, adapt quizzes to what you miss, and let teachers follow their classes. We do not sell your data and we do not use it for advertising.</p>
+            <p><strong>What your teacher sees:</strong> if you join a class, your teacher sees your scores, task submissions and the class-level summaries. Your study time is shared with the teacher <em>only if you turn it on</em> (My account &gt; Privacy and data). You can also hide your learning profile; when hidden, it is not shown to you or to your teacher and is not used in your daily plan.</p>
+            <p><strong>AI processing:</strong> topics, messages and support materials may be sent to a third-party AI provider (such as Google Gemini) to generate summaries, quizzes and feedback. Do not send sensitive personal information to the AI features. AI decisions are explained to you (for example, the "Why this?" on each study-plan item) and the grading of open answers can be reviewed by your teacher.</p>
+            <p><strong>Your rights:</strong> you can download a copy of your data, correct it, and delete your account at any time in My account &gt; Privacy and data. Deleting your account erases your data from the Service. Teachers who delete their account also delete their classes, subjects, materials and tasks, and what students produced in them. You can withdraw consent at any time by deleting your account.</p>
+            <p><strong>Consent and age:</strong> when you create an account we record that you accepted these Terms and the version you accepted. You must be at least 13 years old, and minors should have the consent of a parent or guardian, as required by the LGPD.</p>
+            <p><strong>Contact for data requests:</strong> <a href="mailto:smartstudywebsite@gmail.com" className="text-primary hover:underline">smartstudywebsite@gmail.com</a>.</p>
+
+            <h2 className="text-2xl font-bold pt-4 border-t mt-8">10. Governing Law</h2>
             <p>These Terms shall be governed and construed in accordance with the laws of Brazil, without regard to its conflict of law provisions.</p>
 
-            <h2 className="text-2xl font-bold pt-4 border-t mt-8">10. Changes to Terms</h2>
+            <h2 className="text-2xl font-bold pt-4 border-t mt-8">11. Changes to Terms</h2>
             <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. We will provide at least 30 days' notice prior to any new terms taking effect. By continuing to access or use our Service after those revisions become effective, you agree to be bound by the revised terms.</p>
 
-            <h2 className="text-2xl font-bold pt-4 border-t mt-8">11. Contact Us</h2>
+            <h2 className="text-2xl font-bold pt-4 border-t mt-8">12. Contact Us</h2>
             <p>If you have any questions about these Terms, please contact us at: <a href="mailto:smartstudywebsite@gmail.com" className="text-primary hover:underline">smartstudywebsite@gmail.com</a>.</p>
           </div>
 

@@ -4,7 +4,9 @@ import AgendaItem from '../models/AgendaItem';
 import FlashcardDeck from '../models/FlashcardDeck';
 import Notebook from '../models/Notebook';
 import StudySession from '../models/StudySession';
+import Usuario from '../models/Usuario';
 import WeaknessStat from '../models/WeaknessStat';
+import { loadKolbProfile } from './kolbData';
 import { summarize } from '../flashcards/leitner';
 import { pickFocusTopics, StatLike } from '../quiz/weakness';
 import { accessibleNotebooksFilter } from '../services/access';
@@ -48,6 +50,11 @@ export async function loadPlanInput(userId: string, minutes: number, language: s
     ]),
   ]);
 
+  // perfil de Kolb: só entra no plano se o aluno não ocultou o perfil e houver dados suficientes
+  const me = await Usuario.findById(userId).select('showLearningProfile').lean();
+  const kolb = me?.showLearningProfile === false ? null : await loadKolbProfile(userId, now);
+  const gapStat = kolb?.hasGap && kolb.weakest ? kolb.quadrants.find((q) => q.id === kolb.weakest) : undefined;
+
   const lessons = new Map<string, PlanLesson>();
   for (const n of notebooks) for (const l of n.lessons) lessons.set(String(l._id), { id: String(l._id), title: l.title, notebookTitle: n.title });
 
@@ -66,5 +73,6 @@ export async function loadPlanInput(userId: string, minutes: number, language: s
     weaknesses,
     flashcardsDue: decks.reduce((sum, d) => sum + summarize(d.cards, now).due, 0),
     fallbackLessons,
+    kolbGap: gapStat ? { quadrant: gapStat.id, sharePercent: Math.round(gapStat.share * 100) } : undefined,
   };
 }

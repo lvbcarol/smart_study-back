@@ -20,6 +20,7 @@ const Register: React.FC = () => {
   const [role, setRole] = useState<Role>('student');
   const [inviteCode, setInviteCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [accepted, setAccepted] = useState(false);
 
   const roles: { id: Role; label: string; desc: string; icon: React.ReactNode }[] = [
     { id: 'student', label: t('auth.roleStudent'), desc: t('auth.roleStudentDesc'), icon: <BookOpen className="h-5 w-5" aria-hidden="true" /> },
@@ -34,7 +35,7 @@ const Register: React.FC = () => {
     }
     setIsLoading(true);
     try {
-      await api.post('/usuario/register', { name, email, password, role, ...(role === 'teacher' ? { inviteCode } : {}) });
+      await api.post('/usuario/register', { name, email, password, role, acceptTerms: accepted, ...(role === 'teacher' ? { inviteCode } : {}) });
       toast.success(t('auth.registerSuccess'));
       navigate('/login');
     } catch (err: any) {
@@ -80,7 +81,15 @@ const Register: React.FC = () => {
           <Field label={t('auth.inviteCode')} hint={t('auth.inviteHint')} value={inviteCode} onChange={(e) => setInviteCode(e.target.value)} required disabled={isLoading} autoComplete="off" />
         )}
 
-        <Button type="submit" size="lg" fullWidth loading={isLoading}>
+        <label className="flex cursor-pointer items-start gap-3 text-sm">
+          <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} required disabled={isLoading} className="mt-0.5 h-5 w-5 shrink-0 accent-[hsl(var(--primary))]" />
+          <span>
+            {t('auth.acceptTerms')}{' '}
+            <Link to="/terms-of-use" target="_blank" className="font-semibold text-primary underline">{t('auth.termsLink')}</Link>.
+          </span>
+        </label>
+
+        <Button type="submit" size="lg" fullWidth loading={isLoading} disabled={!accepted}>
           {isLoading ? t('auth.creating') : t('auth.createAccount')}
         </Button>
       </form>

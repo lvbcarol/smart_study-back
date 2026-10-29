@@ -9,6 +9,7 @@ import { useTheme } from '../context/ThemeContext';
 import { PALETTES } from '../theme/palettes';
 import type { ThemeMode } from '../types';
 import JoinClassSection from '../components/JoinClassSection';
+import PrivacySection from '../components/PrivacySection';
 import { Button } from '../components/ds/Button';
 import { Field } from '../components/ds/Field';
 import { Badge, Switch } from '../components/ds/Misc';
@@ -204,6 +205,10 @@ const MyAccount: React.FC = () => {
       <Section title={t('profile.accessibility')} description={t('myAccount.accessibilityHelpText')}>
         <Switch label={t('myAccount.audioDescription')} checked={audio} onCheckedChange={setAudio} />
         <Switch label={t('myAccount.signLanguage')} checked={sign} onCheckedChange={setSign} />
+      </Section>
+
+      <Section title={t('privacy.title')} description={t('privacy.desc')}>
+        <PrivacySection />
       </Section>
 
       <Section title={t('profile.changePassword')}>

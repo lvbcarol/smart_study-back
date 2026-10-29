@@ -20,6 +20,12 @@ export interface IUsuario extends Document {
   avatarColor: string;
   /** meta de estudo da semana, em minutos (0 = sem meta) */
   weeklyGoalMinutes: number;
+  /** LGPD: aceite dos Termos de uso (versão e momento) */
+  consent?: { version: string; at: Date };
+  /** o professor só vê o tempo de estudo do aluno se ele permitir (padrão: não) */
+  shareStudyTimeWithTeacher: boolean;
+  /** mostra o perfil de aprendizagem (Kolb) ao aluno e ao professor; o aluno pode ocultar */
+  showLearningProfile: boolean;
 }
 
 const UsuarioSchema: Schema = new Schema<IUsuario>({
@@ -41,6 +47,9 @@ const UsuarioSchema: Schema = new Schema<IUsuario>({
   fontScale: { type: Number, default: 1, min: 0.85, max: 1.4 },
   avatarColor: { type: String, default: '' },
   weeklyGoalMinutes: { type: Number, default: 0, min: 0, max: 6000 },
+  consent: { type: { version: String, at: Date }, _id: false },
+  shareStudyTimeWithTeacher: { type: Boolean, default: false },
+  showLearningProfile: { type: Boolean, default: true },
 }, { timestamps: true });
 
 // Hook para criptografar a senha antes de salvar

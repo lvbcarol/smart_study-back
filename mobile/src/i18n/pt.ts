@@ -1,6 +1,7 @@
 const pt = {
   common: { loading: 'Carregando...', save: 'Salvar', cancel: 'Cancelar', back: 'Voltar', retry: 'Tentar de novo', error: 'Algo deu errado. Tente de novo.', create: 'Criar', showPassword: 'Mostrar senha', hidePassword: 'Ocultar senha' },
   auth: {
+    acceptTerms: 'Li e aceito os Termos de uso (no site) e o tratamento dos meus dados.',
     bobAlt: 'Bob, o robô-professor do Smart Study, de capelo e óculos', bobLogin: 'Oi! Eu sou o Bob. Vamos estudar juntos hoje?', bobRegister: 'Que legal ter você por aqui! Vou te ajudar em cada etapa.',
     tagline: 'Estude com calma. Aprenda com clareza.',
     loginTitle: 'Que bom te ver de novo', loginSubtitle: 'Entre para continuar seus estudos.',
@@ -49,6 +50,38 @@ const pt = {
     timelineTitle: 'Evolução das notas', subjectsTitle: 'Por matéria', subjectsDesc: 'Toque em uma barra para ver as aulas.', lessonsOf: 'Aulas de {{title}}',
     typesTitle: 'Acerto por tipo de pergunta', weakTitle: 'Onde focar', weakDesc: 'Tópicos com erros recentes.', weakEmpty: 'Sem pontos fracos por enquanto. Continue assim!',
     errorRate: '{{rate}}% de erro', review: 'Revisar', reinforce: 'Reforçar {{topic}}',
+  },
+  kolb: {
+    title: 'Seu jeito de aprender', desc: 'Inferido do que você faz no app, com base no ciclo de Kolb. Muda conforme você estuda.', styleLabel: 'Estilo atual:', practice: 'Prática',
+    evidenceValue: '{{answers}} respostas · {{minutes}} min',
+    styles: { diverging: 'Divergente', assimilating: 'Assimilador', converging: 'Convergente', accommodating: 'Acomodador' },
+    styleDesc: {
+      diverging: 'Aprende observando e sentindo: gosta de casos reais, discussão e reflexão.',
+      assimilating: 'Aprende com teoria e lógica: gosta de modelos, leitura e conceitos bem organizados.',
+      converging: 'Aprende aplicando: gosta de resolver problemas técnicos e exercícios diretos.',
+      accommodating: 'Aprende fazendo: gosta de experimentar, de desafios novos e de aprender na prática.',
+    },
+    quadrants: { EC: 'Experiência concreta', OR: 'Observação reflexiva', CA: 'Conceituação abstrata', EA: 'Experimentação ativa' },
+    hints: { EC: 'perguntas de caso real', OR: 'ler um resumo e conversar com o Bob', CA: 'perguntas conceituais e flashcards', EA: 'perguntas práticas' },
+    notEnough: 'Ainda faltam dados para descobrir o seu estilo. Faça mais alguns quizzes e leia alguns resumos.', gap: 'Pouco praticado: {{name}} ({{pct}}%). Experimente: {{hint}}.',
+    whyTitle: 'Por que esse resultado?',
+    whyText: 'Contamos o que você faz: casos reais contam como experiência concreta; resumos e conversas, como observação reflexiva; perguntas conceituais e flashcards, como conceituação abstrata; perguntas práticas, como experimentação ativa.',
+    hide: 'Ocultar meu perfil', show: 'Mostrar meu perfil', hidden: 'Você ocultou o seu perfil de aprendizagem. Ele não aparece para você nem para o professor, e o plano do dia deixa de usá-lo.',
+  },
+  bloom: { title: 'Acerto por nível de Bloom', desc: 'Do mais simples (lembrar) ao mais complexo (criar).', levels: { remember: 'Lembrar', understand: 'Compreender', apply: 'Aplicar', analyze: 'Analisar', evaluate: 'Avaliar', create: 'Criar' } },
+  competencies: { studentTitle: 'Acerto por competência', studentDesc: 'Competências marcadas pelo professor nas perguntas das tarefas.' },
+  privacy: {
+    title: 'Privacidade e dados', desc: 'Você decide o que o professor vê e pode apagar seus dados quando quiser (LGPD).',
+    shareTime: 'Compartilhar meu tempo de estudo com o professor', shareTimeDesc: 'Desligado por padrão. Ligado, o professor vê o tempo médio de estudo.',
+    showProfile: 'Mostrar meu perfil de aprendizagem', showProfileDesc: 'Aparece no seu painel e, sem o seu nome, na distribuição da turma.',
+    saved: 'Preferência salva.', saveError: 'Não foi possível salvar.', exportOnWeb: 'Para baixar uma cópia dos seus dados, use o site (Minha conta > Privacidade e dados).',
+    delete: 'Excluir minha conta', deleteBody: 'Seus cadernos, quizzes, flashcards, agenda e tempo de estudo serão apagados. Isso não pode ser desfeito. Digite a sua senha para confirmar.',
+    passwordLabel: 'Sua senha', deleteConfirm: 'Excluir para sempre', deleteError: 'Não foi possível excluir. Confira a senha.',
+  },
+  nudge: {
+    dismiss: 'Dispensar lembrete', taskOverdue: 'A tarefa "{{title}}" está atrasada. Que tal entregar hoje?', taskDue: 'A tarefa "{{title}}" vence nas próximas 24 horas.',
+    goalClose: 'Falta pouco para a meta da semana: só mais {{left}} min!', goalDone: 'Meta da semana batida ({{goal}} min)! Parabéns! 🎉',
+    streak: '🔥 {{days}} dias seguidos estudando. Continue assim!', comeback: 'Faz {{days}} dias que você não estuda. Que tal 15 minutinhos hoje?', cards: '{{count}} flashcards esperando revisão.',
   },
   tabs: { home: 'Início', notebooks: 'Cadernos', agenda: 'Agenda', tasks: 'Tarefas', flashcards: 'Flashcards', performance: 'Painel', profile: 'Perfil' },
   home: {

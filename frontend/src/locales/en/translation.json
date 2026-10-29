@@ -457,6 +457,132 @@
     "studentsStruggling": "{{count}} of {{total}} students struggling",
     "heatmapTitle": "Scores by student and lesson"
   },
+  "kolb": {
+    "title": "How you learn",
+    "desc": "Inferred from what you do in the app, based on Kolb’s cycle. It is not a fixed label: it changes as you study.",
+    "styleLabel": "Current style:",
+    "quadrant": "Quadrant",
+    "practice": "Practice",
+    "evidence": "What was counted",
+    "evidenceValue": "{{answers}} answers · {{minutes}} min",
+    "styles": {
+      "diverging": "Diverging",
+      "assimilating": "Assimilating",
+      "converging": "Converging",
+      "accommodating": "Accommodating"
+    },
+    "styleDesc": {
+      "diverging": "Learns by watching and feeling: likes real cases, discussion and reflection.",
+      "assimilating": "Learns through theory and logic: likes models, reading and well-organized concepts.",
+      "converging": "Learns by applying: likes solving technical problems and direct exercises.",
+      "accommodating": "Learns by doing: likes experimenting, new challenges and hands-on learning."
+    },
+    "quadrants": {
+      "EC": "Concrete experience",
+      "OR": "Reflective observation",
+      "CA": "Abstract conceptualization",
+      "EA": "Active experimentation"
+    },
+    "hints": {
+      "EC": "real-case questions",
+      "OR": "reading a summary and chatting with Bob",
+      "CA": "concept questions and flashcards",
+      "EA": "practical questions"
+    },
+    "notEnough": "Not enough data yet to find your style. Take a few more quizzes and read some summaries.",
+    "gap": "Rarely practiced: {{name}} ({{pct}}%). Try: {{hint}}.",
+    "whyTitle": "Why this result?",
+    "whyText": "We count what you do: real cases count as concrete experience; summaries and chats, as reflective observation; concept questions and flashcards, as abstract conceptualization; practical questions, as active experimentation. Your style comes from where most of your practice is. You can hide this profile whenever you want.",
+    "hide": "Hide my profile",
+    "show": "Show my profile",
+    "hidden": "You hid your learning profile. It is not shown to you or to your teacher, and the daily plan stops using it."
+  },
+  "bloom": {
+    "title": "Accuracy by Bloom level",
+    "desc": "From the simplest (remember) to the most complex (create).",
+    "level": "Level",
+    "levels": {
+      "remember": "Remember",
+      "understand": "Understand",
+      "apply": "Apply",
+      "analyze": "Analyze",
+      "evaluate": "Evaluate",
+      "create": "Create"
+    }
+  },
+  "competencies": {
+    "tab": "Competencies",
+    "desc": "Define the subject competencies. Then tag each task question with the competency it works on.",
+    "add": "Add competency",
+    "nameLabel": "Competency name",
+    "placeholder": "E.g.: Critical thinking",
+    "added": "Competency added.",
+    "exists": "This competency already exists.",
+    "removed": "Competency removed.",
+    "error": "Could not save.",
+    "empty": "No competencies yet.",
+    "remove": "Remove {{name}}",
+    "studentTitle": "Accuracy by competency",
+    "studentDesc": "Competencies tagged by the teacher on task questions."
+  },
+  "privacy": {
+    "title": "Privacy and data",
+    "desc": "You decide what your teacher sees, and you can take or delete your data whenever you want (LGPD).",
+    "shareTime": "Share my study time with my teacher",
+    "shareTimeDesc": "Off by default. When on, the teacher sees the average study time and it counts as activity in the attention alert.",
+    "showProfile": "Show my learning profile",
+    "showProfileDesc": "The profile (Kolb) shows on your dashboard and, without your name, in the class distribution. When off, none of this is used.",
+    "saved": "Preference saved.",
+    "saveError": "Could not save.",
+    "export": "Download my data",
+    "exportDesc": "A file with everything the app stores about you.",
+    "exporting": "Preparing...",
+    "exportError": "Could not download.",
+    "delete": "Delete my account",
+    "deleteDesc": "Deletes your account and your data. This cannot be undone.",
+    "deleteTitle": "Delete your account?",
+    "deleteBody": "Your notebooks, quizzes, flashcards, agenda and study time will be deleted. Enter your password to confirm.",
+    "deleteTeacherBody": "Your classes, subjects, materials and tasks will be deleted, along with what students did in them. Enter your password to confirm.",
+    "passwordLabel": "Your password",
+    "deleteConfirm": "Delete forever",
+    "deleted": "Account deleted.",
+    "deleteError": "Could not delete. Check your password."
+  },
+  "risk": {
+    "title": "Attention: who may need help",
+    "desc": "Simple, explainable signs: no activity, falling scores and overdue tasks.",
+    "empty": "No one needs attention right now. 🎉",
+    "high": "High priority",
+    "medium": "Attention",
+    "flags": {
+      "inactive": "No activity for {{days}} days",
+      "falling": "Scores falling ({{previous}}% → {{recent}}%)",
+      "overdue": "{{count}} overdue task(s)"
+    },
+    "reinforce": "Create a reinforcement task",
+    "reinforceHint": "Topic the class misses the most: {{topic}}.",
+    "sharedMinutes": "Average weekly study (those who share)",
+    "stylesTitle": "Class learning styles",
+    "stylesDesc": "Inferred from the behavior of students who did not hide their profile. Use it to vary activities.",
+    "stylesEmpty": "Not enough student data yet.",
+    "style": "Style",
+    "insufficient": "No data yet",
+    "insufficientCount": "{{count}} student(s) without enough data.",
+    "hiddenCount": "{{count}} student(s) hid the profile.",
+    "outcomesTitle": "Performance by Bloom level and competency",
+    "outcomesDesc": "Shows how complex the questions the class already masters are."
+  },
+  "nudge": {
+    "title": "Reminders for you",
+    "dismiss": "Dismiss reminder",
+    "taskOverdue": "The task \"{{title}}\" is overdue. How about handing it in today?",
+    "taskDue": "The task \"{{title}}\" is due within 24 hours.",
+    "goalClose": "Almost at your weekly goal: just {{left}} more min!",
+    "goalDone": "Weekly goal reached ({{goal}} min)! Congrats! 🎉",
+    "streak": "🔥 {{days}} days in a row studying. Keep it up!",
+    "comeback": "It has been {{days}} days since you studied. How about 15 minutes today?",
+    "cards": "{{count}} flashcards waiting for review."
+  },
   "common": {
     "showPassword": "Show password",
     "hidePassword": "Hide password",
@@ -468,6 +594,7 @@
     "optional": "optional"
   },
   "auth": {
+    "acceptTerms": "I have read and accept the Terms of Use and the processing of my data.",
     "bobAlt": "Bob, the Smart Study robot teacher, wearing a graduation cap and glasses",
     "bobLogin": "Hi! I'm Bob. Shall we study together today?",
     "bobRegister": "So glad you're here! I'll help you every step of the way.",
@@ -772,6 +899,10 @@
       "pickSubjectFirst": "Pick the subject and lesson first.",
       "questionN": "Question {{n}}",
       "fields": {
+        "bloom": "Bloom level",
+        "bloomAuto": "Automatic (by question type)",
+        "competency": "Competency",
+        "noCompetency": "None",
         "topic": "Topic",
         "question": "Question text",
         "scenario": "Scenario",

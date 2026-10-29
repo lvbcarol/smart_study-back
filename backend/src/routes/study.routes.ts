@@ -11,6 +11,12 @@ import { clampOffset, localDay } from '../study/dates';
 import { loadPlanInput } from '../study/planData';
 import { buildStudyPlan } from '../study/planner';
 import { studyWeek } from '../study/week';
+import FlashcardDeck from '../models/FlashcardDeck';
+import { summarize } from '../flashcards/leitner';
+import { listStudentTasks } from '../services/studentTasks';
+import { daysSinceActivity, loadActiveDays } from '../study/activity';
+import { streakDays } from '../study/dashboard';
+import { buildNudges } from '../study/nudges';
 import { AuthRequest } from '../types';
 import { parseBody } from '../utils/validate';
 
@@ -72,6 +78,31 @@ router.get('/week', async (req: AuthRequest, res: Response) => {
     res.json(await studyWeek(req.userId as string, offsetFrom(req.query.tzOffset)));
   } catch {
     res.status(500).json({ error: 'Error fetching study time.' });
+  }
+});
+
+// GET /nudges?tzOffset= — lembretes motivacionais para a Home (os textos ficam a cargo de cada app)
+router.get('/nudges', async (req: AuthRequest, res: Response) => {
+  try {
+    const now = new Date();
+    const tz = offsetFrom(req.query.tzOffset);
+    const userId = req.userId as string;
+    const [active, week, tasks, decks] = await Promise.all([
+      loadActiveDays(userId, tz, now),
+      studyWeek(userId, tz, now),
+      listStudentTasks(userId, now),
+      FlashcardDeck.find({ user: userId }).select('cards.box cards.dueAt'),
+    ]);
+    res.json({
+      nudges: buildNudges({
+        now, streakDays: streakDays(active, now, tz), goalMinutes: week.goalMinutes, weekMinutes: week.totalMinutes,
+        pendingTasks: tasks.filter((t) => t.status !== 'submitted').map((t) => ({ id: String(t._id), title: t.title, dueAt: t.dueDate })),
+        daysSinceActivity: daysSinceActivity(active, now, tz),
+        flashcardsDue: decks.reduce((sum, d) => sum + summarize(d.cards, now).due, 0),
+      }),
+    });
+  } catch {
+    res.status(500).json({ error: 'Error fetching nudges.' });
   }
 });
 

@@ -1,5 +1,6 @@
 // src/study/dashboard.ts — números do dashboard do aluno (função pura: recebe os dados, devolve o painel)
-import { QUESTION_TYPES, QuestionType } from '../quiz/questions';
+import { BLOOM_LEVELS, QUESTION_TYPES, QuestionType } from '../quiz/questions';
+import type { KolbProfile } from './kolb';
 import { localDay } from './dates';
 import type { PlanWeakness } from './planner';
 import type { StudyWeek } from './week';
@@ -12,6 +13,9 @@ export interface DashAttempt {
   /** tipo e nota (0..1) de cada pergunta, na mesma ordem */
   types: string[];
   scores: number[];
+  /** nível de Bloom e competência de cada pergunta (podem faltar em tentativas antigas) */
+  blooms?: (string | undefined)[];
+  competencies?: (string | undefined)[];
 }
 
 export interface DashInput {
@@ -27,6 +31,8 @@ export interface DashInput {
   week: StudyWeek;
   /** dias (YYYY-MM-DD) com qualquer atividade: quiz, tarefa, cartões ou tempo de estudo */
   activeDays: Set<string>;
+  /** null quando o aluno ocultou o perfil de aprendizagem */
+  kolb?: KolbProfile | null;
 }
 
 const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
@@ -85,6 +91,20 @@ export function buildStudentDashboard(input: DashInput) {
     type, answered: typeScores.get(type)?.length ?? 0, accuracy: typeScores.get(type) ? Math.round(avg(typeScores.get(type)!) * 100) : null,
   }));
 
+  // acerto por nível de Bloom e por competência
+  const bloomScores = new Map<string, number[]>();
+  const compScores = new Map<string, number[]>();
+  for (const a of attempts) {
+    a.scores.forEach((score, i) => {
+      const b = a.blooms?.[i];
+      if (b) bloomScores.set(b, [...(bloomScores.get(b) ?? []), score]);
+      const c = a.competencies?.[i];
+      if (c) compScores.set(c, [...(compScores.get(c) ?? []), score]);
+    });
+  }
+  const byBloom = BLOOM_LEVELS.map((level) => ({ level, answered: bloomScores.get(level)?.length ?? 0, accuracy: bloomScores.get(level) ? Math.round(avg(bloomScores.get(level)!) * 100) : null }));
+  const byCompetency = [...compScores.entries()].map(([name, scores]) => ({ name, answered: scores.length, accuracy: Math.round(avg(scores) * 100) })).sort((x, y) => x.accuracy - y.accuracy);
+
   return {
     range: input.range,
     kpis: {
@@ -101,6 +121,9 @@ export function buildStudentDashboard(input: DashInput) {
     timeline,
     subjects,
     byType,
+    byBloom,
+    byCompetency,
+    kolb: input.kolb ?? null,
     weakTopics: input.weaknesses.slice(0, 8).map((w) => ({ topic: w.topic, lessonId: w.lessonId, lesson: w.lessonTitle, notebook: w.notebookTitle, errorRate: r1(w.rate * 100) })),
     study: input.week,
   };

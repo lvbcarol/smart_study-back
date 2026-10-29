@@ -9,6 +9,7 @@ import { Notebook } from '../types';
 import { TurmaSummary } from '../types/classes';
 import { StudentTaskRow } from '../types/tasks';
 import StudyPlanCard from '../components/StudyPlanCard';
+import NudgesCard from '../components/NudgesCard';
 import { Mascot } from '../components/mascot/Mascot';
 import { buttonVariants } from '../components/ds/Button';
 import { Skeleton } from '../components/ds/Misc';
@@ -75,6 +76,7 @@ const Home: React.FC = () => {
         <div aria-hidden="true" className="absolute -bottom-24 right-24 h-64 w-64 rounded-full bg-primary/10" />
       </section>
 
+      {!isTeacher && <NudgesCard />}
       {!isTeacher && <StudyPlanCard />}
 
       <section aria-label="Stats" className={isTeacher ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4' : 'grid gap-4 sm:grid-cols-2 lg:grid-cols-5'}>

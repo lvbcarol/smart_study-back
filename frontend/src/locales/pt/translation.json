@@ -456,6 +456,132 @@
     "studentsStruggling": "{{count}} de {{total}} alunos com dificuldade",
     "heatmapTitle": "Notas por aluno e aula"
   },
+  "kolb": {
+    "title": "Seu jeito de aprender",
+    "desc": "Inferido do que você faz no app, com base no ciclo de Kolb. Não é um rótulo fixo: muda conforme você estuda.",
+    "styleLabel": "Estilo atual:",
+    "quadrant": "Quadrante",
+    "practice": "Prática",
+    "evidence": "O que foi contado",
+    "evidenceValue": "{{answers}} respostas · {{minutes}} min",
+    "styles": {
+      "diverging": "Divergente",
+      "assimilating": "Assimilador",
+      "converging": "Convergente",
+      "accommodating": "Acomodador"
+    },
+    "styleDesc": {
+      "diverging": "Aprende observando e sentindo: gosta de casos reais, discussão e reflexão.",
+      "assimilating": "Aprende com teoria e lógica: gosta de modelos, leitura e conceitos bem organizados.",
+      "converging": "Aprende aplicando: gosta de resolver problemas técnicos e exercícios diretos.",
+      "accommodating": "Aprende fazendo: gosta de experimentar, de desafios novos e de aprender na prática."
+    },
+    "quadrants": {
+      "EC": "Experiência concreta",
+      "OR": "Observação reflexiva",
+      "CA": "Conceituação abstrata",
+      "EA": "Experimentação ativa"
+    },
+    "hints": {
+      "EC": "perguntas de caso real",
+      "OR": "ler um resumo e conversar com o Bob",
+      "CA": "perguntas conceituais e flashcards",
+      "EA": "perguntas práticas"
+    },
+    "notEnough": "Ainda faltam dados para descobrir o seu estilo. Faça mais alguns quizzes e leia alguns resumos.",
+    "gap": "Pouco praticado: {{name}} ({{pct}}%). Experimente: {{hint}}.",
+    "whyTitle": "Por que esse resultado?",
+    "whyText": "Contamos o que você faz: casos reais contam como experiência concreta; resumos e conversas, como observação reflexiva; perguntas conceituais e flashcards, como conceituação abstrata; perguntas práticas, como experimentação ativa. O estilo vem de onde está a maior parte da sua prática. Você pode ocultar este perfil quando quiser.",
+    "hide": "Ocultar meu perfil",
+    "show": "Mostrar meu perfil",
+    "hidden": "Você ocultou o seu perfil de aprendizagem. Ele não aparece para você nem para o professor, e o plano do dia deixa de usá-lo."
+  },
+  "bloom": {
+    "title": "Acerto por nível de Bloom",
+    "desc": "Do mais simples (lembrar) ao mais complexo (criar).",
+    "level": "Nível",
+    "levels": {
+      "remember": "Lembrar",
+      "understand": "Compreender",
+      "apply": "Aplicar",
+      "analyze": "Analisar",
+      "evaluate": "Avaliar",
+      "create": "Criar"
+    }
+  },
+  "competencies": {
+    "tab": "Competências",
+    "desc": "Defina as competências da matéria. Depois marque cada pergunta das tarefas com a competência que ela trabalha.",
+    "add": "Adicionar competência",
+    "nameLabel": "Nome da competência",
+    "placeholder": "Ex.: Pensamento crítico",
+    "added": "Competência adicionada.",
+    "exists": "Essa competência já existe.",
+    "removed": "Competência removida.",
+    "error": "Não foi possível salvar.",
+    "empty": "Nenhuma competência ainda.",
+    "remove": "Remover {{name}}",
+    "studentTitle": "Acerto por competência",
+    "studentDesc": "Competências marcadas pelo professor nas perguntas das tarefas."
+  },
+  "privacy": {
+    "title": "Privacidade e dados",
+    "desc": "Você decide o que o professor vê e pode levar ou apagar seus dados quando quiser (LGPD).",
+    "shareTime": "Compartilhar meu tempo de estudo com o professor",
+    "shareTimeDesc": "Desligado por padrão. Ligado, o professor vê o tempo médio de estudo e isso conta como atividade no alerta de atenção.",
+    "showProfile": "Mostrar meu perfil de aprendizagem",
+    "showProfileDesc": "O perfil (Kolb) aparece no seu painel e, sem o seu nome, na distribuição da turma. Desligado, nada disso é usado.",
+    "saved": "Preferência salva.",
+    "saveError": "Não foi possível salvar.",
+    "export": "Baixar meus dados",
+    "exportDesc": "Um arquivo com tudo o que o app guarda sobre você.",
+    "exporting": "Preparando...",
+    "exportError": "Não foi possível baixar.",
+    "delete": "Excluir minha conta",
+    "deleteDesc": "Apaga a sua conta e os seus dados. Isso não pode ser desfeito.",
+    "deleteTitle": "Excluir sua conta?",
+    "deleteBody": "Seus cadernos, quizzes, flashcards, agenda e tempo de estudo serão apagados. Digite a sua senha para confirmar.",
+    "deleteTeacherBody": "Suas turmas, matérias, materiais e tarefas serão apagados, junto com o que os alunos fizeram neles. Digite a sua senha para confirmar.",
+    "passwordLabel": "Sua senha",
+    "deleteConfirm": "Excluir para sempre",
+    "deleted": "Conta excluída.",
+    "deleteError": "Não foi possível excluir. Confira a senha."
+  },
+  "risk": {
+    "title": "Atenção: quem pode precisar de ajuda",
+    "desc": "Sinais simples e explicáveis: sem atividade, notas em queda e tarefas atrasadas.",
+    "empty": "Ninguém precisa de atenção agora. 🎉",
+    "high": "Prioridade alta",
+    "medium": "Atenção",
+    "flags": {
+      "inactive": "Sem atividade há {{days}} dias",
+      "falling": "Notas em queda ({{previous}}% → {{recent}}%)",
+      "overdue": "{{count}} tarefa(s) atrasada(s)"
+    },
+    "reinforce": "Criar tarefa de reforço",
+    "reinforceHint": "Tópico em que a turma mais erra: {{topic}}.",
+    "sharedMinutes": "Estudo médio na semana (quem compartilha)",
+    "stylesTitle": "Estilos de aprendizagem da turma",
+    "stylesDesc": "Inferidos do comportamento dos alunos que não ocultaram o perfil. Use para variar as atividades.",
+    "stylesEmpty": "Ainda não há dados suficientes dos alunos.",
+    "style": "Estilo",
+    "insufficient": "Sem dados ainda",
+    "insufficientCount": "{{count}} aluno(s) sem dados suficientes.",
+    "hiddenCount": "{{count}} aluno(s) ocultaram o perfil.",
+    "outcomesTitle": "Desempenho por nível de Bloom e competência",
+    "outcomesDesc": "Mostra quão complexas são as perguntas que a turma já domina."
+  },
+  "nudge": {
+    "title": "Lembretes para você",
+    "dismiss": "Dispensar lembrete",
+    "taskOverdue": "A tarefa \"{{title}}\" está atrasada. Que tal entregar hoje?",
+    "taskDue": "A tarefa \"{{title}}\" vence nas próximas 24 horas.",
+    "goalClose": "Falta pouco para a meta da semana: só mais {{left}} min!",
+    "goalDone": "Meta da semana batida ({{goal}} min)! Parabéns! 🎉",
+    "streak": "🔥 {{days}} dias seguidos estudando. Continue assim!",
+    "comeback": "Faz {{days}} dias que você não estuda. Que tal 15 minutinhos hoje?",
+    "cards": "{{count}} flashcards esperando revisão."
+  },
   "common": {
     "showPassword": "Mostrar senha",
     "hidePassword": "Ocultar senha",
@@ -467,6 +593,7 @@
     "optional": "opcional"
   },
   "auth": {
+    "acceptTerms": "Li e aceito os Termos de uso e o tratamento dos meus dados.",
     "bobAlt": "Bob, o robô-professor do Smart Study, de capelo e óculos",
     "bobLogin": "Oi! Eu sou o Bob. Vamos estudar juntos hoje?",
     "bobRegister": "Que legal ter você por aqui! Vou te ajudar em cada etapa.",
@@ -771,6 +898,10 @@
       "pickSubjectFirst": "Escolha a matéria e a aula primeiro.",
       "questionN": "Pergunta {{n}}",
       "fields": {
+        "bloom": "Nível de Bloom",
+        "bloomAuto": "Automático (pelo tipo de pergunta)",
+        "competency": "Competência",
+        "noCompetency": "Nenhuma",
         "topic": "Tópico",
         "question": "Enunciado",
         "scenario": "Cenário",

@@ -1,5 +1,5 @@
 // src/types/tasks.ts — tarefas e resultados
-import { AnswerValue, PublicQuestion, QuestionResult, QuestionType } from './quiz';
+import { AnswerValue, BloomLevel, PublicQuestion, QuestionResult, QuestionType } from './quiz';
 
 export interface TeacherTaskRow {
   _id: string;
@@ -50,6 +50,8 @@ export interface EditableQuestion {
   question: string;
   explanation: string;
   reinforcement?: boolean;
+  bloomLevel?: BloomLevel;
+  competency?: string;
   // múltipla escolha
   options?: string[];
   correctAnswerIndex?: number;

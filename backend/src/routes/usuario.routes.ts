@@ -6,6 +6,7 @@ import { z } from 'zod';
 import Usuario from '../models/Usuario';
 import Turma from '../models/Turma';
 import { listStudentTurmas } from '../services/access';
+import { deleteUserAccount, exportUserData } from '../services/privacy';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { AuthRequest } from '../types';
 import { parseBody } from '../utils/validate';
@@ -18,6 +19,8 @@ const registerSchema = z.object({
   password: z.string().min(6, 'A senha deve ter ao menos 6 caracteres.').max(128),
   role: z.enum(['student', 'teacher']).default('student'),
   inviteCode: z.string().optional(),
+  /** aceite dos Termos de uso e da política de dados (LGPD) */
+  acceptTerms: z.boolean().optional(),
 });
 
 const loginSchema = z.object({
@@ -37,7 +40,14 @@ const updateMeSchema = z.object({
   fontScale: z.number().min(0.85).max(1.4).optional(),
   avatarColor: z.string().max(30).optional(),
   weeklyGoalMinutes: z.number().int().min(0).max(6000).optional(),
+  shareStudyTimeWithTeacher: z.boolean().optional(),
+  showLearningProfile: z.boolean().optional(),
 });
+
+const deleteAccountSchema = z.object({ password: z.string().min(1) });
+
+/** Versão vigente dos Termos de uso: muda quando o texto mudar, para pedir novo aceite. */
+export const TERMS_VERSION = '2026-03';
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
@@ -63,6 +73,11 @@ router.post('/register', async (req: Request, res: Response) => {
   const data = parseBody(registerSchema, req.body, res);
   if (!data) return;
 
+  // sem aceite não há conta (o servidor pode relaxar isso só em testes: REQUIRE_CONSENT=false)
+  if (process.env.REQUIRE_CONSENT !== 'false' && data.acceptTerms !== true) {
+    return res.status(400).json({ error: 'É necessário aceitar os Termos de uso.' });
+  }
+
   if (data.role === 'teacher' && !validInviteCode(data.inviteCode)) {
     return res.status(403).json({ error: 'Código de convite inválido.' });
   }
@@ -76,6 +91,7 @@ router.post('/register', async (req: Request, res: Response) => {
       email: data.email,
       password: data.password,
       role: data.role,
+      ...(data.acceptTerms ? { consent: { version: TERMS_VERSION, at: new Date() } } : {}),
     });
 
     // Matricula o aluno nas turmas para as quais o professor já o convidou por e-mail
@@ -162,6 +178,36 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
   }
 });
 
+// ROTA GET /me/export - Baixa todos os dados da conta (direito de acesso, LGPD)
+router.get('/me/export', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const data = await exportUserData(req.userId as string);
+    if (!data) return res.status(404).json({ error: 'User not found.' });
+    res.setHeader('Content-Disposition', 'attachment; filename="smart-study-meus-dados.json"');
+    res.json(data);
+  } catch {
+    res.status(500).json({ error: 'Failed to export data.' });
+  }
+});
+
+// ROTA DELETE /me - Exclui a conta e os dados (direito de eliminação, LGPD); exige a senha
+router.delete('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const data = parseBody(deleteAccountSchema, req.body, res);
+  if (!data) return;
+  try {
+    const user = await Usuario.findById(req.userId).select('+password');
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    if (!(await bcrypt.compare(data.password, user.password))) {
+      // 403 (e não 401): senha errada não é sessão expirada, e os apps deslogam quando recebem 401
+      return res.status(403).json({ error: 'Password is incorrect.' });
+    }
+    await deleteUserAccount(String(user._id));
+    res.status(204).send();
+  } catch {
+    res.status(500).json({ error: 'Failed to delete account.' });
+  }
+});
+
 // ROTA PUT /me/password - Troca a senha (exige a senha atual)
 router.put('/me/password', authMiddleware, async (req: AuthRequest, res: Response) => {
   const data = parseBody(changePasswordSchema, req.body, res);
@@ -171,7 +217,7 @@ router.put('/me/password', authMiddleware, async (req: AuthRequest, res: Respons
     const user = await Usuario.findById(req.userId).select('+password');
     if (!user) return res.status(404).json({ error: 'User not found.' });
     if (!(await bcrypt.compare(data.currentPassword, user.password))) {
-      return res.status(401).json({ error: 'Current password is incorrect.' });
+      return res.status(403).json({ error: 'Current password is incorrect.' });
     }
     user.password = data.newPassword; // o hook pre-save faz o hash
     await user.save();

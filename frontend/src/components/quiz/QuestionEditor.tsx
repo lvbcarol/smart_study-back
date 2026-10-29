@@ -3,7 +3,8 @@ import React, { useId } from 'react';
 import { Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { EditableQuestion } from '../../types/tasks';
-import { QuestionType } from '../../types/quiz';
+import { BLOOM_LEVELS, QuestionType } from '../../types/quiz';
+import { SelectField } from '../ds/SelectField';
 import { Button } from '../ds/Button';
 import { Field } from '../ds/Field';
 import { Badge } from '../ds/Misc';
@@ -31,6 +32,8 @@ interface QuestionEditorProps {
   onChange: (q: EditableQuestion) => void;
   onRemove: () => void;
   locked?: boolean;
+  /** competências da matéria (o professor escolhe uma por pergunta) */
+  competencies?: string[];
 }
 
 /** Pergunta vazia de cada tipo, para "Adicionar pergunta". */
@@ -45,7 +48,7 @@ export function blankQuestion(type: QuestionType): EditableQuestion {
   }
 }
 
-export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question: q, index, onChange, onRemove, locked }) => {
+export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question: q, index, onChange, onRemove, locked, competencies = [] }) => {
   const { t } = useTranslation();
   const set = (patch: Partial<EditableQuestion>) => onChange({ ...q, ...patch });
   const f = (key: string, opts?: Record<string, unknown>) => t(`tasks.editor.fields.${key}`, opts);
@@ -65,6 +68,19 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question: q, ind
       </div>
 
       <Field label={f('topic')} value={q.topic} disabled={locked} maxLength={80} onChange={(e) => set({ topic: e.target.value })} />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <SelectField label={f('bloom')} value={q.bloomLevel ?? ''} disabled={locked} onChange={(e) => set({ bloomLevel: (e.target.value || undefined) as EditableQuestion['bloomLevel'] })}>
+          <option value="">{f('bloomAuto')}</option>
+          {BLOOM_LEVELS.map((level) => <option key={level} value={level}>{t(`bloom.levels.${level}`)}</option>)}
+        </SelectField>
+        {competencies.length > 0 && (
+          <SelectField label={f('competency')} value={q.competency ?? ''} disabled={locked} onChange={(e) => set({ competency: e.target.value || undefined })}>
+            <option value="">{f('noCompetency')}</option>
+            {competencies.map((c) => <option key={c} value={c}>{c}</option>)}
+          </SelectField>
+        )}
+      </div>
 
       {q.type === 'real_case' && <TextArea label={f('scenario')} value={q.scenario ?? ''} rows={3} disabled={locked} onChange={(v) => set({ scenario: v })} />}
       <TextArea label={f('question')} value={q.question} rows={q.type === 'multiple_choice' ? 2 : 3} disabled={locked} onChange={(v) => set({ question: v })} hint={q.type === 'fill_blank' ? f('blanksHint') : undefined} />
@@ -142,5 +158,7 @@ export function cleanQuestion(q: EditableQuestion): EditableQuestion {
   if (q.expectedAnswer !== undefined) out.expectedAnswer = q.expectedAnswer.trim();
   if (q.scenario !== undefined) out.scenario = q.scenario.trim();
   if (q.numeric && !Number.isFinite(q.numeric.value)) delete out.numeric;
+  if (!q.bloomLevel) delete out.bloomLevel;
+  if (!q.competency) delete out.competency;
   return out;
 }

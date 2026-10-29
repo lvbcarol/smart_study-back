@@ -52,7 +52,7 @@ Create exactly ${plan.count} questions for a university student. Respond with a 
 Distribution of regular questions:
 ${mix.map(([t, n]) => `- ${n} x ${t}`).join('\n')}
 ${reinforce ? `\nReinforcement questions (${plan.reinforce.length}): re-teach a concept the student missed, but in a DIFFERENT way: new wording, new angle, never repeat the original statement. Set "reinforcement": true on these and reuse the exact concept name as "topic".\n${reinforce}\n` : ''}
-Every question object has: "type", "topic" (short concept label, 2-4 words; reuse the same label for questions on the same concept), "question", "explanation" (brief and didactic), and the type-specific keys:
+Every question object has: "type", "topic" (short concept label, 2-4 words; reuse the same label for questions on the same concept), "question", "explanation" (brief and didactic), "bloomLevel" (one of remember, understand, apply, analyze, evaluate, create: the cognitive demand of the question in Bloom's revised taxonomy), and the type-specific keys:
 ${Object.values(TYPE_HELP).map((h) => `- ${h}`).join('\n')}
 Return only the JSON.`;
   };

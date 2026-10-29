@@ -97,7 +97,7 @@ describe('troca de senha', () => {
     await register('Troca', 'troca@test.com');
     const auth = await tokenFor('troca@test.com');
     const wrong = await request(app).put('/api/usuario/me/password').set('Authorization', auth).send({ currentPassword: 'errada', newPassword: 'novasenha1' });
-    expect(wrong.status).toBe(401);
+    expect(wrong.status).toBe(403);
     const short = await request(app).put('/api/usuario/me/password').set('Authorization', auth).send({ currentPassword: 'secret123', newPassword: '123' });
     expect(short.status).toBe(400);
     const ok = await request(app).put('/api/usuario/me/password').set('Authorization', auth).send({ currentPassword: 'secret123', newPassword: 'novasenha1' });

@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/theme/ThemeContext';
 import { PALETTES } from '@/theme/palettes';
 import { JoinClassCard } from '@/components/JoinClassCard';
+import { PrivacyCard } from '@/components/PrivacyCard';
 import { Badge, Button, Card, Row, Screen, T } from '@/ui';
 
 /** Opção selecionável (rádio) com estado acessível. */
@@ -86,6 +87,8 @@ export default function Profile() {
           ))}
         </Row>
       </Card>
+
+      <PrivacyCard />
 
       <Button title={t('profile.logout')} variant="outline" onPress={async () => { await logout(); router.replace('/login'); }} />
     </Screen>

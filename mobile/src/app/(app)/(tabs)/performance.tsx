@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/theme/ThemeContext';
 import { sendStudySession } from '@/hooks/useStudyTimer';
 import { BarChartH, BarChartV, LineChart } from '@/components/charts';
+import { KolbCard } from '@/components/KolbCard';
 import type { Notebook, StudentDashboard } from '@/types';
 import { Badge, Button, Card, Chip, EmptyState, Field, Loading, Row, Screen, T } from '@/ui';
 
@@ -216,6 +217,32 @@ export default function Performance() {
           />
         )}
       </Card>
+
+      <KolbCard kolb={data.kolb} onChanged={load} />
+
+      <Card style={{ gap: 12 }}>
+        <T variant="heading">{t('bloom.title')}</T>
+        <T variant="small">{t('bloom.desc')}</T>
+        {data.byBloom.every((b) => b.accuracy === null) ? <T variant="muted">{t('dash.noQuizzes')}</T> : (
+          <BarChartH
+            data={data.byBloom.map((b, i) => ({ label: t(`bloom.levels.${b.level}`), value: b.accuracy ?? -1, color: colors.charts[i % colors.charts.length] }))}
+            summary={`${t('bloom.title')}: ${data.byBloom.filter((b) => b.accuracy !== null).map((b) => `${t(`bloom.levels.${b.level}`)} ${b.accuracy}%`).join(', ')}`}
+          />
+        )}
+      </Card>
+
+      {data.byCompetency.length > 0 && (
+        <Card style={{ gap: 10 }}>
+          <T variant="heading">{t('competencies.studentTitle')}</T>
+          <T variant="small">{t('competencies.studentDesc')}</T>
+          {data.byCompetency.map((c) => (
+            <Row key={c.name} style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
+              <T variant="body" style={{ flex: 1 }}>{c.name}</T>
+              <Badge variant={c.accuracy >= 70 ? 'success' : c.accuracy >= 50 ? 'warning' : 'destructive'}>{c.accuracy}%</Badge>
+            </Row>
+          ))}
+        </Card>
+      )}
 
       <Card style={{ gap: 10 }}>
         <T variant="heading">{t('dash.weakTitle')}</T>

@@ -1,7 +1,7 @@
 // src/models/StudyPlan.ts — plano de estudo do dia (um por aluno e por dia)
 import mongoose, { Document, Schema, Model, Types } from 'mongoose';
 
-export const BLOCK_KINDS = ['task', 'agenda', 'weakness', 'flashcards', 'explore'] as const;
+export const BLOCK_KINDS = ['task', 'agenda', 'weakness', 'flashcards', 'explore', 'kolb'] as const;
 export type BlockKind = (typeof BLOCK_KINDS)[number];
 
 export interface PlanBlock {
@@ -12,7 +12,7 @@ export interface PlanBlock {
   /** o "por quê?": explica a sugestão ao aluno */
   reason: string;
   /** para onde o app leva o aluno ao tocar no bloco */
-  link: { type: 'task' | 'quiz' | 'flashcards' | 'lesson' | 'agenda'; id?: string };
+  link: { type: 'task' | 'quiz' | 'flashcards' | 'lesson' | 'summary' | 'agenda'; id?: string };
   done: boolean;
 }
 

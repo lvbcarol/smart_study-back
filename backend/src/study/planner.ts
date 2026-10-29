@@ -4,7 +4,7 @@
 // e um tempo desejado. Os candidatos entram do mais urgente ao menos urgente até o tempo do aluno acabar.
 // Todo bloco carrega o motivo ("por quê?"), para o aluno entender e poder discordar da sugestão.
 import type { BlockKind, PlanBlock } from '../models/StudyPlan';
-import { msg, planLang, PlanLang } from './messages';
+import { msg, planLang, PlanLang, MessageKey } from './messages';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const STEP = 5; // os blocos são arredondados de 5 em 5 minutos
@@ -14,6 +14,8 @@ export interface PlanTask { id: string; title: string; dueAt: Date | null; statu
 export interface PlanAgendaItem { id: string; title: string; kind: 'task' | 'reminder'; dueAt: Date | null }
 export interface PlanWeakness { lessonId: string; lessonTitle: string; notebookTitle: string; topic: string; rate: number }
 export interface PlanLesson { id: string; title: string; notebookTitle: string }
+/** quadrante do ciclo de Kolb pouco praticado, com a % que ele representa hoje */
+export interface KolbGap { quadrant: 'EC' | 'OR' | 'CA' | 'EA'; sharePercent: number }
 
 export interface PlanInput {
   minutes: number;
@@ -28,6 +30,8 @@ export interface PlanInput {
   flashcardsDue: number;
   /** aulas para sugerir quando não há pendências (a primeira é a menos estudada recentemente) */
   fallbackLessons: PlanLesson[];
+  /** perfil de Kolb: quadrante menos praticado (ausente se o aluno ocultou o perfil ou faltam dados) */
+  kolbGap?: KolbGap;
 }
 
 export type PlannedBlock = Omit<PlanBlock, 'done'>;
@@ -106,6 +110,18 @@ export function buildStudyPlan(input: PlanInput): PlanResult {
     candidates.push({
       id: `explore:${l.id}`, kind: 'explore', minutes: 20, score: 10, title: msg(lang, 'exploreTitle', { lesson: l.title }),
       reason: msg(lang, 'explore', { lesson: l.title, notebook: l.notebookTitle }), link: { type: 'lesson', id: l.id },
+    });
+  }
+
+  // lacuna do ciclo de Kolb: um extra de baixa prioridade que completa o ciclo de aprendizagem
+  if (input.kolbGap && input.fallbackLessons.length > 0) {
+    const lesson = input.fallbackLessons[0];
+    const q = input.kolbGap.quadrant;
+    candidates.push({
+      id: `kolb:${q}`, kind: 'kolb', minutes: 10, score: 45,
+      title: msg(lang, `kolbTitle${q}` as MessageKey),
+      reason: msg(lang, 'kolbReason', { pct: input.kolbGap.sharePercent, name: msg(lang, `kolbName${q}` as MessageKey) }),
+      link: { type: q === 'OR' ? 'summary' : 'quiz', id: lesson.id },
     });
   }
 

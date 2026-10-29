@@ -17,6 +17,9 @@ export interface User {
   linked?: boolean;
   /** meta de estudo da semana, em minutos (0 = sem meta) */
   weeklyGoalMinutes?: number;
+  /** LGPD: o professor só vê o tempo de estudo se o aluno permitir */
+  shareStudyTimeWithTeacher?: boolean;
+  showLearningProfile?: boolean;
 }
 
 export interface StudentTurma { _id: string; name: string; teacherName: string }
@@ -142,6 +145,18 @@ export interface StudentDashboard {
   timeline: { date: string; average: number; attempts: number }[];
   subjects: { notebookId: string; title: string; average: number; attempts: number; lessons: { lessonId: string; title: string; average: number; attempts: number }[] }[];
   byType: { type: 'multiple_choice' | 'fill_blank' | 'open_text' | 'practical' | 'real_case'; answered: number; accuracy: number | null }[];
+  byBloom: { level: 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create'; answered: number; accuracy: number | null }[];
+  byCompetency: { name: string; answered: number; accuracy: number }[];
+  kolb: KolbProfile | null;
   weakTopics: { topic: string; lessonId: string; lesson: string; notebook: string; errorRate: number }[];
   study: StudyWeek;
+}
+
+export interface KolbProfile {
+  quadrants: { id: 'EC' | 'OR' | 'CA' | 'EA'; share: number; accuracy: number | null; answers: number; minutes: number }[];
+  style: 'diverging' | 'assimilating' | 'converging' | 'accommodating' | null;
+  enough: boolean;
+  weakest: 'EC' | 'OR' | 'CA' | 'EA' | null;
+  hasGap: boolean;
+  totalWeight: number;
 }

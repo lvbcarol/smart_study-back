@@ -12,6 +12,8 @@ export default defineConfig({
       TEACHER_INVITE_CODE: 'invite-123',
       AI_MODE: 'mock',
       AI_RATE_LIMIT: '1000',
+      // os testes registram usuários sem passar pelo aceite dos Termos; tcc-api.test.ts liga a exigência
+      REQUIRE_CONSENT: 'false',
     },
   },
 });

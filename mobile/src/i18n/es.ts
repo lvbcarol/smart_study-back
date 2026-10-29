@@ -6,6 +6,7 @@ type Shape<T> = { [K in keyof T]: T[K] extends string ? string : Shape<T[K]> };
 const es: Shape<typeof pt> = {
   common: { loading: 'Cargando...', save: 'Guardar', cancel: 'Cancelar', back: 'Volver', retry: 'Intentar de nuevo', error: 'Algo salió mal. Inténtalo de nuevo.', create: 'Crear', showPassword: 'Mostrar contraseña', hidePassword: 'Ocultar contraseña' },
   auth: {
+    acceptTerms: 'He leído y acepto los Términos de uso (en el sitio web) y el tratamiento de mis datos.',
     bobAlt: 'Bob, el robot profesor de Smart Study, con birrete y gafas', bobLogin: '¡Hola! Soy Bob. ¿Estudiamos juntos hoy?', bobRegister: '¡Qué bueno tenerte aquí! Te ayudaré en cada paso.',
     tagline: 'Estudia con calma. Aprende con claridad.',
     loginTitle: 'Qué bueno verte de nuevo', loginSubtitle: 'Inicia sesión para seguir estudiando.',
@@ -54,6 +55,38 @@ const es: Shape<typeof pt> = {
     timelineTitle: 'Evolución de las notas', subjectsTitle: 'Por materia', subjectsDesc: 'Toca una barra para ver las lecciones.', lessonsOf: 'Lecciones de {{title}}',
     typesTitle: 'Aciertos por tipo de pregunta', weakTitle: 'Dónde concentrarte', weakDesc: 'Temas con errores recientes.', weakEmpty: 'Sin puntos débiles por ahora. ¡Sigue así!',
     errorRate: '{{rate}}% de error', review: 'Repasar', reinforce: 'Reforzar {{topic}}',
+  },
+  kolb: {
+    title: 'Tu forma de aprender', desc: 'Inferida de lo que haces en la app, según el ciclo de Kolb. Cambia mientras estudias.', styleLabel: 'Estilo actual:', practice: 'Práctica',
+    evidenceValue: '{{answers}} respuestas · {{minutes}} min',
+    styles: { diverging: 'Divergente', assimilating: 'Asimilador', converging: 'Convergente', accommodating: 'Acomodador' },
+    styleDesc: {
+      diverging: 'Aprende observando y sintiendo: le gustan los casos reales, la discusión y la reflexión.',
+      assimilating: 'Aprende con teoría y lógica: le gustan los modelos, la lectura y los conceptos bien organizados.',
+      converging: 'Aprende aplicando: le gusta resolver problemas técnicos y ejercicios directos.',
+      accommodating: 'Aprende haciendo: le gusta experimentar, los desafíos nuevos y aprender en la práctica.',
+    },
+    quadrants: { EC: 'Experiencia concreta', OR: 'Observación reflexiva', CA: 'Conceptualización abstracta', EA: 'Experimentación activa' },
+    hints: { EC: 'preguntas de caso real', OR: 'leer un resumen y conversar con Bob', CA: 'preguntas conceptuales y flashcards', EA: 'preguntas prácticas' },
+    notEnough: 'Aún faltan datos para descubrir tu estilo. Haz algunos quizzes más y lee algunos resúmenes.', gap: 'Poco practicado: {{name}} ({{pct}}%). Prueba: {{hint}}.',
+    whyTitle: '¿Por qué este resultado?',
+    whyText: 'Contamos lo que haces: los casos reales cuentan como experiencia concreta; los resúmenes y las conversaciones, como observación reflexiva; las preguntas conceptuales y las flashcards, como conceptualización abstracta; las preguntas prácticas, como experimentación activa.',
+    hide: 'Ocultar mi perfil', show: 'Mostrar mi perfil', hidden: 'Ocultaste tu perfil de aprendizaje. No se muestra ni a ti ni a tu profesor, y el plan del día deja de usarlo.',
+  },
+  bloom: { title: 'Aciertos por nivel de Bloom', desc: 'Del más simple (recordar) al más complejo (crear).', levels: { remember: 'Recordar', understand: 'Comprender', apply: 'Aplicar', analyze: 'Analizar', evaluate: 'Evaluar', create: 'Crear' } },
+  competencies: { studentTitle: 'Aciertos por competencia', studentDesc: 'Competencias marcadas por el profesor en las preguntas de las tareas.' },
+  privacy: {
+    title: 'Privacidad y datos', desc: 'Tú decides qué ve el profesor y puedes borrar tus datos cuando quieras (LGPD).',
+    shareTime: 'Compartir mi tiempo de estudio con el profesor', shareTimeDesc: 'Desactivado por defecto. Activado, el profesor ve el tiempo medio de estudio.',
+    showProfile: 'Mostrar mi perfil de aprendizaje', showProfileDesc: 'Aparece en tu panel y, sin tu nombre, en la distribución de la clase.',
+    saved: 'Preferencia guardada.', saveError: 'No se pudo guardar.', exportOnWeb: 'Para descargar una copia de tus datos, usa el sitio web (Mi cuenta > Privacidad y datos).',
+    delete: 'Eliminar mi cuenta', deleteBody: 'Tus cuadernos, quizzes, flashcards, agenda y tiempo de estudio se borrarán. No se puede deshacer. Escribe tu contraseña para confirmar.',
+    passwordLabel: 'Tu contraseña', deleteConfirm: 'Eliminar para siempre', deleteError: 'No se pudo eliminar. Revisa la contraseña.',
+  },
+  nudge: {
+    dismiss: 'Descartar recordatorio', taskOverdue: 'La tarea "{{title}}" está atrasada. ¿Qué tal entregarla hoy?', taskDue: 'La tarea "{{title}}" vence en las próximas 24 horas.',
+    goalClose: 'Falta poco para la meta de la semana: ¡solo {{left}} min más!', goalDone: '¡Meta de la semana cumplida ({{goal}} min)! ¡Felicidades! 🎉',
+    streak: '🔥 {{days}} días seguidos estudiando. ¡Sigue así!', comeback: 'Hace {{days}} días que no estudias. ¿Qué tal 15 minutitos hoy?', cards: '{{count}} flashcards esperando repaso.',
   },
   tabs: { home: 'Inicio', notebooks: 'Cuadernos', agenda: 'Agenda', tasks: 'Tareas', flashcards: 'Flashcards', performance: 'Panel', profile: 'Perfil' },
   home: {

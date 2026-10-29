@@ -8,6 +8,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { useRemote } from '@/hooks/useRemote';
 import type { Notebook, StudentTaskRow } from '@/types';
 import { StudyPlanCard } from '@/components/StudyPlanCard';
+import { NudgesCard } from '@/components/NudgesCard';
 import { Mascot } from '@/components/mascot/Mascot';
 import { Button, Card, Loading, Screen, T } from '@/ui';
 
@@ -51,6 +52,7 @@ export default function Home() {
         <Mascot pose="wave" size={84} />
       </View>
 
+      <NudgesCard />
       <StudyPlanCard />
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>

@@ -6,6 +6,7 @@ type Shape<T> = { [K in keyof T]: T[K] extends string ? string : Shape<T[K]> };
 const en: Shape<typeof pt> = {
   common: { loading: 'Loading...', save: 'Save', cancel: 'Cancel', back: 'Back', retry: 'Try again', error: 'Something went wrong. Please try again.', create: 'Create', showPassword: 'Show password', hidePassword: 'Hide password' },
   auth: {
+    acceptTerms: 'I have read and accept the Terms of Use (on the website) and the processing of my data.',
     bobAlt: 'Bob, the Smart Study robot teacher, wearing a graduation cap and glasses', bobLogin: "Hi! I'm Bob. Shall we study together today?", bobRegister: "So glad you're here! I'll help you every step of the way.",
     tagline: 'Study calmly. Learn clearly.',
     loginTitle: 'Good to see you again', loginSubtitle: 'Log in to continue studying.',
@@ -54,6 +55,38 @@ const en: Shape<typeof pt> = {
     timelineTitle: 'Score trend', subjectsTitle: 'By subject', subjectsDesc: 'Tap a bar to see its lessons.', lessonsOf: 'Lessons of {{title}}',
     typesTitle: 'Accuracy by question type', weakTitle: 'Where to focus', weakDesc: 'Topics with recent mistakes.', weakEmpty: 'No weak spots for now. Keep it up!',
     errorRate: '{{rate}}% error', review: 'Review', reinforce: 'Reinforce {{topic}}',
+  },
+  kolb: {
+    title: 'How you learn', desc: 'Inferred from what you do in the app, based on Kolb\u2019s cycle. It changes as you study.', styleLabel: 'Current style:', practice: 'Practice',
+    evidenceValue: '{{answers}} answers · {{minutes}} min',
+    styles: { diverging: 'Diverging', assimilating: 'Assimilating', converging: 'Converging', accommodating: 'Accommodating' },
+    styleDesc: {
+      diverging: 'Learns by watching and feeling: likes real cases, discussion and reflection.',
+      assimilating: 'Learns through theory and logic: likes models, reading and well-organized concepts.',
+      converging: 'Learns by applying: likes solving technical problems and direct exercises.',
+      accommodating: 'Learns by doing: likes experimenting, new challenges and hands-on learning.',
+    },
+    quadrants: { EC: 'Concrete experience', OR: 'Reflective observation', CA: 'Abstract conceptualization', EA: 'Active experimentation' },
+    hints: { EC: 'real-case questions', OR: 'reading a summary and chatting with Bob', CA: 'concept questions and flashcards', EA: 'practical questions' },
+    notEnough: 'Not enough data yet to find your style. Take a few more quizzes and read some summaries.', gap: 'Rarely practiced: {{name}} ({{pct}}%). Try: {{hint}}.',
+    whyTitle: 'Why this result?',
+    whyText: 'We count what you do: real cases count as concrete experience; summaries and chats, as reflective observation; concept questions and flashcards, as abstract conceptualization; practical questions, as active experimentation.',
+    hide: 'Hide my profile', show: 'Show my profile', hidden: 'You hid your learning profile. It is not shown to you or to your teacher, and the daily plan stops using it.',
+  },
+  bloom: { title: 'Accuracy by Bloom level', desc: 'From the simplest (remember) to the most complex (create).', levels: { remember: 'Remember', understand: 'Understand', apply: 'Apply', analyze: 'Analyze', evaluate: 'Evaluate', create: 'Create' } },
+  competencies: { studentTitle: 'Accuracy by competency', studentDesc: 'Competencies tagged by the teacher on task questions.' },
+  privacy: {
+    title: 'Privacy and data', desc: 'You decide what your teacher sees, and you can delete your data whenever you want (LGPD).',
+    shareTime: 'Share my study time with my teacher', shareTimeDesc: 'Off by default. When on, the teacher sees the average study time.',
+    showProfile: 'Show my learning profile', showProfileDesc: 'Shows on your dashboard and, without your name, in the class distribution.',
+    saved: 'Preference saved.', saveError: 'Could not save.', exportOnWeb: 'To download a copy of your data, use the website (My account > Privacy and data).',
+    delete: 'Delete my account', deleteBody: 'Your notebooks, quizzes, flashcards, agenda and study time will be deleted. This cannot be undone. Enter your password to confirm.',
+    passwordLabel: 'Your password', deleteConfirm: 'Delete forever', deleteError: 'Could not delete. Check your password.',
+  },
+  nudge: {
+    dismiss: 'Dismiss reminder', taskOverdue: 'The task "{{title}}" is overdue. How about handing it in today?', taskDue: 'The task "{{title}}" is due within 24 hours.',
+    goalClose: 'Almost at your weekly goal: just {{left}} more min!', goalDone: 'Weekly goal reached ({{goal}} min)! Congrats! 🎉',
+    streak: '🔥 {{days}} days in a row studying. Keep it up!', comeback: 'It has been {{days}} days since you studied. How about 15 minutes today?', cards: '{{count}} flashcards waiting for review.',
   },
   tabs: { home: 'Home', notebooks: 'Notebooks', agenda: 'Agenda', tasks: 'Tasks', flashcards: 'Flashcards', performance: 'Stats', profile: 'Profile' },
   home: {
