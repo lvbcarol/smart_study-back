@@ -13,6 +13,8 @@ import materialRoutes from './routes/material.routes';
 import tasksRoutes from './routes/tasks.routes';
 import resultsRoutes from './routes/results.routes';
 import flashcardsRoutes from './routes/flashcards.routes';
+import agendaRoutes from './routes/agenda.routes';
+import studyRoutes from './routes/study.routes';
 
 export function createApp() {
   const app = express();
@@ -50,6 +52,8 @@ export function createApp() {
   app.use('/api/results', resultsRoutes);
   app.use('/api/flashcards', flashcardsRoutes);
   app.use('/api/progress', progressRoutes);
+  app.use('/api/agenda', agendaRoutes);
+  app.use('/api/study', studyRoutes);
 
   return app;
 }

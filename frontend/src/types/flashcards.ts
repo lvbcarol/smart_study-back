@@ -22,6 +22,7 @@ export interface SessionCard {
 
 export interface StudySession {
   title: string;
+  lessonId?: string;
   cards: SessionCard[];
   stats: { total: number; due: number; new: number; learned: number };
 }

@@ -8,6 +8,7 @@ import { Check, RotateCcw, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import { useStudyTimer } from '../hooks/useStudyTimer';
 import { SessionCard, StudySession } from '../types/flashcards';
 import { Button } from '../components/ds/Button';
 import { Badge, EmptyState, Skeleton } from '../components/ds/Misc';
@@ -50,6 +51,7 @@ const FlashcardStudyPage: React.FC = () => {
   useEffect(loadSession, [loadSession]);
 
   const current = queue[0];
+  useStudyTimer('flashcards', session?.lessonId, !!session);
 
   const decide = useCallback(async (remembered: boolean) => {
     if (!current || busy || !revealed) return;

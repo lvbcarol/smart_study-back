@@ -5,6 +5,7 @@ import { FileText, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import { useStudyTimer } from '../hooks/useStudyTimer';
 import ChatMessage from '../components/ChatMessage';
 import { Button } from '../components/ds/Button';
 import { ChatInput } from '../components/ds/ChatInput';
@@ -18,6 +19,7 @@ interface Message {
 const SummaryPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { lessonId } = useParams();
+  useStudyTimer('summary', lessonId);
 
   const [lessonTitle, setLessonTitle] = useState('');
   const [materialsCount, setMaterialsCount] = useState(0);

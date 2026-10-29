@@ -36,6 +36,7 @@ import TaskPage from './pages/TaskPage';
 import TaskEditorPage from './pages/TaskEditorPage';
 import StudentResultsPage from './pages/StudentResultsPage';
 import AttemptViewPage from './pages/AttemptViewPage';
+import AgendaPage from './pages/AgendaPage';
 import FlashcardsPage from './pages/FlashcardsPage';
 import FlashcardStudyPage from './pages/FlashcardStudyPage';
 import NotFound from './pages/NotFound';
@@ -95,6 +96,7 @@ const AppContent: React.FC = () => {
             <Route path="/notebook/:notebookId" element={<NotebookPage />} />
             <Route path="/flashcards" element={<FlashcardsPage />} />
             <Route path="/flashcards/:deckId" element={<FlashcardStudyPage />} />
+            <Route path="/agenda" element={<AgendaPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/tasks/:taskId" element={<TaskPage />} />
           </Route>

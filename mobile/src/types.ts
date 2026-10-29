@@ -113,4 +113,15 @@ export interface DeckSummary {
 }
 
 export interface SessionCard { _id: string; front: string; back: string; topic: string; box: number }
-export interface StudySession { title: string; cards: SessionCard[]; stats: { total: number; due: number; new: number; learned: number } }
+export interface StudySession { title: string; lessonId?: string; cards: SessionCard[]; stats: { total: number; due: number; new: number; learned: number } }
+
+export interface AgendaEntry {
+  id: string; source: 'personal' | 'teacher'; kind: 'task' | 'reminder'; title: string; notes?: string; dueAt: string | null; done: boolean;
+  taskId?: string; status?: 'pending' | 'in_progress' | 'submitted'; late?: boolean; overdue?: boolean; score?: number | null; notebookTitle?: string; lessonTitle?: string;
+}
+
+export interface PlanBlock {
+  id: string; kind: 'task' | 'agenda' | 'weakness' | 'flashcards' | 'explore'; title: string; minutes: number; reason: string;
+  link: { type: 'task' | 'quiz' | 'flashcards' | 'lesson' | 'agenda'; id?: string }; done: boolean;
+}
+export interface StudyPlan { day: string; minutes: number; intro: string; blocks: PlanBlock[] }

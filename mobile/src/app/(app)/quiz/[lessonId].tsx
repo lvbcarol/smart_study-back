@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
+import { useStudyTimer } from '@/hooks/useStudyTimer';
 import { useTheme } from '@/theme/ThemeContext';
 import { useRemote } from '@/hooks/useRemote';
 import { formatDate } from '@/lib/format';
@@ -29,6 +30,8 @@ export default function Quiz() {
   const [error, setError] = useState('');
   const [summary, setSummary] = useState<{ score: number; correctCount: number; total: number } | null>(null);
   const [selected, setSelected] = useState<AttemptDetail | null>(null);
+  // conta o tempo só enquanto o aluno responde o quiz
+  useStudyTimer('quiz', lessonId, phase === 'playing');
 
   const start = async () => {
     setPhase('generating'); setError('');

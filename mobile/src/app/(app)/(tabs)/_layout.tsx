@@ -29,7 +29,7 @@ export default function TabsLayout() {
     >
       {tab('home', t('tabs.home'), 'home-outline')}
       {tab('notebooks', t('tabs.notebooks'), 'book-outline')}
-      {tab('tasks', t('tabs.tasks'), 'checkbox-outline')}
+      {tab('agenda', t('tabs.agenda'), 'calendar-outline')}
       {tab('flashcards', t('tabs.flashcards'), 'layers-outline')}
       {tab('profile', t('tabs.profile'), 'person-outline')}
     </Tabs>

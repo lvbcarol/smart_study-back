@@ -36,6 +36,7 @@ const updateMeSchema = z.object({
   palette: z.string().regex(/^[a-z0-9-]{1,30}$/).optional(),
   fontScale: z.number().min(0.85).max(1.4).optional(),
   avatarColor: z.string().max(30).optional(),
+  weeklyGoalMinutes: z.number().int().min(0).max(6000).optional(),
 });
 
 const changePasswordSchema = z.object({

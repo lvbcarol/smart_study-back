@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { Notebook } from '../types';
 import { TurmaSummary } from '../types/classes';
 import { StudentTaskRow } from '../types/tasks';
+import StudyPlanCard from '../components/StudyPlanCard';
 import { buttonVariants } from '../components/ds/Button';
 import { Skeleton } from '../components/ds/Misc';
 import { FeatureTile, StatCard } from '../components/ds/PageParts';
@@ -71,6 +72,8 @@ const Home: React.FC = () => {
         <div aria-hidden="true" className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-primary/10" />
         <div aria-hidden="true" className="absolute -bottom-24 right-24 h-64 w-64 rounded-full bg-primary/10" />
       </section>
+
+      {!isTeacher && <StudyPlanCard />}
 
       <section aria-label="Stats" className={isTeacher ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4' : 'grid gap-4 sm:grid-cols-2 lg:grid-cols-5'}>
         {stats.map((s) => (s.loading ? <Skeleton key={s.label} className="h-24" /> : <StatCard key={s.label} label={s.label} value={s.value} />))}

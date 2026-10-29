@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
+import { useStudyTimer } from '@/hooks/useStudyTimer';
 import { useTheme } from '@/theme/ThemeContext';
 import { Button, Loading, T, useKeyboardOffset } from '@/ui';
 
@@ -15,6 +16,7 @@ export default function Summary() {
   const { t, i18n } = useTranslation();
   const { colors, fs } = useTheme();
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
+  useStudyTimer('summary', lessonId);
   const [title, setTitle] = useState('');
   const [materials, setMaterials] = useState(0);
   const [messages, setMessages] = useState<Message[] | null>(null);

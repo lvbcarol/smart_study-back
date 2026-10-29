@@ -18,6 +18,8 @@ export interface IUsuario extends Document {
   palette: string;
   fontScale: number;
   avatarColor: string;
+  /** meta de estudo da semana, em minutos (0 = sem meta) */
+  weeklyGoalMinutes: number;
 }
 
 const UsuarioSchema: Schema = new Schema<IUsuario>({
@@ -38,6 +40,7 @@ const UsuarioSchema: Schema = new Schema<IUsuario>({
   palette: { type: String, default: 'indigo' },
   fontScale: { type: Number, default: 1, min: 0.85, max: 1.4 },
   avatarColor: { type: String, default: '' },
+  weeklyGoalMinutes: { type: Number, default: 0, min: 0, max: 6000 },
 }, { timestamps: true });
 
 // Hook para criptografar a senha antes de salvar

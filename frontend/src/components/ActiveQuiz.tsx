@@ -4,6 +4,7 @@ import { ArrowRight, Flag, Loader2, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import { useStudyTimer } from '../hooks/useStudyTimer';
 import { cn } from '@/lib/utils';
 import { AnswerValue, DraftResponse, PublicQuestion, QuestionResult } from '../types/quiz';
 import { TaskStart } from '../types/tasks';
@@ -40,6 +41,8 @@ const ActiveQuiz: React.FC<ActiveQuizProps> = ({ lessonId, onFinish, task }) => 
   const [finalMessage, setFinalMessage] = useState('');
   const [sentAnswer, setSentAnswer] = useState('');
   const topRef = useRef<HTMLDivElement>(null);
+  // conta o tempo só enquanto o aluno está respondendo (não na escolha do tópico nem no resultado)
+  useStudyTimer(task ? 'task' : 'quiz', task ? undefined : lessonId, phase !== 'topic' && phase !== 'generating' && phase !== 'done');
 
   // cada pergunta nova começa no topo da tela
   useEffect(() => { if (questions.length) topRef.current?.scrollIntoView({ block: 'start' }); }, [current, questions.length]);

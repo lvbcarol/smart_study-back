@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
+import { useStudyTimer } from '@/hooks/useStudyTimer';
 import { useTheme } from '@/theme/ThemeContext';
 import { formatDate } from '@/lib/format';
 import { QuizPlayer } from '@/components/QuizPlayer';
@@ -19,6 +20,7 @@ export default function TaskScreen() {
   const [starting, setStarting] = useState(false);
   const [justSent, setJustSent] = useState<number | null>(null);
   const [error, setError] = useState('');
+  useStudyTimer('task', undefined, !!started);
 
   const load = useCallback(async () => {
     try {

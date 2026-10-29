@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/theme/ThemeContext';
 import { useRemote } from '@/hooks/useRemote';
 import type { Notebook, StudentTaskRow } from '@/types';
+import { StudyPlanCard } from '@/components/StudyPlanCard';
 import { Button, Card, Loading, Screen, T } from '@/ui';
 
 const Stat = ({ label, value }: { label: string; value: string | number }) => (
@@ -45,6 +46,8 @@ export default function Home() {
         <T variant="muted" color={colors.primary} style={{ fontWeight: '700' }}>{t('home.greeting', { name: user?.name.split(' ')[0] })}</T>
         <T variant="display">{t('home.title')}</T>
       </View>
+
+      <StudyPlanCard />
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
         <Stat label={t('home.statNotebooks')} value={data.notebooks.length} />

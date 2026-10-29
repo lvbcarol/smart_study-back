@@ -166,6 +166,7 @@ router.get('/decks/:id/session', async (req: AuthRequest, res: Response) => {
     );
     res.json({
       title: deck.title,
+      lessonId: deck.lesson,
       cards: cards.map((c) => ({ _id: c._id, front: c.front, back: c.back, topic: c.topic, box: c.box })),
       stats: summarize(deck.cards, now),
     });

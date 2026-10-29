@@ -6,6 +6,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
+import { useStudyTimer } from '@/hooks/useStudyTimer';
 import { useTheme } from '@/theme/ThemeContext';
 import type { SessionCard, StudySession } from '@/types';
 import { Badge, Button, Card, Loading, ProgressBar, Row, Screen, T } from '@/ui';
@@ -46,6 +47,7 @@ export default function FlashcardStudy() {
   useEffect(() => { loadSession(); }, [loadSession]);
 
   const current = queue[0];
+  useStudyTimer('flashcards', session?.lessonId, !!session);
 
   const decide = useCallback(async (remembered: boolean) => {
     if (!current || busyRef.current || !revealedRef.current) return;

@@ -15,6 +15,7 @@ import Task from '../models/Task';
 import Turma from '../models/Turma';
 import Usuario from '../models/Usuario';
 import { AuthRequest } from '../types';
+import { listStudentTasks } from '../services/studentTasks';
 import { getAIService } from '../services/ai.service';
 import { buildMaterialsContext } from '../services/materials';
 import { parseBody } from '../utils/validate';
@@ -172,38 +173,7 @@ router.get('/', teacherOnly, async (req: AuthRequest, res: Response) => {
 // GET /mine — tarefas publicadas para o aluno, com a situação de cada uma
 router.get('/mine', studentOnly, async (req: AuthRequest, res: Response) => {
   try {
-    const turmas = await Turma.find({ students: req.userId }).select('_id').lean();
-    const tasks = await Task.find({ turma: { $in: turmas.map((t) => t._id) }, published: true }).lean();
-    const ids = tasks.map((t) => t._id);
-
-    const [attempts, drafts, notebooks] = await Promise.all([
-      QuizAttempt.find({ user: req.userId, task: { $in: ids } }).select('task score late createdAt').lean(),
-      QuizDraft.find({ user: req.userId, task: { $in: ids } }).select('task answers').lean(),
-      Notebook.find({ _id: { $in: tasks.map((t) => t.notebook) } }).select('title lessons owner').lean(),
-    ]);
-    const attemptByTask = new Map(attempts.map((a) => [String(a.task), a]));
-    const draftByTask = new Map(drafts.map((d) => [String(d.task), d]));
-    const notebookById = new Map(notebooks.map((n) => [String(n._id), n]));
-    const now = new Date();
-
-    const rows = tasks.map((t) => {
-      const a = attemptByTask.get(String(t._id));
-      const d = draftByTask.get(String(t._id));
-      const nb = notebookById.get(String(t.notebook));
-      const status = a ? 'submitted' : d && d.answers.some((x: unknown) => x !== null) ? 'in_progress' : 'pending';
-      return {
-        _id: t._id, title: t.title, dueDate: t.dueDate ?? null, questionsCount: t.questions.length,
-        notebookTitle: nb?.title, lessonTitle: nb?.lessons.find((l) => String(l._id) === String(t.lesson))?.title,
-        status, score: a?.score ?? null, late: a?.late ?? false, submittedAt: a?.createdAt ?? null,
-        overdue: !a && !!t.dueDate && now > t.dueDate,
-      };
-    });
-    // pendentes primeiro (prazo mais próximo no topo), depois as enviadas
-    rows.sort((x, y) => {
-      if ((x.status === 'submitted') !== (y.status === 'submitted')) return x.status === 'submitted' ? 1 : -1;
-      return (x.dueDate ? new Date(x.dueDate).getTime() : Infinity) - (y.dueDate ? new Date(y.dueDate).getTime() : Infinity);
-    });
-    res.json(rows);
+    res.json(await listStudentTasks(req.userId as string));
   } catch {
     res.status(500).json({ error: 'Error fetching tasks.' });
   }
