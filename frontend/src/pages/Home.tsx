@@ -9,6 +9,7 @@ import { Notebook } from '../types';
 import { TurmaSummary } from '../types/classes';
 import { StudentTaskRow } from '../types/tasks';
 import StudyPlanCard from '../components/StudyPlanCard';
+import { Mascot } from '../components/mascot/Mascot';
 import { buttonVariants } from '../components/ds/Button';
 import { Skeleton } from '../components/ds/Misc';
 import { FeatureTile, StatCard } from '../components/ds/PageParts';
@@ -69,6 +70,7 @@ const Home: React.FC = () => {
             {isTeacher ? t('home.teacherCta') : t('home.studentCta')} <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </Link>
         </div>
+        <Mascot pose={isTeacher ? 'book' : 'wave'} size={190} className="absolute bottom-0 right-10 z-10 hidden md:block" />
         <div aria-hidden="true" className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-primary/10" />
         <div aria-hidden="true" className="absolute -bottom-24 right-24 h-64 w-64 rounded-full bg-primary/10" />
       </section>

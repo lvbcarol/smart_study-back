@@ -8,7 +8,7 @@ import { Button } from './Button';
 
 export const ThemeToggle: React.FC = () => {
   const { t } = useTranslation();
-  const { resolvedMode, setMode } = useTheme();
+  const { resolvedMode, setMode, modeLocked } = useTheme();
   const { user, savePreferences } = useAuth();
   const next = resolvedMode === 'dark' ? 'light' : 'dark';
 
@@ -22,8 +22,9 @@ export const ThemeToggle: React.FC = () => {
       variant="ghost"
       size="icon"
       onClick={toggle}
-      aria-label={next === 'dark' ? t('navbar.themeToDark') : t('navbar.themeToLight')}
-      title={next === 'dark' ? t('navbar.themeToDark') : t('navbar.themeToLight')}
+      disabled={modeLocked}
+      aria-label={modeLocked ? t('profile.modeLocked') : next === 'dark' ? t('navbar.themeToDark') : t('navbar.themeToLight')}
+      title={modeLocked ? t('profile.modeLocked') : next === 'dark' ? t('navbar.themeToDark') : t('navbar.themeToLight')}
     >
       {resolvedMode === 'dark' ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
     </Button>

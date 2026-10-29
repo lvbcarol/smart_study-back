@@ -467,6 +467,10 @@
     "optional": "opcional"
   },
   "auth": {
+    "bobAlt": "Bob, o robô-professor do Smart Study, de capelo e óculos",
+    "bobLogin": "Oi! Eu sou o Bob. Vamos estudar juntos hoje?",
+    "bobRegister": "Que legal ter você por aqui! Vou te ajudar em cada etapa.",
+    "bobForgot": "Hmm… sem problemas, a gente resolve isso rapidinho.",
     "brandTagline": "Estude com calma. Aprenda com clareza.",
     "brandSubtitle": "Resumos, quizzes e flashcards feitos por IA, num espaço acolhedor que se adapta ao seu jeito de estudar.",
     "loginTitle": "Que bom te ver de novo",
@@ -521,6 +525,7 @@
     "genericError": "Ocorreu um erro. Tente novamente."
   },
   "profile": {
+    "modeLocked": "Este tema só existe no modo escuro. Escolha outra paleta para alternar entre claro e escuro.",
     "title": "Meu perfil",
     "subtitle": "Personalize o Smart Study do seu jeito.",
     "account": "Conta",

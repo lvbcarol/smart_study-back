@@ -1,0 +1,122 @@
+import type pt from './pt';
+
+// misma estructura que pt.ts (TypeScript avisa si falta alguna clave)
+type Shape<T> = { [K in keyof T]: T[K] extends string ? string : Shape<T[K]> };
+
+const es: Shape<typeof pt> = {
+  common: { loading: 'Cargando...', save: 'Guardar', cancel: 'Cancelar', back: 'Volver', retry: 'Intentar de nuevo', error: 'Algo salió mal. Inténtalo de nuevo.', create: 'Crear', showPassword: 'Mostrar contraseña', hidePassword: 'Ocultar contraseña' },
+  auth: {
+    bobAlt: 'Bob, el robot profesor de Smart Study, con birrete y gafas', bobLogin: '¡Hola! Soy Bob. ¿Estudiamos juntos hoy?', bobRegister: '¡Qué bueno tenerte aquí! Te ayudaré en cada paso.',
+    tagline: 'Estudia con calma. Aprende con claridad.',
+    loginTitle: 'Qué bueno verte de nuevo', loginSubtitle: 'Inicia sesión para seguir estudiando.',
+    email: 'Correo electrónico', emailPlaceholder: 'tu@correo.com', password: 'Contraseña', passwordPlaceholder: 'Tu contraseña',
+    signIn: 'Entrar', signingIn: 'Entrando...', noAccount: '¿Aún no tienes cuenta?', signUp: 'Crear cuenta',
+    registerTitle: 'Crea tu cuenta de estudiante', registerSubtitle: 'Toma menos de un minuto. Los profesores se registran en el sitio web.',
+    name: 'Nombre completo', passwordHint: 'Mínimo de 6 caracteres.', createAccount: 'Crear cuenta', creating: 'Creando...',
+    haveAccount: '¿Ya tienes una cuenta?', logIn: 'Entrar', invalid: 'Correo o contraseña inválidos.',
+    registerError: 'No se pudo crear la cuenta. Inténtalo de nuevo.', passwordShort: 'La contraseña debe tener al menos 6 caracteres.',
+    network: 'No se pudo conectar con el servidor. Revisa la conexión y la dirección de la API.',
+  },
+  joinClass: {
+    title: 'Mi escuela / clase', independent: 'Estudiante independiente', independentHint: 'No estás en ninguna clase. Tus cuadernos son solo tuyos.',
+    linked: 'Vinculado a una clase', linkedHint: 'Ves los cuadernos y las tareas del profesor, además de los tuyos.', teacher: 'Profesor/a: {{name}}',
+    codeLabel: 'Código de la clase', codePlaceholder: 'Ej.: ABC234', codeHint: 'El profesor muestra el código en la página de la clase.', join: 'Unirme a la clase',
+    joined: '¡Te uniste a {{name}}!', already: 'Ya estás en {{name}}.', invalid: 'Código inválido. Confírmalo con el profesor.',
+    tooMany: 'Demasiados intentos. Espera un minuto.', error: 'No se pudo completar. Inténtalo de nuevo.',
+    leave: 'Salir de la clase', leaveConfirm: 'Confirmar salida de {{name}}', left: 'Saliste de {{name}}.',
+  },
+  agenda: {
+    title: 'Mi agenda', subtitle: 'Las tareas del profesor y las tuyas, más recordatorios. Todo en un solo lugar.', add: 'Añadir a la agenda',
+    kindTask: 'Tarea', kindReminder: 'Recordatorio', titleLabel: '¿Qué necesitas hacer?', dueLabel: '¿Cuándo?', timeLabel: 'Hora (ej.: 18:30)',
+    taskPlaceholder: 'Ej.: Leer el capítulo 3 de Física', reminderPlaceholder: 'Ej.: Llevar la calculadora al examen', addBtn: 'Añadir',
+    created: '¡Añadido a la agenda!', saveError: 'No se pudo guardar. Inténtalo de nuevo.', reminderNeedsDate: 'Los recordatorios necesitan una fecha.',
+    emptyTitle: 'Tu agenda está vacía', emptyDesc: 'Añade una tarea o un recordatorio. Las tareas del profesor aparecen aquí solas.',
+    noDate: 'Sin fecha', inDays: 'En {{count}} días', fromTeacher: 'Del profesor',
+    markDone: 'Marcar "{{title}}" como hecho', markUndone: 'Desmarcar "{{title}}"', delete: 'Eliminar "{{title}}"',
+    sections: { overdue: 'Atrasados', today: 'Hoy', tomorrow: 'Mañana', week: 'Próximos 7 días', later: 'Más adelante', nodate: 'Sin fecha', done: 'Completados' },
+  },
+  plan: {
+    question: '¿Cuánto tiempo tienes para estudiar hoy?', titleToday: 'Tu plan de hoy',
+    hint: 'Reviso tu agenda, tus tareas, los temas que más fallas y tus flashcards para armar un plan a tu medida.',
+    minutesShort: '{{count}} min', other: 'Otro (min)', build: 'Armar mi plan de {{count}} min', redo: 'Rehacer',
+    progress: '{{done}} de {{total}} pasos completados', why: '¿Por qué esto?', go: 'Ir a {{title}}',
+    markDone: 'Marcar "{{title}}" como hecho', markUndone: 'Desmarcar "{{title}}"', error: 'No se pudo armar el plan. Inténtalo de nuevo.',
+  },
+  dash: {
+    title: 'Mi rendimiento', subtitle: 'Notas, tiempo de estudio y dónde conviene concentrarte.', lastDays: '{{count}} días', allSubjects: 'Todas',
+    loadError: 'No se pudo cargar el panel.', kpiAverage: 'Promedio en los quizzes', kpiAttempts: 'Quizzes realizados', kpiStreak: 'Días seguidos', kpiTasks: 'Tareas entregadas',
+    days_one: '{{count}} día', days_other: '{{count}} días', noQuizzes: 'Haz algunos quizzes y este gráfico cobra vida.',
+    weekTitle: 'Tiempo de estudio de la semana', weekDesc: 'Estudiaste {{total}} en los últimos 7 días.',
+    goalLabel: 'Meta de la semana (minutos)', goalSave: 'Guardar meta', goalSaved: '¡Meta guardada!', goalError: 'No se pudo guardar la meta.', goalInvalid: 'Escribe un número de 0 a 6000.',
+    goalNone: 'Define una meta semanal para ver cuánto falta.', goalProgress: '{{done}} de {{goal}}', goalLeft: 'Faltan {{left}}', goalDone: '¡Meta cumplida! 🎉',
+    timerTitle: 'Estudiar ahora', timerHint: '¿Estudias fuera de la app? Activa el cronómetro para contarlo.', timerStart: 'Empezar', timerStop: 'Parar y guardar',
+    timerSaved: '{{minutes}} min registrados.', timerTooShort: 'Demasiado corto para registrar (menos de 15 segundos).',
+    timelineTitle: 'Evolución de las notas', subjectsTitle: 'Por materia', subjectsDesc: 'Toca una barra para ver las lecciones.', lessonsOf: 'Lecciones de {{title}}',
+    typesTitle: 'Aciertos por tipo de pregunta', weakTitle: 'Dónde concentrarte', weakDesc: 'Temas con errores recientes.', weakEmpty: 'Sin puntos débiles por ahora. ¡Sigue así!',
+    errorRate: '{{rate}}% de error', review: 'Repasar', reinforce: 'Reforzar {{topic}}',
+  },
+  tabs: { home: 'Inicio', notebooks: 'Cuadernos', agenda: 'Agenda', tasks: 'Tareas', flashcards: 'Flashcards', performance: 'Panel', profile: 'Perfil' },
+  home: {
+    greeting: '¡Hola, {{name}}!', title: '¿Qué vamos a estudiar hoy?',
+    statNotebooks: 'Cuadernos', statLessons: 'Lecciones', statAverage: 'Promedio en los quizzes', statTasks: 'Tareas pendientes', statCards: 'Tarjetas por repasar',
+    nextTask: 'Próxima tarea', reviewCards: 'Repasar flashcards', openNotebooks: 'Abrir mis cuadernos', quick: 'Atajos',
+  },
+  notebooks: {
+    title: 'Mis cuadernos', new: 'Nuevo cuaderno', newPlaceholder: 'Ej.: Programación Orientada a Objetos',
+    lessons_one: '{{count}} lección', lessons_other: '{{count}} lecciones', noLessons: 'Aún no hay lecciones.', newLesson: 'Nueva lección', lessonPlaceholder: 'Nombre de la lección',
+    emptyTitle: 'Aún no hay cuadernos', emptyDesc: 'Crea el primer cuaderno para organizar tus lecciones.', fromTeacher: 'Del profesor', createError: 'No se pudo crear.',
+  },
+  lesson: {
+    summary: 'Resumen y conversación', summaryDesc: 'Pide un resumen y resuelve dudas con la IA.', quiz: 'Quizzes', quizDesc: 'Pon a prueba lo que aprendiste, con varios tipos de pregunta.',
+    flashcards: 'Generar flashcards', flashcardsDesc: 'Tarjetas para repasar con repetición espaciada.',
+    materials_one: 'La IA está usando {{count}} material del profesor en esta lección.', materials_other: 'La IA está usando {{count}} materiales del profesor en esta lección.',
+  },
+  summary: {
+    initial: 'Hola, soy Bob, el asistente de estudio de Smart Study. Envíame un tema para resumir. Después del resumen, puedes hacerme preguntas sobre él.',
+    placeholder: 'Escribe el asunto...', followUp: 'Haz una pregunta sobre la lección...', send: 'Enviar', thinking: 'Pensando...',
+    aiError: 'El servicio de IA está ocupado en este momento. Espera un instante e inténtalo de nuevo.', save: 'Guardar conversación', saved: '¡Conversación guardada!', saveError: 'No se pudo guardar.',
+  },
+  quiz: {
+    title: 'Quizzes', startNew: 'Empezar un nuevo quiz', attemptN: 'Intento n.º {{n}}', noAttempts: 'Aún no hay intentos. ¡Empieza uno nuevo!',
+    topicTitle: '¿Sobre qué vamos a practicar?', topicHint: 'El quiz tiene varios tipos de pregunta y se adapta a lo que más fallas.', topicPlaceholder: 'Ej.: Regla de la cadena',
+    countLabel: '¿Cuántas preguntas quieres?', countOption: '{{count}} preguntas', generatingHint: 'Estoy armando preguntas a tu medida. Tarda unos segundos.',
+    start: 'Empezar', generating: 'Preparando las preguntas...', generateError: 'No se pudo generar el quiz. Inténtalo de nuevo.',
+    types: { multiple_choice: 'Opción múltiple', fill_blank: 'Completar', open_text: 'Respuesta abierta', practical: 'Práctica', real_case: 'Caso real' },
+    reinforcement: 'Refuerzo', reinforcing: 'Voy a reforzar, de otra manera, lo que fallaste antes: {{topics}}.', usingMaterials_one: 'Usando {{count}} material del profesor.', usingMaterials_other: 'Usando {{count}} materiales del profesor.',
+    questionOf: 'Pregunta {{current}} de {{total}}', answer: 'Responder', next: 'Siguiente pregunta', finish: 'Terminar y enviar', seeResult: 'Ver resultado',
+    yourAnswer: 'Tu respuesta', blankN: 'Espacio {{n}}', writeHere: 'Escribe tu respuesta aquí...', numericHint: 'Puedes escribir solo el número (ej.: 3,5).',
+    verdictCorrect: '¡Correcto!', verdictPartial: 'Parcialmente correcto ({{pct}}%)', verdictWrong: 'Incorrecto', expected: 'Respuesta esperada', explanation: 'Explicación', feedback: 'Comentario',
+    doneTitle: '¡Quiz terminado!', doneScore: 'Obtuviste {{score}}% ({{correct}} de {{total}} correctas).', backToLesson: 'Volver a la lección', reviewTitle: 'Intento n.º {{n}} ({{score}}%)', noAnswer: '(sin respuesta)',
+    saveError: 'No se pudo enviar. Inténtalo de nuevo.', answerError: 'No se pudo corregir tu respuesta. Inténtalo de nuevo.', loadError: 'No se pudo cargar.',
+  },
+  tasks: {
+    title: 'Tareas', emptyTitle: 'No hay tareas por aquí', emptyDesc: 'Cuando un profesor publique una tarea, aparecerá aquí.',
+    due: 'Fecha límite: {{date}}', noDue: 'Sin fecha límite', status: { pending: 'Pendiente', in_progress: 'En curso', submitted: 'Entregada' },
+    overdue: 'Atrasada', late: 'Entregada con retraso', score: 'Nota {{score}}%', start: 'Empezar tarea', resume: 'Continuar tarea',
+    instructions: 'Las respuestas solo se corrigen después de que envíes todo, y el envío es único. Puedes parar y continuar más tarde.',
+    alreadySubmitted: 'Ya enviaste esta tarea.', myAnswers: 'Tus respuestas', sent: '¡Tarea enviada! Tu nota: {{score}}%.', questions_one: '{{count}} pregunta', questions_other: '{{count}} preguntas',
+    resumeNote: 'Ya respondiste {{count}} de {{total}} preguntas. Continúa donde lo dejaste.', loadError: 'No se pudieron cargar las tareas.',
+  },
+  flashcards: {
+    title: 'Flashcards', subtitle: 'Desliza a la derecha si lo recordaste y a la izquierda si no.', generate: 'Generar tarjetas', generateTitle: 'Generar flashcards con IA',
+    lesson: 'Lección', topic: 'Tema', topicPlaceholder: 'Ej.: Regla de la cadena', count: 'Cantidad', generating: 'Generando...',
+    generated_one: '¡{{count}} tarjeta nueva añadida!', generated_other: '¡{{count}} tarjetas nuevas añadidas!', noneNew: 'No hay tarjetas nuevas: ya estaban en el mazo.',
+    generateError: 'No se pudieron generar las tarjetas.', emptyTitle: 'Aún no hay mazos', emptyDesc: 'Genera tarjetas a partir de una lección para empezar a repasar.',
+    due: 'Por repasar', new: 'Nuevas', learned: 'Bien fijadas', study: 'Estudiar', nothingDue: 'Nada por repasar ahora', noLessons: 'Crea una lección en un cuaderno para generar tarjetas.',
+    session: {
+      progress: '{{done}} de {{total}} tarjetas', flip: 'Mostrar respuesta', flipHint: 'Toca la tarjeta para ver la respuesta.', swipeHint: 'Desliza a la derecha si lo recordaste, a la izquierda si no.',
+      answer: 'Respuesta', remembered: 'Recordé', forgot: 'Olvidé', retry: 'Esta tarjeta vuelve al final de la sesión.', box: 'Caja {{box}}', newCard: 'Nueva',
+      doneTitle: '¡Sesión completa!', doneRemembered: 'Acertaste {{count}} tarjetas.', doneMissed_one: '{{count}} tarjeta necesitó refuerzo y vuelve pronto.',
+      doneMissed_other: '{{count}} tarjetas necesitaron refuerzo y vuelven pronto.', doneClean: 'No olvidaste nada. ¡Genial!', studyMore: 'Estudiar más', back: 'Volver a los mazos',
+      saveError: 'No se pudo guardar. Inténtalo de nuevo.', nothingLeft: 'No quedan más tarjetas por repasar ahora.',
+    },
+  },
+  profile: {
+    title: 'Mi perfil', role: 'Estudiante', appearance: 'Apariencia', mode: 'Modo de color', light: 'Claro', dark: 'Oscuro', system: 'Sistema', palette: 'Paleta de colores',
+    textSize: 'Tamaño del texto', sizes: { small: 'Pequeño', normal: 'Normal', large: 'Grande' }, language: 'Idioma', logout: 'Cerrar sesión', saveError: 'No se pudo guardar.',
+    modeLocked: 'Este tema solo existe en modo oscuro. Elige otra paleta para alternar entre claro y oscuro.',
+  },
+  teacher: { title: 'Perfil de profesor', text: 'La app de Smart Study es para estudiantes. Clases, materiales, tareas y resultados están en el sitio web.', logout: 'Cerrar sesión' },
+};
+
+export default es;

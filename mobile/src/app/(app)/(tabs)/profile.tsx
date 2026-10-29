@@ -9,12 +9,12 @@ import { JoinClassCard } from '@/components/JoinClassCard';
 import { Badge, Button, Card, Row, Screen, T } from '@/ui';
 
 /** Opção selecionável (rádio) com estado acessível. */
-function Choice({ label, selected, onPress, children }: { label: string; selected: boolean; onPress: () => void; children?: React.ReactNode }) {
+function Choice({ label, selected, onPress, children, disabled }: { label: string; selected: boolean; onPress: () => void; children?: React.ReactNode; disabled?: boolean }) {
   const { colors } = useTheme();
   return (
     <Pressable
-      onPress={onPress} accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ selected }}
-      style={{ flexGrow: 1, minHeight: 48, borderRadius: 14, borderWidth: 2, borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.accent : colors.card, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', gap: 6 }}
+      onPress={onPress} disabled={disabled} accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ selected, disabled }}
+      style={{ opacity: disabled ? 0.5 : 1, flexGrow: 1, minHeight: 48, borderRadius: 14, borderWidth: 2, borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.accent : colors.card, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', gap: 6 }}
     >
       {children}
       <T variant="label" color={selected ? colors.accentFg : undefined}>{label}</T>
@@ -25,7 +25,7 @@ function Choice({ label, selected, onPress, children }: { label: string; selecte
 export default function Profile() {
   const { t } = useTranslation();
   const { user, logout, savePreferences } = useAuth();
-  const { colors, mode, palette, fontScale, resolvedMode, update } = useTheme();
+  const { colors, mode, palette, fontScale, resolvedMode, modeLocked, update } = useTheme();
   const router = useRouter();
 
   const sizes = [[0.9, t('profile.sizes.small')], [1, t('profile.sizes.normal')], [1.15, t('profile.sizes.large')]] as const;
@@ -52,9 +52,10 @@ export default function Profile() {
         <T variant="heading">{t('profile.appearance')}</T>
 
         <T variant="label">{t('profile.mode')}</T>
+        {modeLocked && <T variant="small" accessibilityLiveRegion="polite">{t('profile.modeLocked')}</T>}
         <Row style={{ flexWrap: 'nowrap' }} >
           {(['light', 'dark', 'system'] as const).map((m) => (
-            <Choice key={m} label={t(`profile.${m}`)} selected={mode === m} onPress={() => update({ mode: m })} />
+            <Choice key={m} label={t(`profile.${m}`)} selected={mode === m} disabled={modeLocked} onPress={() => update({ mode: m })} />
           ))}
         </Row>
 
@@ -80,7 +81,7 @@ export default function Profile() {
 
         <T variant="label">{t('profile.language')}</T>
         <Row style={{ flexWrap: 'nowrap' }}>
-          {([['pt-BR', 'Português'], ['en-US', 'English']] as const).map(([lang, label]) => (
+          {([['pt-BR', 'Português'], ['es-ES', 'Español'], ['en-US', 'English']] as const).map(([lang, label]) => (
             <Choice key={lang} label={label} selected={user?.language === lang} onPress={() => savePreferences({ language: lang }).catch(() => undefined)} />
           ))}
         </Row>

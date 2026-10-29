@@ -2,11 +2,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { applyTheme, readStoredPrefs, sanitizePrefs, storePrefs, ThemePrefs } from '../theme/applyTheme';
-import type { PaletteId, ResolvedMode } from '../theme/palettes';
+import { getPalette, type PaletteId, type ResolvedMode } from '../theme/palettes';
 import type { ThemeMode } from '../types';
 
 interface ThemeContextType extends ThemePrefs {
   resolvedMode: ResolvedMode;
+  /** true quando a paleta escolhida só existe em um modo (ex.: Programador, sempre escuro) */
+  modeLocked: boolean;
   setMode: (mode: ThemeMode) => void;
   setPalette: (palette: PaletteId) => void;
   setFontScale: (scale: number) => void;
@@ -44,7 +46,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const setFontScale = useCallback((fontScale: number) => setPrefs((p) => sanitizePrefs({ ...p, fontScale })), []);
 
   const value = useMemo(
-    () => ({ ...prefs, resolvedMode, setMode, setPalette, setFontScale }),
+    () => ({ ...prefs, resolvedMode, modeLocked: !!getPalette(prefs.palette).forceMode, setMode, setPalette, setFontScale }),
     [prefs, resolvedMode, setMode, setPalette, setFontScale]
   );
 

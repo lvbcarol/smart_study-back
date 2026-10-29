@@ -1,6 +1,6 @@
 // src/components/ActiveQuiz.tsx — quiz de uma pergunta por tela, com 5 tipos de pergunta e correção no servidor
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Flag, Loader2, Sparkles } from 'lucide-react';
+import { ArrowRight, Flag, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -13,6 +13,7 @@ import AnswerForm from './quiz/AnswerForm';
 import { Badge } from './ds/Misc';
 import { Button } from './ds/Button';
 import { Field } from './ds/Field';
+import { Mascot } from './mascot/Mascot';
 
 type Phase = 'topic' | 'generating' | 'answering' | 'grading' | 'feedback' | 'finishing' | 'done';
 
@@ -153,7 +154,7 @@ const ActiveQuiz: React.FC<ActiveQuizProps> = ({ lessonId, onFinish, task }) => 
   if (phase === 'generating') {
     return (
       <div role="status" aria-live="polite" className="mx-auto flex max-w-xl flex-col items-center gap-4 py-24 text-center">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden="true" />
+        <Mascot pose="think" size={120} />
         <p className="text-2xl font-extrabold">{t('quizzPage.generating')}</p>
         <p className="text-muted-foreground">{t('quizzPage.generatingHint')}</p>
       </div>

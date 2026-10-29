@@ -2,10 +2,11 @@
 // Fonte única dos tokens de cor (também lida por scripts/check-contrast.ts).
 // Mantenha este arquivo com sintaxe "apagável" (sem enums) para rodar direto no Node.
 //
-// Estrutura: neutros quentes ("cozy") fixos por modo + uma rampa de marca por paleta.
-// O que é da marca (logo, tipografia, formas, neutros) não muda entre paletas.
+// Estrutura: neutros quentes ("cozy") por modo + uma rampa de marca por paleta.
+// A maioria das paletas só troca a rampa de marca. Temas completos (rosa, dev) trazem também
+// neutros próprios, e o dev ainda fixa o modo escuro e usa fonte monoespaçada.
 
-export type PaletteId = 'indigo' | 'matcha' | 'terracota' | 'oceano' | 'lavanda' | 'grafite';
+export type PaletteId = 'indigo' | 'matcha' | 'terracota' | 'oceano' | 'lavanda' | 'grafite' | 'rosa' | 'dev';
 export type ResolvedMode = 'light' | 'dark';
 
 export interface ModeTokens {
@@ -22,6 +23,12 @@ export interface Palette {
   description: string;
   light: ModeTokens;
   dark: ModeTokens;
+  /** neutros próprios (tema completo); sem isso valem os neutros padrão do modo */
+  neutrals?: Partial<Record<ResolvedMode, Neutrals>>;
+  /** o tema só existe neste modo (ex.: o tema de programador é sempre escuro) */
+  forceMode?: ResolvedMode;
+  /** 'mono' usa fonte monoespaçada no app todo */
+  font?: 'mono';
 }
 
 export interface Neutrals {
@@ -113,6 +120,39 @@ export const PALETTES: Palette[] = [
     light: { primary: '#3D3A36', primaryFg: '#FFFFFF', accent: '#ECE7DF', accentFg: '#2B2825', charts: ['#3D3A36', '#B45309', '#0F766E', '#4F46E5', '#BE185D'] },
     dark: { primary: '#E7E1D8', primaryFg: '#1C1917', accent: '#2F2A26', accentFg: '#E7E1D8', charts: ['#E7E1D8', '#F5B14C', '#4DC7BD', '#8B8CF8', '#F472B6'] },
   },
+  {
+    id: 'rosa',
+    name: 'Algodão-doce',
+    description: 'Rosa claro, fofo e delicado.',
+    neutrals: {
+      light: {
+        background: '#FFF5F8', foreground: '#3B1F2B', card: '#FFFFFF', secondary: '#FDE7EF', secondaryFg: '#5A2A3D', mutedFg: '#7A5565',
+        border: '#F3CBDA', destructive: '#C2362B', destructiveFg: '#FFFFFF', success: '#26704A', warning: '#9A4A06', shadow: '#7A2A4A',
+      },
+      dark: {
+        background: '#1F1219', foreground: '#FBEAF1', card: '#2A1823', secondary: '#35202C', secondaryFg: '#F3D9E4', mutedFg: '#C7A3B5',
+        border: '#4A2C3D', destructive: '#F2766B', destructiveFg: '#2A0A07', success: '#6FD39A', warning: '#F5B14C', shadow: '#000000',
+      },
+    },
+    light: { primary: '#C2255C', primaryFg: '#FFFFFF', accent: '#FFDCE8', accentFg: '#8A1B45', charts: ['#C2255C', '#7C3AED', '#0F766E', '#B45309', '#2563EB'] },
+    dark: { primary: '#FF8FB7', primaryFg: '#3A0A1E', accent: '#3E2230', accentFg: '#FFC9DD', charts: ['#FF8FB7', '#B197FC', '#4DC7BD', '#F5B14C', '#60A5FA'] },
+  },
+  {
+    id: 'dev',
+    name: 'Programador',
+    description: 'Editor escuro com letras coloridas. Sempre no modo escuro.',
+    forceMode: 'dark',
+    font: 'mono',
+    neutrals: {
+      dark: {
+        background: '#0D1117', foreground: '#C9D1D9', card: '#161B22', secondary: '#21262D', secondaryFg: '#C9D1D9', mutedFg: '#8B949E',
+        border: '#30363D', destructive: '#FF7B72', destructiveFg: '#1A0705', success: '#7EE787', warning: '#E3B341', shadow: '#000000',
+      },
+    },
+    // as cores de sintaxe: verde (strings), azul (funções), roxo (palavras-chave), laranja (números), vermelho (erros)
+    light: { primary: '#7EE787', primaryFg: '#04260F', accent: '#12263A', accentFg: '#79C0FF', charts: ['#7EE787', '#79C0FF', '#D2A8FF', '#FFA657', '#FF7B72'] },
+    dark: { primary: '#7EE787', primaryFg: '#04260F', accent: '#12263A', accentFg: '#79C0FF', charts: ['#7EE787', '#79C0FF', '#D2A8FF', '#FFA657', '#FF7B72'] },
+  },
 ];
 
 export const DEFAULT_PALETTE: PaletteId = 'indigo';
@@ -123,4 +163,14 @@ export function isPaletteId(value: unknown): value is PaletteId {
 
 export function getPalette(id: string): Palette {
   return PALETTES.find((p) => p.id === id) ?? PALETTES[0];
+}
+
+/** Modo realmente aplicado: temas como o de programador ignoram a escolha claro/escuro. */
+export function effectiveMode(paletteId: string, mode: ResolvedMode): ResolvedMode {
+  return getPalette(paletteId).forceMode ?? mode;
+}
+
+/** Neutros da paleta no modo (os próprios, quando o tema é completo; senão os padrão). */
+export function neutralsFor(paletteId: string, mode: ResolvedMode): Neutrals {
+  return getPalette(paletteId).neutrals?.[mode] ?? NEUTRALS[mode];
 }

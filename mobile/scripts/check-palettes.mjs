@@ -3,11 +3,19 @@
 import { readFileSync } from 'node:fs';
 
 const norm = (p) => readFileSync(new URL(p, import.meta.url), 'utf8').replace(/\r\n/g, '\n').trim();
-const web = norm('../../frontend/src/theme/palettes.ts');
-const mobile = norm('../src/theme/palettes.ts');
 
-if (web !== mobile) {
-  console.error('✗ mobile/src/theme/palettes.ts diverge de frontend/src/theme/palettes.ts');
-  process.exit(1);
+// arquivos que precisam ser idênticos nos dois apps
+const SHARED = [
+  ['frontend/src/theme/palettes.ts', 'mobile/src/theme/palettes.ts'],
+  ['frontend/src/components/mascot/shapes.ts', 'mobile/src/components/mascot/shapes.ts'],
+];
+
+let ok = true;
+for (const [web, mobile] of SHARED) {
+  if (norm(`../../${web}`) !== norm(`../../${mobile}`)) {
+    console.error(`✗ ${mobile} diverge de ${web}`);
+    ok = false;
+  }
 }
-console.log('✓ paletas do mobile idênticas às do web');
+if (!ok) process.exit(1);
+console.log('✓ paletas e mascote do mobile idênticos aos do web');

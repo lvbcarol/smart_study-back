@@ -1,15 +1,20 @@
 // src/layouts/AuthLayout.tsx — telas de entrada (login, cadastro, recuperação de senha)
 import React from 'react';
-import { Link, Navigate, Outlet } from 'react-router-dom';
-import { BookOpen, Layers, ListChecks } from 'lucide-react';
+import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { BookOpen, Code2, GraduationCap, Laptop } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { BrandLogo } from '../components/ds/BrandMark';
+import { Mascot } from '../components/mascot/Mascot';
+import type { MascotPose } from '../components/mascot/shapes';
 import { ThemeToggle } from '../components/ds/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 
 const AuthLayout: React.FC = () => {
   const { t } = useTranslation();
   const { user, loading } = useAuth();
+  const { pathname } = useLocation();
+  // o Bob reage à tela: comemora no cadastro, pensa na recuperação de senha, acena no login
+  const pose: MascotPose = pathname.startsWith('/register') ? 'happy' : pathname.startsWith('/forgot') || pathname.startsWith('/reset') ? 'think' : 'wave';
 
   if (!loading && user) return <Navigate to="/home" replace />;
 
@@ -18,12 +23,20 @@ const AuthLayout: React.FC = () => {
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-accent p-12 text-accent-foreground lg:flex">
         <Link to="/login" aria-label="Smart Study"><BrandLogo markClassName="h-11 w-11" /></Link>
         <div className="relative z-10 space-y-6">
+          <div className="flex items-end gap-4">
+            <Mascot pose={pose} size={188} label={t('auth.bobAlt')} />
+            {/* balão de fala do Bob */}
+            <p className="relative mb-24 max-w-[15rem] rounded-2xl rounded-bl-sm bg-card px-4 py-3 text-sm font-semibold text-card-foreground shadow-soft">
+              {t(pose === 'happy' ? 'auth.bobRegister' : pose === 'think' ? 'auth.bobForgot' : 'auth.bobLogin')}
+            </p>
+          </div>
           <h1 className="text-5xl font-extrabold leading-tight tracking-tight">{t('auth.brandTagline')}</h1>
           <p className="max-w-md text-lg opacity-90">{t('auth.brandSubtitle')}</p>
         </div>
+        {/* ícones do tema de estudo flutuando: livro, notebook, capelo de TCC e código */}
         <ul className="relative z-10 flex gap-3" aria-hidden="true">
-          {[BookOpen, ListChecks, Layers].map((Icon, i) => (
-            <li key={i} className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card text-primary shadow-soft">
+          {[BookOpen, Laptop, GraduationCap, Code2].map((Icon, i) => (
+            <li key={i} className="animate-float flex h-14 w-14 items-center justify-center rounded-2xl bg-card text-primary shadow-soft" style={{ animationDelay: `${i * 0.5}s` }}>
               <Icon className="h-7 w-7" />
             </li>
           ))}

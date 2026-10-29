@@ -8,6 +8,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { useRemote } from '@/hooks/useRemote';
 import type { Notebook, StudentTaskRow } from '@/types';
 import { StudyPlanCard } from '@/components/StudyPlanCard';
+import { Mascot } from '@/components/mascot/Mascot';
 import { Button, Card, Loading, Screen, T } from '@/ui';
 
 const Stat = ({ label, value }: { label: string; value: string | number }) => (
@@ -42,9 +43,12 @@ export default function Home() {
 
   return (
     <Screen refreshing={refreshing} onRefresh={refresh}>
-      <View style={{ gap: 4, paddingTop: 8 }}>
-        <T variant="muted" color={colors.primary} style={{ fontWeight: '700' }}>{t('home.greeting', { name: user?.name.split(' ')[0] })}</T>
-        <T variant="display">{t('home.title')}</T>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 }}>
+        <View style={{ flex: 1, gap: 4 }}>
+          <T variant="muted" color={colors.primary} style={{ fontWeight: '700' }}>{t('home.greeting', { name: user?.name.split(' ')[0] })}</T>
+          <T variant="display">{t('home.title')}</T>
+        </View>
+        <Mascot pose="wave" size={84} />
       </View>
 
       <StudyPlanCard />

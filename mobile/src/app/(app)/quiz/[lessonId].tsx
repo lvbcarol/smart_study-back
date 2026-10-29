@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
@@ -8,6 +8,7 @@ import { useTheme } from '@/theme/ThemeContext';
 import { useRemote } from '@/hooks/useRemote';
 import { formatDate } from '@/lib/format';
 import { QuizPlayer } from '@/components/QuizPlayer';
+import { Mascot } from '@/components/mascot/Mascot';
 import { AttemptReview } from '@/components/AttemptReview';
 import type { AttemptDetail, DraftResponse } from '@/types';
 import { Badge, Button, Card, Chip, EmptyState, Field, Loading, Row, scoreVariant, Screen, T } from '@/ui';
@@ -90,7 +91,7 @@ export default function Quiz() {
 
       {phase === 'generating' && (
         <View accessibilityLiveRegion="polite" style={{ alignItems: 'center', gap: 16, paddingVertical: 64 }}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <Mascot pose="think" size={110} />
           <T variant="title" align="center">{t('quiz.generating')}</T>
           <T variant="muted" align="center">{t('quiz.generatingHint')}</T>
         </View>

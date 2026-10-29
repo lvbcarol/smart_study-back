@@ -8,6 +8,7 @@ import api from '../services/api';
 import { Role } from '../types';
 import { Button } from '../components/ds/Button';
 import { Field } from '../components/ds/Field';
+import { Mascot } from '../components/mascot/Mascot';
 import { cn } from '@/lib/utils';
 
 const Register: React.FC = () => {
@@ -47,6 +48,7 @@ const Register: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
+        <Mascot pose="happy" size={96} className="lg:hidden" />
         <h1 className="text-3xl font-extrabold tracking-tight">{t('auth.registerTitle')}</h1>
         <p className="text-muted-foreground">{t('auth.registerSubtitle')}</p>
       </div>

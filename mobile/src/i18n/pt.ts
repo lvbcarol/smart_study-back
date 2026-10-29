@@ -1,6 +1,7 @@
 const pt = {
   common: { loading: 'Carregando...', save: 'Salvar', cancel: 'Cancelar', back: 'Voltar', retry: 'Tentar de novo', error: 'Algo deu errado. Tente de novo.', create: 'Criar', showPassword: 'Mostrar senha', hidePassword: 'Ocultar senha' },
   auth: {
+    bobAlt: 'Bob, o robô-professor do Smart Study, de capelo e óculos', bobLogin: 'Oi! Eu sou o Bob. Vamos estudar juntos hoje?', bobRegister: 'Que legal ter você por aqui! Vou te ajudar em cada etapa.',
     tagline: 'Estude com calma. Aprenda com clareza.',
     loginTitle: 'Que bom te ver de novo', loginSubtitle: 'Entre para continuar seus estudos.',
     email: 'E-mail', emailPlaceholder: 'voce@email.com', password: 'Senha', passwordPlaceholder: 'Sua senha',
@@ -108,6 +109,7 @@ const pt = {
   profile: {
     title: 'Meu perfil', role: 'Aluno(a)', appearance: 'Aparência', mode: 'Modo de cor', light: 'Claro', dark: 'Escuro', system: 'Sistema', palette: 'Paleta de cores',
     textSize: 'Tamanho do texto', sizes: { small: 'Pequeno', normal: 'Normal', large: 'Grande' }, language: 'Idioma', logout: 'Sair', saveError: 'Não foi possível salvar.',
+    modeLocked: 'Este tema só existe no modo escuro. Escolha outra paleta para alternar entre claro e escuro.',
   },
   teacher: { title: 'Perfil de professor', text: 'O app do Smart Study é para alunos. Turmas, materiais, tarefas e resultados ficam no site.', logout: 'Sair' },
 };

@@ -4,6 +4,7 @@ import { Link, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/theme/ThemeContext';
+import { AuthHero } from '@/components/AuthHero';
 import { Button, Field, Screen, T } from '@/ui';
 
 export default function Register() {
@@ -33,7 +34,8 @@ export default function Register() {
   };
 
   return (
-    <Screen contentStyle={{ paddingTop: 32 }}>
+    <Screen contentStyle={{ paddingTop: 24 }}>
+      <AuthHero pose="happy" message={t('auth.bobRegister')} />
       <View style={{ gap: 6 }}>
         <T variant="display">{t('auth.registerTitle')}</T>
         <T variant="muted">{t('auth.registerSubtitle')}</T>

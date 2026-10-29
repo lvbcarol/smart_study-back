@@ -3,7 +3,7 @@ import { useColorScheme } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { getItem, setItem } from '@/services/storage';
 import type { ThemeMode } from '@/types';
-import { getPalette, isPaletteId, NEUTRALS, PaletteId, ResolvedMode } from './palettes';
+import { effectiveMode, getPalette, isPaletteId, neutralsFor, PaletteId, ResolvedMode } from './palettes';
 
 export interface Colors {
   background: string; foreground: string; card: string; secondary: string; secondaryFg: string; mutedFg: string; border: string;
@@ -14,7 +14,7 @@ export interface Colors {
 }
 
 export function buildColors(paletteId: string, mode: ResolvedMode): Colors {
-  const n = NEUTRALS[mode];
+  const n = neutralsFor(paletteId, mode);
   const t = getPalette(paletteId)[mode];
   return {
     background: n.background, foreground: n.foreground, card: n.card, secondary: n.secondary, secondaryFg: n.secondaryFg, mutedFg: n.mutedFg, border: n.border,
@@ -31,6 +31,10 @@ const STORAGE_KEY = 'ss-theme';
 interface ThemeContextType extends Prefs {
   colors: Colors;
   resolvedMode: ResolvedMode;
+  /** a paleta só existe em um modo (ex.: Programador, sempre escuro) */
+  modeLocked: boolean;
+  /** fonte monoespaçada (tema Programador) */
+  mono: boolean;
   /** aplica um tamanho de fonte respeitando a preferência do aluno */
   fs: (size: number) => number;
   /** muda na hora e salva no servidor (quando logado) */
@@ -60,7 +64,9 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (user) setPrefs(sanitize({ mode: user.theme, palette: user.palette, fontScale: user.fontScale }));
   }, [user?._id, user?.theme, user?.palette, user?.fontScale]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const resolvedMode: ResolvedMode = prefs.mode === 'system' ? (system === 'dark' ? 'dark' : 'light') : prefs.mode;
+  const chosenMode: ResolvedMode = prefs.mode === 'system' ? (system === 'dark' ? 'dark' : 'light') : prefs.mode;
+  const resolvedMode = effectiveMode(prefs.palette, chosenMode);
+  const palette = getPalette(prefs.palette);
   const colors = useMemo(() => buildColors(prefs.palette, resolvedMode), [prefs.palette, resolvedMode]);
 
   const update = useCallback((changes: Partial<Prefs>) => {
@@ -79,8 +85,8 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [user, savePreferences]);
 
   const value = useMemo(
-    () => ({ ...prefs, colors, resolvedMode, fs: (size: number) => Math.round(size * prefs.fontScale), update }),
-    [prefs, colors, resolvedMode, update]
+    () => ({ ...prefs, colors, resolvedMode, modeLocked: !!palette.forceMode, mono: palette.font === 'mono', fs: (size: number) => Math.round(size * prefs.fontScale), update }),
+    [prefs, colors, resolvedMode, palette, update]
   );
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };

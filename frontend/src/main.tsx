@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import '@fontsource-variable/inter';
 import '@fontsource-variable/plus-jakarta-sans';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/700.css';
 import './index.css'
 import i18n from './i18n';
 import { initTheme } from './theme/applyTheme';

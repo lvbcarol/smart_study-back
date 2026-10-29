@@ -1,7 +1,7 @@
 // Componentes visuais do app, sobre os tokens do tema (mesma identidade do web)
 import React, { ReactNode, useRef, useState } from 'react';
 import {
-  ActivityIndicator, KeyboardAvoidingView, Pressable, RefreshControl, ScrollView, StyleProp, Text as RNText, TextInput, TextInputProps, TextStyle, View, ViewStyle,
+  ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, StyleProp, Text as RNText, TextInput, TextInputProps, TextStyle, View, ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,16 +20,19 @@ const SIZES: Record<Variant, { size: number; weight: TextStyle['fontWeight']; li
   label: { size: 14, weight: '600', line: 20 },
 };
 
+// sem dependência extra: cada sistema já traz uma fonte monoespaçada
+const MONO_FONT = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'ui-monospace, Menlo, Consolas, monospace' });
+
 interface TProps { variant?: Variant; color?: string; style?: StyleProp<TextStyle>; children?: ReactNode; numberOfLines?: number; align?: TextStyle['textAlign']; selectable?: boolean; accessibilityLiveRegion?: 'none' | 'polite' | 'assertive' }
 
 export const T: React.FC<TProps> = ({ variant = 'body', color, style, children, numberOfLines, align, selectable, accessibilityLiveRegion }) => {
-  const { colors, fs } = useTheme();
+  const { colors, fs, mono } = useTheme();
   const v = SIZES[variant];
   const defaultColor = variant === 'muted' || variant === 'small' ? colors.mutedFg : colors.foreground;
   return (
     <RNText
       selectable={selectable} numberOfLines={numberOfLines} accessibilityLiveRegion={accessibilityLiveRegion}
-      style={[{ fontSize: fs(v.size), fontWeight: v.weight, lineHeight: v.line ? fs(v.line) : undefined, color: color ?? defaultColor, textAlign: align }, style]}
+      style={[{ fontFamily: mono ? MONO_FONT : undefined, fontSize: fs(v.size), fontWeight: v.weight, lineHeight: v.line ? fs(v.line) : undefined, color: color ?? defaultColor, textAlign: align }, style]}
     >
       {children}
     </RNText>

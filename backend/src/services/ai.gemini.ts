@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { normalizeQuestion, Question, questionSchema } from '../quiz/questions';
 import type { AIService, FlashcardDraft, QuizGenInput } from './ai.service';
 
-const isPt = (language?: string) => !!language && language.toLowerCase().startsWith('pt');
+import { aiLanguageName } from './lang';
 
 const TYPE_HELP: Record<string, string> = {
   multiple_choice: 'multiple_choice: "options" (exactly 4 strings) and "correctAnswerIndex" (0-3)',
@@ -35,9 +35,7 @@ export function createGeminiService(): AIService {
     });
 
   const buildQuizPrompt = ({ topic, context, language, plan, materials }: QuizGenInput) => {
-    const lang = isPt(language)
-      ? 'All text in your JSON (questions, options, explanations, rubrics) MUST be in Brazilian Portuguese.'
-      : 'All text in your JSON (questions, options, explanations, rubrics) MUST be in English.';
+    const lang = `All text in your JSON (questions, options, explanations, rubrics) MUST be in ${aiLanguageName(language)}.`;
     const mix = Object.entries(plan.mix).filter(([, n]) => n > 0);
     const reinforce = plan.reinforce
       .map((r, i) => `${i + 1}. concept "${r.topic}", type ${r.suggestedType}. The student missed this before: "${r.originalQuestion}"`)
@@ -72,9 +70,7 @@ Return only the JSON.`;
 
   return {
     async summarize({ topic, context, language, materials }) {
-      const langInstruction = isPt(language)
-        ? 'Your entire response MUST be in Brazilian Portuguese.'
-        : 'Your entire response MUST be in English.';
+      const langInstruction = `Your entire response MUST be in ${aiLanguageName(language)}.`;
 
       const prompt = `
       You are "StudyBot", a friendly and didactic AI tutor for university students.
@@ -97,7 +93,7 @@ Return only the JSON.`;
     },
 
     async chat({ message, history, context, language, materials }) {
-      const lang = isPt(language) ? 'Brazilian Portuguese' : 'English';
+      const lang = aiLanguageName(language);
       const transcript = history
         .slice(-12)
         .map((m) => `${m.sender === 'user' ? 'Student' : 'StudyBot'}: ${m.text}`)
@@ -120,7 +116,7 @@ StudyBot:`;
     },
 
     async generateFlashcards({ topic, context, language, count, materials }) {
-      const lang = isPt(language) ? 'Brazilian Portuguese' : 'English';
+      const lang = aiLanguageName(language);
       const prompt = `
 You are an expert tutor creating spaced-repetition flashcards for a university student. Write in ${lang}.
 Topic: "${topic}"
@@ -159,7 +155,7 @@ Respond with JSON only: {"cards": [{"front": string, "back": string, "topic": st
       const scenario = question.type === 'real_case' ? `Scenario: ${question.scenario}\n` : '';
       const prompt = `
 You are a fair, encouraging teacher grading one student answer.
-Write the feedback in ${isPt(language) ? 'Brazilian Portuguese' : 'English'}.
+Write the feedback in ${aiLanguageName(language)}.
 ${scenario}Question: ${question.question}
 Model answer: ${expected}
 Rubric (key points):

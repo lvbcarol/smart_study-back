@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
 import api, { setUnauthorizedHandler, TOKEN_KEY } from '@/services/api';
 import { getItem, removeItem, setItem } from '@/services/storage';
-import i18n, { shortLang } from '@/i18n';
+import i18n, { serverLang, shortLang } from '@/i18n';
 import type { User } from '@/types';
 
 export type PreferenceChanges = Partial<Pick<User, 'name' | 'language' | 'theme' | 'palette' | 'fontScale' | 'weeklyGoalMinutes'>>;
@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // o app só cria contas de aluno
   const register = async (name: string, email: string, password: string) => {
-    await api.post('/usuario/register', { name, email, password, role: 'student', language: shortLang(i18n.language) === 'pt' ? 'pt-BR' : 'en-US' });
+    await api.post('/usuario/register', { name, email, password, role: 'student', language: serverLang(i18n.language) });
   };
 
   const savePreferences = async (changes: PreferenceChanges) => {

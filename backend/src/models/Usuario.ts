@@ -8,7 +8,7 @@ export interface IUsuario extends Document {
   email: string;
   password: string;
   role: Role;
-  language: 'en-US' | 'pt-BR';
+  language: 'en-US' | 'pt-BR' | 'es-ES';
   accessibility: {
     audioDescription: boolean;
     signLanguage: boolean;
@@ -29,7 +29,7 @@ const UsuarioSchema: Schema = new Schema<IUsuario>({
   role: { type: String, enum: ['student', 'teacher'], default: 'student' },
   language: {
     type: String,
-    enum: ['en-US', 'pt-BR'],
+    enum: ['en-US', 'pt-BR', 'es-ES'],
     default: 'en-US', // Inglês como padrão
   },
   accessibility: {

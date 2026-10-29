@@ -1,5 +1,5 @@
 // src/theme/applyTheme.ts
-import { NEUTRALS, getPalette, isPaletteId, DEFAULT_PALETTE, PaletteId, ResolvedMode } from './palettes';
+import { getPalette, isPaletteId, DEFAULT_PALETTE, effectiveMode, neutralsFor, PaletteId, ResolvedMode } from './palettes';
 import type { ThemeMode } from '../types';
 
 export interface ThemePrefs {
@@ -39,7 +39,7 @@ export function resolveMode(mode: ThemeMode): ResolvedMode {
 }
 
 export function buildThemeVars(paletteId: string, mode: ResolvedMode): Record<string, string> {
-  const n = NEUTRALS[mode];
+  const n = neutralsFor(paletteId, mode);
   const t = getPalette(paletteId)[mode];
   const vars: Record<string, string> = {
     '--background': n.background,
@@ -71,13 +71,14 @@ export function buildThemeVars(paletteId: string, mode: ResolvedMode): Record<st
 
 /** Escreve os tokens no <html>. Retorna o modo efetivo (claro/escuro). */
 export function applyTheme(prefs: ThemePrefs): ResolvedMode {
-  const resolved = resolveMode(prefs.mode);
+  const resolved = effectiveMode(prefs.palette, resolveMode(prefs.mode));
   const root = document.documentElement;
   for (const [key, value] of Object.entries(buildThemeVars(prefs.palette, resolved))) {
     root.style.setProperty(key, value);
   }
   root.dataset.theme = resolved;
   root.dataset.palette = prefs.palette;
+  root.dataset.font = getPalette(prefs.palette).font ?? 'default';
   root.classList.toggle('dark', resolved === 'dark');
   root.style.colorScheme = resolved;
   root.style.fontSize = `${16 * prefs.fontScale}px`;

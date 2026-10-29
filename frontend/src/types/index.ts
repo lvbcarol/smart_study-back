@@ -7,7 +7,7 @@ export interface User {
   name: string;
   email: string;
   role: Role;
-  language: 'en-US' | 'pt-BR';
+  language: 'en-US' | 'pt-BR' | 'es-ES';
   accessibility: {
     audioDescription: boolean;
     signLanguage: boolean;

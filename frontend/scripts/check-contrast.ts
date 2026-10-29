@@ -1,6 +1,6 @@
 // scripts/check-contrast.ts — valida WCAG AA de todas as paletas nos dois modos.
 // Uso: npm run check:contrast
-import { PALETTES, NEUTRALS } from '../src/theme/palettes.ts';
+import { PALETTES, neutralsFor } from '../src/theme/palettes.ts';
 
 function channel(v: number) {
   const s = v / 255;
@@ -30,8 +30,10 @@ let failures = 0;
 let total = 0;
 
 for (const mode of ['light', 'dark'] as const) {
-  const n = NEUTRALS[mode];
   for (const p of PALETTES) {
+    // temas que fixam o modo (ex.: Programador, sempre escuro) só valem nele
+    if (p.forceMode && p.forceMode !== mode) continue;
+    const n = neutralsFor(p.id, mode);
     const t = p[mode];
     const checks: Check[] = [
       { label: 'texto / fundo', fg: n.foreground, bg: n.background, min: 4.5 },
@@ -69,4 +71,4 @@ if (failures > 0) {
   console.error(`\n${failures} de ${total} verificações falharam.`);
   process.exit(1);
 }
-console.log(`✓ ${total} verificações de contraste passaram (WCAG AA) em ${PALETTES.length} paletas × 2 modos.`);
+console.log(`✓ ${total} verificações de contraste passaram (WCAG AA) em ${PALETTES.length} paletas (cada uma nos modos em que existe).`);

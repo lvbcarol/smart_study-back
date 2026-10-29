@@ -6,6 +6,7 @@ type Shape<T> = { [K in keyof T]: T[K] extends string ? string : Shape<T[K]> };
 const en: Shape<typeof pt> = {
   common: { loading: 'Loading...', save: 'Save', cancel: 'Cancel', back: 'Back', retry: 'Try again', error: 'Something went wrong. Please try again.', create: 'Create', showPassword: 'Show password', hidePassword: 'Hide password' },
   auth: {
+    bobAlt: 'Bob, the Smart Study robot teacher, wearing a graduation cap and glasses', bobLogin: "Hi! I'm Bob. Shall we study together today?", bobRegister: "So glad you're here! I'll help you every step of the way.",
     tagline: 'Study calmly. Learn clearly.',
     loginTitle: 'Good to see you again', loginSubtitle: 'Log in to continue studying.',
     email: 'E-mail', emailPlaceholder: 'you@email.com', password: 'Password', passwordPlaceholder: 'Your password',
@@ -113,6 +114,7 @@ const en: Shape<typeof pt> = {
   profile: {
     title: 'My profile', role: 'Student', appearance: 'Appearance', mode: 'Color mode', light: 'Light', dark: 'Dark', system: 'System', palette: 'Color palette',
     textSize: 'Text size', sizes: { small: 'Small', normal: 'Normal', large: 'Large' }, language: 'Language', logout: 'Log out', saveError: 'Could not save.',
+    modeLocked: 'This theme only exists in dark mode. Pick another palette to switch between light and dark.',
   },
   teacher: { title: 'Teacher profile', text: 'The Smart Study app is for students. Classes, materials, tasks and results live on the website.', logout: 'Log out' },
 };

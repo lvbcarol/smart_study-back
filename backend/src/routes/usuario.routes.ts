@@ -27,7 +27,7 @@ const loginSchema = z.object({
 
 const updateMeSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
-  language: z.enum(['en-US', 'pt-BR']).optional(),
+  language: z.enum(['en-US', 'pt-BR', 'es-ES']).optional(),
   accessibility: z.object({
     audioDescription: z.boolean().optional(),
     signLanguage: z.boolean().optional(),

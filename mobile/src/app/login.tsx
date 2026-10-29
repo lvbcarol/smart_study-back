@@ -4,6 +4,7 @@ import { Link, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/theme/ThemeContext';
+import { AuthHero } from '@/components/AuthHero';
 import { Button, Field, Screen, T } from '@/ui';
 
 export default function Login() {
@@ -30,7 +31,8 @@ export default function Login() {
   };
 
   return (
-    <Screen contentStyle={{ paddingTop: 48 }}>
+    <Screen contentStyle={{ paddingTop: 24 }}>
+      <AuthHero pose="wave" message={t('auth.bobLogin')} />
       <View style={{ gap: 6 }}>
         <T variant="small" color={colors.primary} style={{ fontWeight: '800', letterSpacing: 1 }}>SMART STUDY</T>
         <T variant="display">{t('auth.loginTitle')}</T>

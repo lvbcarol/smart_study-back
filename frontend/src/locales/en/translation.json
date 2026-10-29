@@ -468,6 +468,10 @@
     "optional": "optional"
   },
   "auth": {
+    "bobAlt": "Bob, the Smart Study robot teacher, wearing a graduation cap and glasses",
+    "bobLogin": "Hi! I'm Bob. Shall we study together today?",
+    "bobRegister": "So glad you're here! I'll help you every step of the way.",
+    "bobForgot": "Hmm… no worries, we'll sort this out in a jiffy.",
     "brandTagline": "Study calmly. Learn clearly.",
     "brandSubtitle": "AI-made summaries, quizzes and flashcards in a cozy space that adapts to how you study.",
     "loginTitle": "Good to see you again",
@@ -522,6 +526,7 @@
     "genericError": "Something went wrong. Please try again."
   },
   "profile": {
+    "modeLocked": "This theme only exists in dark mode. Pick another palette to switch between light and dark.",
     "title": "My profile",
     "subtitle": "Make Smart Study yours.",
     "account": "Account",

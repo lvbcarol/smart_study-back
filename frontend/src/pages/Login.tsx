@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ds/Button';
 import { Field } from '../components/ds/Field';
+import { Mascot } from '../components/mascot/Mascot';
 
 const Login: React.FC = () => {
   const { t } = useTranslation();
@@ -33,6 +34,7 @@ const Login: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
+        <Mascot pose="wave" size={96} className="lg:hidden" />
         <h1 className="text-3xl font-extrabold tracking-tight">{t('auth.loginTitle')}</h1>
         <p className="text-muted-foreground">{t('auth.loginSubtitle')}</p>
       </div>

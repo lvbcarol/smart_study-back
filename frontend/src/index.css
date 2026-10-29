@@ -54,6 +54,31 @@
   animation: quiz-slide 0.28s ease-out backwards;
 }
 
+/* Bob, o robô-professor: balança de leve, pisca e acena (o "reduzir movimento" do sistema desliga tudo) */
+@keyframes mascot-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes mascot-blink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+@keyframes mascot-wave { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+.mascot-bob { animation: mascot-bob 3.6s ease-in-out infinite; }
+.mascot-eye { animation: mascot-blink 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.mascot-wave { animation: mascot-wave 1.2s ease-in-out infinite; }
+
+/* Tema Programador: fonte de código e títulos coloridos, como num editor escuro */
+[data-font='mono'] body,
+[data-font='mono'] .font-display,
+[data-font='mono'] .font-sans,
+[data-font='mono'] button,
+[data-font='mono'] input,
+[data-font='mono'] select,
+[data-font='mono'] textarea {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+[data-palette='dev'] h1 { color: hsl(var(--chart-2)); }
+[data-palette='dev'] h2 { color: hsl(var(--chart-3)); }
+[data-palette='dev'] h3 { color: hsl(var(--chart-4)); }
+/* o texto alternativo vazio (depois da barra) impede leitores de tela de ler os símbolos decorativos */
+[data-palette='dev'] h1::before { content: '> ' / ''; color: hsl(var(--primary)); }
+[data-palette='dev'] h2::before { content: '// ' / ''; color: hsl(var(--muted-foreground)); font-weight: 400; }
+
 /* Texto em Markdown (respostas da IA) usando os tokens do tema */
 .prose-themed {
   --tw-prose-body: hsl(var(--foreground));

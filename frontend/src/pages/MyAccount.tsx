@@ -23,13 +23,13 @@ const Section: React.FC<{ title: string; description?: string; children: React.R
   </section>
 );
 
-const Choice: React.FC<{ checked: boolean; onSelect: () => void; label: string; children?: React.ReactNode; className?: string }> = ({
-  checked, onSelect, label, children, className,
+const Choice: React.FC<{ checked: boolean; onSelect: () => void; label: string; children?: React.ReactNode; className?: string; disabled?: boolean }> = ({
+  checked, onSelect, label, children, className, disabled,
 }) => (
   <button
-    type="button" role="radio" aria-checked={checked} aria-label={label} onClick={onSelect}
+    type="button" role="radio" aria-checked={checked} aria-label={label} onClick={onSelect} disabled={disabled}
     className={cn(
-      'relative rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+      'relative rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
       checked ? 'border-primary bg-accent text-accent-foreground' : 'border-border bg-card hover:bg-secondary',
       className
     )}
@@ -42,7 +42,7 @@ const Choice: React.FC<{ checked: boolean; onSelect: () => void; label: string; 
 const MyAccount: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user, savePreferences } = useAuth();
-  const { mode, palette, fontScale, resolvedMode, setMode, setPalette, setFontScale } = useTheme();
+  const { mode, palette, fontScale, resolvedMode, modeLocked, setMode, setPalette, setFontScale } = useTheme();
 
   const [name, setName] = useState(user?.name ?? '');
   const [language, setLanguage] = useState(user?.language ?? 'pt-BR');
@@ -146,9 +146,10 @@ const MyAccount: React.FC = () => {
       )}
 
       <Section title={t('profile.appearance')} description={t('profile.appearanceDesc')}>
+        {modeLocked && <p role="note" className="rounded-xl bg-accent px-4 py-2 text-sm text-accent-foreground">{t('profile.modeLocked')}</p>}
         <div role="radiogroup" aria-label={t('profile.mode')} className="grid grid-cols-3 gap-3">
           {modes.map((m) => (
-            <Choice key={m.id} checked={mode === m.id} onSelect={() => setMode(m.id)} label={m.label}>
+            <Choice key={m.id} checked={mode === m.id} onSelect={() => setMode(m.id)} label={m.label} disabled={modeLocked}>
               <span className="flex flex-col items-center gap-1.5 py-1 text-sm font-semibold">{m.icon}{m.label}</span>
             </Choice>
           ))}
@@ -188,8 +189,8 @@ const MyAccount: React.FC = () => {
       </Section>
 
       <Section title={t('profile.language')}>
-        <div role="radiogroup" aria-label={t('profile.language')} className="grid grid-cols-2 gap-3">
-          {([['pt-BR', 'Português (BR)'], ['en-US', 'English (US)']] as const).map(([id, label]) => (
+        <div role="radiogroup" aria-label={t('profile.language')} className="grid gap-3 sm:grid-cols-3">
+          {([['pt-BR', 'Português (BR)'], ['es-ES', 'Español'], ['en-US', 'English (US)']] as const).map(([id, label]) => (
             <Choice
               key={id} checked={language === id} label={label}
               onSelect={() => { setLanguage(id); i18n.changeLanguage(id.split('-')[0]); }}
