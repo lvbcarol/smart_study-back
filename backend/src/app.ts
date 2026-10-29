@@ -15,6 +15,7 @@ import resultsRoutes from './routes/results.routes';
 import flashcardsRoutes from './routes/flashcards.routes';
 import agendaRoutes from './routes/agenda.routes';
 import studyRoutes from './routes/study.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 
 export function createApp() {
   const app = express();
@@ -54,6 +55,7 @@ export function createApp() {
   app.use('/api/progress', progressRoutes);
   app.use('/api/agenda', agendaRoutes);
   app.use('/api/study', studyRoutes);
+  app.use('/api/dashboard', dashboardRoutes);
 
   return app;
 }

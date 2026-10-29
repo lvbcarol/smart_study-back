@@ -15,6 +15,8 @@ export interface User {
   /** turmas em que o aluno está matriculado (vazio = aluno avulso) */
   turmas?: StudentTurma[];
   linked?: boolean;
+  /** meta de estudo da semana, em minutos (0 = sem meta) */
+  weeklyGoalMinutes?: number;
 }
 
 export interface StudentTurma { _id: string; name: string; teacherName: string }
@@ -125,3 +127,21 @@ export interface PlanBlock {
   link: { type: 'task' | 'quiz' | 'flashcards' | 'lesson' | 'agenda'; id?: string }; done: boolean;
 }
 export interface StudyPlan { day: string; minutes: number; intro: string; blocks: PlanBlock[] }
+
+export interface StudyWeek {
+  days: { date: string; minutes: number }[]; totalMinutes: number; goalMinutes: number;
+  byKind: Record<string, number>; bySubject: { notebookId: string; title: string; minutes: number }[];
+}
+
+export interface StudentDashboard {
+  range: number;
+  kpis: {
+    average: number | null; attempts: number; tasksSubmitted: number; tasksPending: number; streakDays: number;
+    flashcardsDue: number; flashcardsLearned: number; studyMinutesWeek: number; goalMinutes: number;
+  };
+  timeline: { date: string; average: number; attempts: number }[];
+  subjects: { notebookId: string; title: string; average: number; attempts: number; lessons: { lessonId: string; title: string; average: number; attempts: number }[] }[];
+  byType: { type: 'multiple_choice' | 'fill_blank' | 'open_text' | 'practical' | 'real_case'; answered: number; accuracy: number | null }[];
+  weakTopics: { topic: string; lessonId: string; lesson: string; notebook: string; errorRate: number }[];
+  study: StudyWeek;
+}

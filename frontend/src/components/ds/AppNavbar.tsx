@@ -24,6 +24,7 @@ const AppNavbar: React.FC = () => {
       ? [
           { to: '/home', label: t('navbar.teacherHome') },
           { to: '/classes', label: t('navbar.teacherClasses') },
+          { to: '/results', label: t('navbar.results') },
           { to: '/my-notebooks', label: t('navbar.teacherNotebooks') },
           { to: '/tasks', label: t('navbar.tasks') },
         ]

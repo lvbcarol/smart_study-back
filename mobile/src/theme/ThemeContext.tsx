@@ -9,6 +9,8 @@ export interface Colors {
   background: string; foreground: string; card: string; secondary: string; secondaryFg: string; mutedFg: string; border: string;
   primary: string; primaryFg: string; accent: string; accentFg: string;
   destructive: string; destructiveFg: string; success: string; warning: string;
+  /** cinco cores de gráfico da paleta, em ordem fixa */
+  charts: readonly string[];
 }
 
 export function buildColors(paletteId: string, mode: ResolvedMode): Colors {
@@ -18,6 +20,7 @@ export function buildColors(paletteId: string, mode: ResolvedMode): Colors {
     background: n.background, foreground: n.foreground, card: n.card, secondary: n.secondary, secondaryFg: n.secondaryFg, mutedFg: n.mutedFg, border: n.border,
     primary: t.primary, primaryFg: t.primaryFg, accent: t.accent, accentFg: t.accentFg,
     destructive: n.destructive, destructiveFg: n.destructiveFg, success: n.success, warning: n.warning,
+    charts: t.charts,
   };
 }
 

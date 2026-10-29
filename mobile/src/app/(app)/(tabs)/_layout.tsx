@@ -31,6 +31,7 @@ export default function TabsLayout() {
       {tab('notebooks', t('tabs.notebooks'), 'book-outline')}
       {tab('agenda', t('tabs.agenda'), 'calendar-outline')}
       {tab('flashcards', t('tabs.flashcards'), 'layers-outline')}
+      {tab('performance', t('tabs.performance'), 'stats-chart-outline')}
       {tab('profile', t('tabs.profile'), 'person-outline')}
     </Tabs>
   );

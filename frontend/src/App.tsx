@@ -37,6 +37,7 @@ import TaskEditorPage from './pages/TaskEditorPage';
 import StudentResultsPage from './pages/StudentResultsPage';
 import AttemptViewPage from './pages/AttemptViewPage';
 import AgendaPage from './pages/AgendaPage';
+import ResultsPage from './pages/ResultsPage';
 import FlashcardsPage from './pages/FlashcardsPage';
 import FlashcardStudyPage from './pages/FlashcardStudyPage';
 import NotFound from './pages/NotFound';
@@ -103,6 +104,7 @@ const AppContent: React.FC = () => {
 
           {/* Só professores */}
           <Route element={<ProtectedRoute roles={['teacher']} />}>
+            <Route path="/results" element={<ResultsPage />} />
             <Route path="/classes" element={<TurmasPage />} />
             <Route path="/classes/:turmaId" element={<TurmaDetailPage />} />
             <Route path="/classes/:turmaId/students/:studentId" element={<StudentResultsPage />} />

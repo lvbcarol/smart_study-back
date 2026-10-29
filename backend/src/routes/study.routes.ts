@@ -3,14 +3,14 @@ import { Router, Response } from 'express';
 import { Types } from 'mongoose';
 import { z } from 'zod';
 import { authMiddleware, requireRole } from '../middleware/auth.middleware';
-import Notebook from '../models/Notebook';
 import StudyPlan from '../models/StudyPlan';
 import StudySession, { SESSION_KINDS } from '../models/StudySession';
 import Usuario from '../models/Usuario';
 import { findLessonAccess } from '../services/access';
-import { clampOffset, lastDays, localDay } from '../study/dates';
+import { clampOffset, localDay } from '../study/dates';
 import { loadPlanInput } from '../study/planData';
 import { buildStudyPlan } from '../study/planner';
+import { studyWeek } from '../study/week';
 import { AuthRequest } from '../types';
 import { parseBody } from '../utils/validate';
 
@@ -69,33 +69,7 @@ router.post('/sessions', async (req: AuthRequest, res: Response) => {
 // GET /week?tzOffset= — minutos por dia nos últimos 7 dias, por atividade e por matéria, e a meta
 router.get('/week', async (req: AuthRequest, res: Response) => {
   try {
-    const tz = offsetFrom(req.query.tzOffset);
-    const days = lastDays(new Date(), tz, 7);
-    const [sessions, user] = await Promise.all([
-      StudySession.find({ user: req.userId, day: { $in: days } }).select('day kind notebook seconds').lean(),
-      Usuario.findById(req.userId).select('weeklyGoalMinutes').lean(),
-    ]);
-
-    const perDay = new Map(days.map((d) => [d, 0]));
-    const byKind: Record<string, number> = {};
-    const byNotebookId = new Map<string, number>();
-    for (const s of sessions) {
-      perDay.set(s.day, (perDay.get(s.day) ?? 0) + s.seconds);
-      byKind[s.kind] = (byKind[s.kind] ?? 0) + s.seconds;
-      if (s.notebook) byNotebookId.set(String(s.notebook), (byNotebookId.get(String(s.notebook)) ?? 0) + s.seconds);
-    }
-    const toMin = (sec: number) => Math.round(sec / 60);
-    const notebooks = await Notebook.find({ _id: { $in: [...byNotebookId.keys()] } }).select('title').lean();
-    const title = new Map(notebooks.map((n) => [String(n._id), n.title]));
-
-    const totalSeconds = [...perDay.values()].reduce((a, b) => a + b, 0);
-    res.json({
-      days: days.map((d) => ({ date: d, minutes: toMin(perDay.get(d) ?? 0) })),
-      totalMinutes: toMin(totalSeconds),
-      goalMinutes: user?.weeklyGoalMinutes ?? 0,
-      byKind: Object.fromEntries(Object.entries(byKind).map(([k, v]) => [k, toMin(v)])),
-      bySubject: [...byNotebookId].map(([id, sec]) => ({ notebookId: id, title: title.get(id) ?? '', minutes: toMin(sec) })).sort((a, b) => b.minutes - a.minutes),
-    });
+    res.json(await studyWeek(req.userId as string, offsetFrom(req.query.tzOffset)));
   } catch {
     res.status(500).json({ error: 'Error fetching study time.' });
   }

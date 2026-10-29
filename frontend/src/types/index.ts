@@ -19,6 +19,8 @@ export interface User {
   /** só para alunos: turmas em que está matriculado (vazio = aluno avulso) */
   turmas?: StudentTurma[];
   linked?: boolean;
+  /** meta de estudo da semana, em minutos (0 = sem meta) */
+  weeklyGoalMinutes?: number;
 }
 
 export interface StudentTurma {

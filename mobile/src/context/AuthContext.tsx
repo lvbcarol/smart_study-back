@@ -4,7 +4,7 @@ import { getItem, removeItem, setItem } from '@/services/storage';
 import i18n, { shortLang } from '@/i18n';
 import type { User } from '@/types';
 
-export type PreferenceChanges = Partial<Pick<User, 'name' | 'language' | 'theme' | 'palette' | 'fontScale'>>;
+export type PreferenceChanges = Partial<Pick<User, 'name' | 'language' | 'theme' | 'palette' | 'fontScale' | 'weeklyGoalMinutes'>>;
 
 interface AuthContextType {
   user: User | null;

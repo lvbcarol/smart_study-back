@@ -19,7 +19,7 @@ interface AuthContextType {
   refreshLinks: () => Promise<void>;
 }
 
-export type PreferenceChanges = Partial<Pick<User, 'name' | 'language' | 'theme' | 'palette' | 'fontScale' | 'avatarColor'>> & {
+export type PreferenceChanges = Partial<Pick<User, 'name' | 'language' | 'theme' | 'palette' | 'fontScale' | 'avatarColor' | 'weeklyGoalMinutes'>> & {
   accessibility?: Partial<User['accessibility']>;
 };
 

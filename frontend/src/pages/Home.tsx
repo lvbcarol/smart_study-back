@@ -86,6 +86,7 @@ const Home: React.FC = () => {
             <>
               <FeatureTile to="/my-notebooks" icon={<BookOpen className={icon} />} title={t('navbar.teacherNotebooks')} description={t('myNotebooks.subtitleShort')} />
               <FeatureTile to="/classes" icon={<Users className={icon} />} title={t('home.fClasses')} description={t('home.fClassesDesc')} />
+              <FeatureTile to="/results" icon={<BarChart3 className={icon} />} title={t('navbar.results')} description={t('dash.teacherSubtitle')} />
               <FeatureTile to="/my-notebooks" icon={<FileText className={icon} />} title={t('home.fMaterials')} description={t('home.fMaterialsDesc')} />
               <FeatureTile to="/tasks" icon={<ClipboardCheck className={icon} />} title={t('home.fTasks')} description={t('home.fTasksDesc')} />
             </>

@@ -10,6 +10,8 @@ import QuizAttempt from '../models/QuizAttempt';
 import Task from '../models/Task';
 import Turma from '../models/Turma';
 import Usuario from '../models/Usuario';
+import WeaknessStat from '../models/WeaknessStat';
+import { clampOffset, localDay } from '../study/dates';
 import { AuthRequest } from '../types';
 import { QUESTION_TYPES } from '../quiz/questions';
 import { decayed, errorRateByType, smoothedErrorRate } from '../quiz/weakness';
@@ -195,6 +197,119 @@ router.get('/attempts/:attemptId', async (req: AuthRequest, res: Response) => {
     });
   } catch {
     res.status(500).json({ error: 'Error fetching attempt.' });
+  }
+});
+
+// GET /overview — resumo de todas as turmas do professor (cartões da página "Resultados")
+router.get('/overview', async (req: AuthRequest, res: Response) => {
+  try {
+    const turmas = await Turma.find({ teacher: req.userId }).sort({ createdAt: 1 }).lean();
+    const [notebooks, tasks] = await Promise.all([
+      Notebook.find({ owner: req.userId, turma: { $in: turmas.map((t) => t._id) } }).select('turma').lean(),
+      Task.find({ turma: { $in: turmas.map((t) => t._id) }, published: true }).select('turma').lean(),
+    ]);
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const rows = await Promise.all(turmas.map(async (t) => {
+      const notebookIds = notebooks.filter((n) => String(n.turma) === String(t._id)).map((n) => n._id);
+      const taskIds = tasks.filter((x) => String(x.turma) === String(t._id)).map((x) => x._id);
+      const [[agg], [submitted], active] = await Promise.all([
+        QuizAttempt.aggregate([
+          { $match: { notebook: { $in: notebookIds }, user: { $in: t.students } } },
+          { $group: { _id: null, average: { $avg: '$score' }, attempts: { $sum: 1 }, lastAt: { $max: '$createdAt' } } },
+        ]),
+        QuizAttempt.aggregate([
+          { $match: { task: { $in: taskIds }, user: { $in: t.students } } },
+          { $group: { _id: null, n: { $sum: 1 } } },
+        ]),
+        QuizAttempt.distinct('user', { notebook: { $in: notebookIds }, user: { $in: t.students }, createdAt: { $gte: weekAgo } }),
+      ]);
+      const expected = taskIds.length * t.students.length;
+      return {
+        turmaId: t._id, name: t.name, students: t.students.length,
+        average: agg ? round(agg.average) : null, attempts: agg?.attempts ?? 0, lastActivityAt: agg?.lastAt ?? null,
+        activeStudents: active.length,
+        tasksPublished: taskIds.length,
+        deliveryRate: expected ? round(((submitted?.n ?? 0) / expected) * 100) : null,
+      };
+    }));
+    res.json({ turmas: rows });
+  } catch {
+    res.status(500).json({ error: 'Error fetching overview.' });
+  }
+});
+
+// GET /turmas/:turmaId/timeline?range=7|30|90&tzOffset= — média e nº de tentativas da turma por dia
+router.get('/turmas/:turmaId/timeline', async (req: AuthRequest, res: Response) => {
+  try {
+    const turma = await ownTurma(req.params.turmaId, req.userId as string);
+    if (!turma) return res.status(404).json({ error: 'Class not found.' });
+    const range = [7, 30, 90].includes(Number(req.query.range)) ? Number(req.query.range) : 30;
+    const tz = clampOffset(typeof req.query.tzOffset === 'string' ? req.query.tzOffset : undefined);
+    const notebooks = await Notebook.find({ turma: turma._id, owner: req.userId }).select('_id').lean();
+    const attempts = await QuizAttempt.find({
+      notebook: { $in: notebooks.map((n) => n._id) }, user: { $in: turma.students },
+      createdAt: { $gte: new Date(Date.now() - range * 24 * 60 * 60 * 1000) },
+    }).select('score createdAt user').lean();
+
+    const perDay = new Map<string, { scores: number[]; users: Set<string> }>();
+    for (const a of attempts) {
+      const d = localDay(a.createdAt, tz);
+      const cur = perDay.get(d) ?? { scores: [], users: new Set<string>() };
+      cur.scores.push(a.score);
+      cur.users.add(String(a.user));
+      perDay.set(d, cur);
+    }
+    res.json({
+      range,
+      days: [...perDay.entries()].sort(([x], [y]) => x.localeCompare(y)).map(([date, v]) => ({
+        date, average: round(v.scores.reduce((a, b) => a + b, 0) / v.scores.length), attempts: v.scores.length, students: v.users.size,
+      })),
+    });
+  } catch {
+    res.status(500).json({ error: 'Error fetching timeline.' });
+  }
+});
+
+// GET /turmas/:turmaId/weakness — onde a turma mais erra, por tópico e por tipo de pergunta
+router.get('/turmas/:turmaId/weakness', async (req: AuthRequest, res: Response) => {
+  try {
+    const turma = await ownTurma(req.params.turmaId, req.userId as string);
+    if (!turma) return res.status(404).json({ error: 'Class not found.' });
+    const notebooks = await Notebook.find({ turma: turma._id, owner: req.userId }).select('title lessons').lean();
+    const lessonTitle = new Map(notebooks.flatMap((n) => n.lessons.map((l) => [String(l._id), `${n.title} · ${l.title}`] as const)));
+
+    const docs = await WeaknessStat.find({ user: { $in: turma.students }, lesson: { $in: [...lessonTitle.keys()] } }).lean();
+    const now = new Date();
+
+    const topics = new Map<string, { topic: string; lesson: string; seen: number; wrong: number; struggling: Set<string> }>();
+    const types = new Map<string, { seen: number; wrong: number }>();
+    for (const d of docs) {
+      const dec = decayed(d, now);
+      const key = `${d.lesson}:${d.topicKey}`;
+      const t = topics.get(key) ?? { topic: d.topic, lesson: lessonTitle.get(String(d.lesson)) ?? '', seen: 0, wrong: 0, struggling: new Set<string>() };
+      t.seen += dec.seen; t.wrong += dec.wrong;
+      if (dec.wrong >= 0.5) t.struggling.add(String(d.user));
+      topics.set(key, t);
+      const ty = types.get(d.type) ?? { seen: 0, wrong: 0 };
+      ty.seen += dec.seen; ty.wrong += dec.wrong;
+      types.set(d.type, ty);
+    }
+
+    res.json({
+      studentsTotal: turma.students.length,
+      topics: [...topics.values()]
+        .filter((t) => t.seen >= 2)
+        .map((t) => ({ topic: t.topic, lesson: t.lesson, errorRate: round(smoothedErrorRate(t.seen, t.wrong) * 100), answers: Math.round(t.seen), students: t.struggling.size }))
+        .sort((a, b) => b.errorRate * Math.sqrt(b.answers) - a.errorRate * Math.sqrt(a.answers))
+        .slice(0, 10),
+      byType: QUESTION_TYPES.map((type) => {
+        const ty = types.get(type);
+        return { type, answers: ty ? Math.round(ty.seen) : 0, accuracy: ty && ty.seen >= 1 ? round((1 - ty.wrong / ty.seen) * 100) : null };
+      }),
+    });
+  } catch {
+    res.status(500).json({ error: 'Error fetching class weakness.' });
   }
 });
 
